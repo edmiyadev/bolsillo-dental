@@ -13,8 +13,8 @@ enum CommissionType: string implements HasColor, HasLabel
     public function getLabel(): string
     {
         return match ($this) {
-            self::Fixed => 'Fixed',
-            self::Percentage => 'Percentage',
+            self::Fixed => __('Fixed'),
+            self::Percentage => __('Percentage'),
         };
     }
 

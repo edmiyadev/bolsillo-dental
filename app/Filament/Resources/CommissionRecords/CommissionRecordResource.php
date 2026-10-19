@@ -20,6 +20,21 @@ class CommissionRecordResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 
+    public static function getModelLabel(): string
+    {
+        return __('Commission record');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Commission records');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Commission records');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return CommissionRecordForm::configure($schema);

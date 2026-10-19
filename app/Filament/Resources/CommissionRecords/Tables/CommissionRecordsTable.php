@@ -29,49 +29,60 @@ class CommissionRecordsTable
         return $table
             ->columns([
                 TextColumn::make('worked_at')
+                    ->label(__('Worked at'))
                     ->date()
                     ->sortable(),
                 TextColumn::make('service.name')
+                    ->label(__('Service'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('price')
+                    ->label(__('Price'))
                     ->money()
                     ->sortable()
-                    ->placeholder('-')
-                    ->summarize(Sum::make()->money()),
+                    ->placeholder('-'),
                 TextColumn::make('commission')
-                    ->numeric(decimalPlaces: 2)
+                    ->label(__('Commission'))
+                    ->numeric(decimalPlaces: 2, decimalSeparator: '.')
                     ->prefix(fn (CommissionRecord $record): ?string => $record->commission_type === CommissionType::Fixed ? '$' : null)
                     ->suffix(fn (CommissionRecord $record): ?string => $record->commission_type === CommissionType::Percentage ? '%' : null)
                     ->sortable(),
                 TextColumn::make('commission_type')
+                    ->label(__('Commission type'))
                     ->badge()
                     ->sortable(),
                 TextColumn::make('calculated_earnings')
-                    ->money()
+                    ->label(__('Calculated earnings'))
+                    ->prefix('$')
                     ->sortable()
-                    ->summarize(Sum::make()->money()),
+                    ->summarize(Sum::make()->numeric(decimalPlaces: 2, decimalSeparator: '.')->prefix('$')),
                 TextColumn::make('status')
+                    ->label(__('Status'))
                     ->badge()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('Created at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('Updated at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
+                    ->label(__('Status'))
                     ->options(CommissionStatus::class),
                 SelectFilter::make('service')
+                    ->label(__('Service'))
                     ->relationship('service', 'name'),
                 Filter::make('worked_at')
+                    ->label(__('Worked at'))
                     ->schema([
-                        DatePicker::make('from'),
-                        DatePicker::make('until'),
+                        DatePicker::make('from')->label(__('From')),
+                        DatePicker::make('until')->label(__('Until')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -87,6 +98,7 @@ class CommissionRecordsTable
             ])
             ->recordActions([
                 Action::make('markAsPaid')
+                    ->label(__('Mark as paid'))
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->color('success')
                     ->visible(fn (CommissionRecord $record): bool => $record->status !== CommissionStatus::Paid)
@@ -95,7 +107,7 @@ class CommissionRecordsTable
                         $markAsPaid->handle($record);
 
                         Notification::make()
-                            ->title('Commission record marked as paid')
+                            ->title(__('Commission record marked as paid'))
                             ->success()
                             ->send();
                     }),
@@ -104,6 +116,7 @@ class CommissionRecordsTable
             ->toolbarActions([
                 BulkActionGroup::make([
                     BulkAction::make('markAsPaid')
+                        ->label(__('Mark as paid'))
                         ->icon(Heroicon::OutlinedCheckCircle)
                         ->color('success')
                         ->requiresConfirmation()
@@ -111,7 +124,7 @@ class CommissionRecordsTable
                             $count = $markAsPaid->handle($records);
 
                             Notification::make()
-                                ->title("{$count} commission records marked as paid")
+                                ->title(__(':count commission records marked as paid', ['count' => $count]))
                                 ->success()
                                 ->send();
                         })

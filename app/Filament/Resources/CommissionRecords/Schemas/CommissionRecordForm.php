@@ -56,9 +56,10 @@ class CommissionRecordForm
                 Section::make()
                     ->columnSpanFull()
                     ->schema([
-                        Section::make('Procedure & Service')
+                        Section::make(__('Procedure & Service'))
                             ->schema([
                                 Select::make('service_id')
+                                    ->label(__('Service'))
                                     ->relationship('service', 'name')
                                     ->searchable()
                                     ->preload()
@@ -100,18 +101,21 @@ class CommissionRecordForm
                                         $set('calculated_earnings', number_format($earnings, 2, '.', ''));
                                     }),
                                 DatePicker::make('worked_at')
+                                    ->label(__('Worked at'))
                                     ->default(now())
                                     ->required(),
                                 Select::make('status')
+                                    ->label(__('Status'))
                                     ->options(CommissionStatus::class)
                                     ->default(CommissionStatus::Pending)
                                     ->required(),
                             ])
                             ->columns(3),
 
-                        Section::make('Financial Details')
+                        Section::make(__('Financial Details'))
                             ->schema([
                                 TextInput::make('price')
+                                    ->label(__('Price'))
                                     ->required(fn (Get $get): bool => in_array($get('commission_type'), [CommissionType::Percentage, CommissionType::Percentage->value], true))
                                     ->numeric()
                                     ->minValue(0)
@@ -119,12 +123,14 @@ class CommissionRecordForm
                                     ->live()
                                     ->afterStateUpdated($updateEarnings),
                                 Select::make('commission_type')
+                                    ->label(__('Commission type'))
                                     ->options(CommissionType::class)
                                     ->default(CommissionType::Percentage)
                                     ->required()
                                     ->live()
                                     ->afterStateUpdated($updateEarnings),
                                 TextInput::make('commission')
+                                    ->label(__('Commission'))
                                     ->required()
                                     ->numeric()
                                     ->minValue(0)
@@ -134,6 +140,7 @@ class CommissionRecordForm
                                     ->live()
                                     ->afterStateUpdated($updateEarnings),
                                 TextInput::make('calculated_earnings')
+                                    ->label(__('Calculated earnings'))
                                     ->numeric()
                                     ->prefix('$')
                                     ->readOnly()
@@ -142,9 +149,10 @@ class CommissionRecordForm
                             ])
                             ->columns(4),
 
-                        Section::make('Additional Information')
+                        Section::make(__('Additional Information'))
                             ->schema([
                                 Textarea::make('notes')
+                                    ->label(__('Notes'))
                                     ->rows(3)
                                     ->columnSpanFull(),
                             ]),
