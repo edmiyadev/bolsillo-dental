@@ -81,6 +81,46 @@ it('creates a service with a fixed commission greater than 100', function () {
     ]);
 });
 
+it('creates a service with fixed commission and empty default price', function () {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(CreateService::class)
+        ->fillForm([
+            'name' => 'Consultation',
+            'default_price' => null,
+            'commission_type' => CommissionType::Fixed->value,
+            'default_commission' => 50.00,
+        ])
+        ->call('create')
+        ->assertNotified()
+        ->assertHasNoFormErrors()
+        ->assertRedirect();
+
+    assertDatabaseHas(Service::class, [
+        'name' => 'Consultation',
+        'default_price' => null,
+        'commission_type' => CommissionType::Fixed->value,
+        'default_commission' => 50.00,
+    ]);
+});
+
+it('requires default price when commission_type is percentage', function () {
+    $this->actingAs(User::factory()->create());
+
+    Livewire::test(CreateService::class)
+        ->fillForm([
+            'name' => 'Specialist Review',
+            'default_price' => null,
+            'commission_type' => CommissionType::Percentage->value,
+            'default_commission' => 15.00,
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['default_price' => 'required'])
+        ->assertNotNotified();
+
+    assertDatabaseCount(Service::class, 0);
+});
+
 it('rejects a percentage commission greater than 100', function () {
     $this->actingAs(User::factory()->create());
 

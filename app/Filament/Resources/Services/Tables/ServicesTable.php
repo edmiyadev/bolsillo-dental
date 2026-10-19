@@ -22,7 +22,8 @@ class ServicesTable
                     ->sortable(),
                 TextColumn::make('default_price')
                     ->money()
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('-'),
                 TextColumn::make('default_commission')
                     ->numeric(decimalPlaces: 2)
                     ->prefix(fn (Service $record): ?string => $record->commission_type === CommissionType::Fixed ? '$' : null)

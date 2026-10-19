@@ -18,7 +18,7 @@ class ServiceForm
                     ->required()
                     ->maxLength(255),
                 TextInput::make('default_price')
-                    ->required()
+                    ->required(fn (Get $get): bool => in_array($get('commission_type'), [CommissionType::Percentage, CommissionType::Percentage->value], true))
                     ->numeric()
                     ->minValue(0)
                     ->prefix('$'),
