@@ -29,7 +29,11 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 COPY . .
 
 # 3. Generar autoloader optimizado, publicar assets de Filament y configurar permisos
-RUN composer dump-autoload --optimize --no-dev \
+RUN mkdir -p /var/www/storage/logs \
+        /var/www/storage/framework/cache/data \
+        /var/www/storage/framework/sessions \
+        /var/www/storage/framework/views \
+    && composer dump-autoload --optimize --no-dev \
     && php artisan filament:assets \
     && php artisan storage:link || true \
     && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache /var/www/public

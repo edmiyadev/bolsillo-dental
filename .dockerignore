@@ -22,7 +22,7 @@ public/fonts/filament
 
 vendor
 
-storage/logs
+storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/testing/*
