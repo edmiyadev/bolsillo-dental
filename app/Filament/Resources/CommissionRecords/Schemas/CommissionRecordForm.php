@@ -119,7 +119,7 @@ class CommissionRecordForm
                                     ->required(fn (Get $get): bool => in_array($get('commission_type'), [CommissionType::Percentage, CommissionType::Percentage->value], true))
                                     ->numeric()
                                     ->minValue(0)
-                                    ->prefix('$')
+                                    ->prefix('RD$')
                                     ->live()
                                     ->afterStateUpdated($updateEarnings),
                                 Select::make('commission_type')
@@ -135,14 +135,14 @@ class CommissionRecordForm
                                     ->numeric()
                                     ->minValue(0)
                                     ->maxValue(fn (Get $get): ?int => in_array($get('commission_type'), [CommissionType::Percentage, CommissionType::Percentage->value], true) ? 100 : null)
-                                    ->prefix(fn (Get $get): ?string => in_array($get('commission_type'), [CommissionType::Fixed, CommissionType::Fixed->value], true) ? '$' : null)
+                                    ->prefix(fn (Get $get): ?string => in_array($get('commission_type'), [CommissionType::Fixed, CommissionType::Fixed->value], true) ? 'RD$' : null)
                                     ->suffix(fn (Get $get): ?string => in_array($get('commission_type'), [CommissionType::Percentage, CommissionType::Percentage->value], true) ? '%' : null)
                                     ->live()
                                     ->afterStateUpdated($updateEarnings),
                                 TextInput::make('calculated_earnings')
                                     ->label(__('Calculated earnings'))
                                     ->numeric()
-                                    ->prefix('$')
+                                    ->prefix('RD$')
                                     ->readOnly()
                                     ->dehydrated()
                                     ->required(),

@@ -257,5 +257,11 @@
     "Commission record marked as paid": "Registro de comisión marcado como pagado",
     ":count commission records marked as paid": ":count registros de comisión marcados como pagados",
     "Created at": "Creado",
-    "Updated at": "Actualizado"
+    "Updated at": "Actualizado",
+    "Pending commissions": "Comisiones pendientes",
+    ":count pending payment": ":count pendientes de cobro",
+    "Total earned commissions": "Total comisiones ganadas",
+    ":count paid out": ":count pagadas",
+    "This month's commissions": "Comisiones del mes",
+    ":count procedures this month": ":count procedimientos este mes"
 }

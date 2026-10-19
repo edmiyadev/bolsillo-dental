@@ -23,13 +23,13 @@ class ServicesTable
                     ->sortable(),
                 TextColumn::make('default_price')
                     ->label(__('Default price'))
-                    ->money()
+                    ->money('DOP', locale: 'es_DO')
                     ->sortable()
                     ->placeholder('-'),
                 TextColumn::make('default_commission')
                     ->label(__('Default commission'))
-                    ->numeric(decimalPlaces: 2)
-                    ->prefix(fn (Service $record): ?string => $record->commission_type === CommissionType::Fixed ? '$' : null)
+                    ->numeric(decimalPlaces: 2, decimalSeparator: '.')
+                    ->prefix(fn (Service $record): ?string => $record->commission_type === CommissionType::Fixed ? 'RD$' : null)
                     ->suffix(fn (Service $record): ?string => $record->commission_type === CommissionType::Percentage ? '%' : null)
                     ->sortable(),
                 TextColumn::make('commission_type')

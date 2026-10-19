@@ -38,13 +38,13 @@ class CommissionRecordsTable
                     ->sortable(),
                 TextColumn::make('price')
                     ->label(__('Price'))
-                    ->money()
+                    ->money('DOP', locale: 'es_DO')
                     ->sortable()
                     ->placeholder('-'),
                 TextColumn::make('commission')
                     ->label(__('Commission'))
                     ->numeric(decimalPlaces: 2, decimalSeparator: '.')
-                    ->prefix(fn (CommissionRecord $record): ?string => $record->commission_type === CommissionType::Fixed ? '$' : null)
+                    ->prefix(fn (CommissionRecord $record): ?string => $record->commission_type === CommissionType::Fixed ? 'RD$' : null)
                     ->suffix(fn (CommissionRecord $record): ?string => $record->commission_type === CommissionType::Percentage ? '%' : null)
                     ->sortable(),
                 TextColumn::make('commission_type')
@@ -53,9 +53,9 @@ class CommissionRecordsTable
                     ->sortable(),
                 TextColumn::make('calculated_earnings')
                     ->label(__('Calculated earnings'))
-                    ->prefix('$')
+                    ->money('DOP', locale: 'es_DO')
                     ->sortable()
-                    ->summarize(Sum::make()->numeric(decimalPlaces: 2, decimalSeparator: '.')->prefix('$')),
+                    ->summarize(Sum::make()->money('DOP', locale: 'es_DO')),
                 TextColumn::make('status')
                     ->label(__('Status'))
                     ->badge()
