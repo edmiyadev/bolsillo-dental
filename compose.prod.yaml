@@ -48,7 +48,6 @@ services:
       - app_storage:/var/www/storage:ro
     networks:
       - bolsillo-dental-network
-      - proxy-network
 
   db:
     container_name: bolsillo-dental-db
@@ -72,9 +71,6 @@ services:
 networks:
   bolsillo-dental-network:
     driver: bridge
-  proxy-network:
-    name: ${PROXY_NETWORK:-mullinflow-fe_app-network}
-    external: true
 
 volumes:
   app_storage:
