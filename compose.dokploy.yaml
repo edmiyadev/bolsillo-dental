@@ -1,0 +1,80 @@
+services:
+  app:
+    container_name: bolsillo-dental-app
+    hostname: bolsillo-dental-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      APP_KEY: ${APP_KEY}
+      APP_DEBUG: ${APP_DEBUG:-false}
+      APP_URL: ${APP_URL:-http://localhost}
+      DB_CONNECTION: pgsql
+      DB_HOST: bolsillo-dental-db
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-bolsillo_dental}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+    volumes:
+      - app_storage:/var/www/storage
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bolsillo-dental-network
+
+  bolsillo-nginx:
+    container_name: bolsillo-dental-nginx
+    hostname: bolsillo-dental-nginx
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: nginx-production
+    restart: always
+    depends_on:
+      - app
+    expose:
+      - "80"
+    volumes:
+      - app_storage:/var/www/storage:ro
+    networks:
+      - bolsillo-dental-network
+      - dokploy-network
+
+  db:
+    container_name: bolsillo-dental-db
+    hostname: bolsillo-dental-db
+    image: postgres:14.3
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_DATABASE:-bolsillo_dental}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_DATABASE:-bolsillo_dental}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - bolsillo-dental-network
+
+networks:
+  bolsillo-dental-network:
+    driver: bridge
+  dokploy-network:
+    name: ${DOKPLOY_NETWORK:-dokploy-network}
+    external: true
+
+volumes:
+  app_storage:
+    driver: local
+  postgres_data:
+    driver: local

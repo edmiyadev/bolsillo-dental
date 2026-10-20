@@ -18,21 +18,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 FROM base AS development
 CMD ["php-fpm"]
 
+# --- ETAPA FRONTEND (ASSETS) ---
+FROM node:22-alpine AS frontend
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
 # --- ETAPA DE PRODUCCIÓN ---
 FROM base AS production
+
+# Configuración personalizada de PHP para producción
+COPY docker/php/production.ini /usr/local/etc/php/conf.d/custom.ini
 
 # 1. Cachear dependencias de producción de Composer
 COPY composer*.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
-# 2. Copiar código de la aplicación
+# 2. Copiar código de la aplicación y assets compilados
 COPY . .
+COPY --from=frontend /app/public/build /var/www/public/build
 
 # 3. Generar autoloader optimizado, publicar assets de Filament y configurar permisos
 RUN mkdir -p /var/www/storage/logs \
         /var/www/storage/framework/cache/data \
         /var/www/storage/framework/sessions \
         /var/www/storage/framework/views \
+        /var/www/storage/app/public \
     && composer dump-autoload --optimize --no-dev \
     && php artisan filament:assets \
     && php artisan storage:link || true \
