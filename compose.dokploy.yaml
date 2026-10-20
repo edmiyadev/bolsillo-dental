@@ -1,14 +1,13 @@
 services:
   app:
+    env_file:
+        - .env
     container_name: bolsillo-dental-app
     hostname: bolsillo-dental-app
     build:
       context: .
       dockerfile: Dockerfile
       target: production
-    env_file:
-      - path: .env
-        required: false
     environment:
       APP_ENV: ${APP_ENV:-production}
       APP_DEBUG: ${APP_DEBUG:-false}
