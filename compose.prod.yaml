@@ -1,7 +1,6 @@
 services:
   app:
     container_name: bolsillo-dental-app
-    hostname: bolsillo-dental-app
     build:
       context: .
       dockerfile: Dockerfile
@@ -9,16 +8,6 @@ services:
     env_file:
       - path: .env
         required: false
-    environment:
-      APP_ENV: ${APP_ENV:-production}
-      APP_DEBUG: ${APP_DEBUG:-false}
-      APP_URL: ${APP_URL:-http://localhost:8081}
-      DB_CONNECTION: ${DB_CONNECTION:-pgsql}
-      DB_HOST: ${DB_HOST:-bolsillo-dental-db}
-      DB_PORT: ${DB_PORT:-5432}
-      DB_DATABASE: ${DB_DATABASE:-bolsillo_dental}
-      DB_USERNAME: ${DB_USERNAME:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - app_storage:/var/www/storage
     restart: always
@@ -30,7 +19,6 @@ services:
 
   bolsillo-nginx:
     container_name: bolsillo-dental-nginx
-    hostname: bolsillo-dental-nginx
     build:
       context: .
       dockerfile: Dockerfile
@@ -40,8 +28,6 @@ services:
       - app
     ports:
       - "${APP_PORT:-8080}:80"
-    expose:
-      - "80"
     volumes:
       - app_storage:/var/www/storage:ro
     networks:
@@ -49,13 +35,12 @@ services:
 
   db:
     container_name: bolsillo-dental-db
-    hostname: bolsillo-dental-db
     image: postgres:14.3
     restart: always
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
       POSTGRES_DB: ${DB_DATABASE:-bolsillo_dental}
       POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -68,10 +53,7 @@ services:
 
 networks:
   bolsillo-dental-network:
-    driver: bridge
 
 volumes:
   app_storage:
-    driver: local
   postgres_data:
-    driver: local
