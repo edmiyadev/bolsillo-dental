@@ -277,3 +277,55 @@ it('deletes a commission record from the edit page', function () {
 
     assertModelMissing($record);
 });
+
+it('only displays commission records owned by the authenticated user in the list table', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    $userRecord = CommissionRecord::factory()->for($user)->create();
+    $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(ListCommissionRecords::class)
+        ->assertCanSeeTableRecords([$userRecord])
+        ->assertCanNotSeeTableRecords([$otherRecord]);
+});
+
+it('assigns user_id automatically to the authenticated user on create', function () {
+    $user = User::factory()->create();
+    $service = Service::factory()->for($user)->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(CreateCommissionRecord::class)
+        ->fillForm([
+            'service_id' => $service->id,
+            'price' => 150.00,
+            'commission_type' => CommissionType::Fixed->value,
+            'commission' => 30.00,
+            'calculated_earnings' => 30.00,
+            'status' => CommissionStatus::Pending->value,
+            'worked_at' => '2026-10-20',
+        ])
+        ->call('create')
+        ->assertNotified()
+        ->assertHasNoFormErrors();
+
+    assertDatabaseHas(CommissionRecord::class, [
+        'service_id' => $service->id,
+        'user_id' => $user->id,
+    ]);
+});
+
+it('forbids editing a commission record owned by another user with a 404 response', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(EditCommissionRecord::class, ['record' => $otherRecord->id])
+        ->assertNotFound();
+});

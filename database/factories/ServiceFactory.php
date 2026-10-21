@@ -4,7 +4,9 @@ namespace Database\Factories;
 
 use App\Enums\CommissionType;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @extends Factory<Service>
@@ -19,6 +21,7 @@ class ServiceFactory extends Factory
     public function definition(): array
     {
         return [
+            'user_id' => fn (): mixed => Auth::id() ?? User::factory(),
             'name' => fake()->words(3, true),
             'default_price' => fake()->randomFloat(2, 20, 500),
             'default_commission' => fake()->randomFloat(2, 5, 50),
