@@ -1,6 +1,7 @@
 services:
   app:
     container_name: bolsillo-dental-app
+    image: bolsillo-dental-app:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,6 +13,26 @@ services:
       - app_storage:/var/www/storage
     restart: always
     depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - bolsillo-dental-network
+
+  queue:
+    container_name: bolsillo-dental-queue
+    image: bolsillo-dental-app:latest
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600 --timeout=90
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - app_storage:/var/www/storage
+    restart: always
+    stop_signal: SIGTERM
+    stop_grace_period: 100s
+    depends_on:
+      app:
+        condition: service_started
       db:
         condition: service_healthy
     networks:
