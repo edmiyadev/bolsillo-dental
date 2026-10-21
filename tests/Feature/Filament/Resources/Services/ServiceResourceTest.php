@@ -177,3 +177,50 @@ it('deletes a service from the edit page', function () {
 
     assertModelMissing($service);
 });
+
+it('only displays services owned by the authenticated user in the list table', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    $userService = Service::factory()->for($user)->create(['name' => 'My Cleaning']);
+    $otherService = Service::factory()->for($otherUser)->create(['name' => 'Other Person Service']);
+
+    $this->actingAs($user);
+
+    Livewire::test(ListServices::class)
+        ->assertCanSeeTableRecords([$userService])
+        ->assertCanNotSeeTableRecords([$otherService]);
+});
+
+it('assigns user_id automatically to the authenticated user on create', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    Livewire::test(CreateService::class)
+        ->fillForm([
+            'name' => 'Fluoride Treatment',
+            'default_price' => 80.00,
+            'commission_type' => CommissionType::Fixed->value,
+            'default_commission' => 20.00,
+        ])
+        ->call('create')
+        ->assertNotified()
+        ->assertHasNoFormErrors();
+
+    assertDatabaseHas(Service::class, [
+        'name' => 'Fluoride Treatment',
+        'user_id' => $user->id,
+    ]);
+});
+
+it('forbids editing a service owned by another user with a 404 response', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    $otherService = Service::factory()->for($otherUser)->create();
+
+    $this->actingAs($user);
+
+    Livewire::test(EditService::class, ['record' => $otherService->id])
+        ->assertNotFound();
+});

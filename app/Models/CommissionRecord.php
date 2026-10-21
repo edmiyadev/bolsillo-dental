@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Models\Concerns\BelongsToUser;
 use App\Observers\CommissionRecordObserver;
 use Database\Factories\CommissionRecordFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -26,7 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CommissionRecord extends Model
 {
     /** @use HasFactory<CommissionRecordFactory> */
-    use HasFactory;
+    use BelongsToUser, HasFactory;
 
     public function service(): BelongsTo
     {

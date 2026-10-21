@@ -5,12 +5,23 @@ namespace App\Observers;
 use App\Actions\Commissions\CalculateCommissionEarningsAction;
 use App\Enums\CommissionType;
 use App\Models\CommissionRecord;
+use App\Models\Service;
 
 class CommissionRecordObserver
 {
     public function __construct(
         private CalculateCommissionEarningsAction $calculateEarnings,
     ) {}
+
+    public function creating(CommissionRecord $record): void
+    {
+        if ($record->user_id === null && $record->service_id !== null) {
+            $service = $record->service ?? Service::withoutGlobalScopes()->find($record->service_id);
+            if ($service?->user_id) {
+                $record->user_id = $service->user_id;
+            }
+        }
+    }
 
     public function saving(CommissionRecord $record): void
     {
