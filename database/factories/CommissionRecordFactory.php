@@ -6,7 +6,9 @@ use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
 use App\Models\CommissionRecord;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @extends Factory<CommissionRecord>
@@ -27,7 +29,10 @@ class CommissionRecordFactory extends Factory
             : fake()->randomFloat(2, 10, min(100, $price));
 
         return [
-            'service_id' => Service::factory(),
+            'user_id' => fn (): mixed => Auth::id() ?? User::factory(),
+            'service_id' => fn (array $attributes): mixed => Service::factory()->state([
+                'user_id' => $attributes['user_id'],
+            ]),
             'price' => $price,
             'commission' => $commission,
             'commission_type' => $type,

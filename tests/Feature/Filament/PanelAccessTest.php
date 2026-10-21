@@ -15,6 +15,6 @@ it('allows authenticated users to access the admin panel in production environme
     expect($user->canAccessPanel($panel))->toBeTrue();
 
     $this->actingAs($user)
-        ->get('/admin')
+        ->get('/')
         ->assertOk();
 });

@@ -56,3 +56,26 @@ it('calculates pending, paid, and monthly commissions correctly', function () {
         ->assertSee(__('Total earned commissions'))
         ->assertSee(__("This month's commissions"));
 });
+
+it('only includes commissions for the authenticated user in statistics', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    // User's own paid record
+    CommissionRecord::factory()->for($user)->paid()->fixedCommission(2000)->create([
+        'worked_at' => now(),
+    ]);
+
+    // Other user's paid record (should NOT be added to $user's total)
+    CommissionRecord::factory()->for($otherUser)->paid()->fixedCommission(8000)->create([
+        'worked_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    Livewire::test(CommissionOverview::class)
+        ->assertOk()
+        ->assertSee('RD$2,000.00')
+        ->assertDontSee('RD$10,000.00')
+        ->assertDontSee('RD$8,000.00');
+});
