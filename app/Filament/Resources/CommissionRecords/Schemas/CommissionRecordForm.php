@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CommissionRecords\Schemas;
 use App\Actions\Commissions\CalculateCommissionEarningsAction;
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Filament\Resources\Services\Schemas\ServiceForm;
 use App\Models\Service;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -65,6 +66,7 @@ class CommissionRecordForm
                                     ->preload()
                                     ->required()
                                     ->live()
+                                    ->createOptionForm(fn (Schema $schema) => ServiceForm::configure($schema))
                                     ->afterStateUpdated(function (Set $set, ?int $state, CalculateCommissionEarningsAction $calculateEarnings): void {
                                         if (! $state) {
                                             $set('price', null);
