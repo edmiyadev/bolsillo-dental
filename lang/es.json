@@ -264,5 +264,16 @@
     "Total earned commissions": "Total comisiones ganadas",
     ":count paid out": ":count pagadas",
     "This month's commissions": "Comisiones del mes",
-    ":count procedures this month": ":count procedimientos este mes"
+    ":count procedures this month": ":count procedimientos este mes",
+    "Patient": "Paciente",
+    "Patients": "Pacientes",
+    "First name": "Nombres",
+    "Last name": "Apellidos",
+    "Document type": "Tipo de documento",
+    "Identification number": "Número de identificación",
+    "Email address": "Correo electrónico",
+    "Phone": "Teléfono",
+    "Address": "Dirección",
+    "Identity card": "Cédula",
+    "Passport": "Pasaporte"
 }
