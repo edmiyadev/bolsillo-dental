@@ -2,7 +2,9 @@
 
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Enums\IdentificationType;
 use App\Filament\Resources\CommissionRecords\CommissionRecordResource;
+use App\Filament\Resources\Patients\PatientResource;
 use App\Filament\Resources\Services\ServiceResource;
 
 it('uses spanish as the application locale', function () {
@@ -20,10 +22,21 @@ it('translates CommissionStatus enum cases to spanish', function () {
         ->and(CommissionStatus::Cancelled->getLabel())->toBe('Cancelado');
 });
 
+it('translates IdentificationType enum cases to spanish', function () {
+    expect(IdentificationType::IdentityCard->getLabel())->toBe('Cédula')
+        ->and(IdentificationType::Passport->getLabel())->toBe('Pasaporte');
+});
+
 it('translates ServiceResource navigation and model labels to spanish', function () {
     expect(ServiceResource::getModelLabel())->toBe('Servicio')
         ->and(ServiceResource::getPluralModelLabel())->toBe('Servicios')
         ->and(ServiceResource::getNavigationLabel())->toBe('Servicios');
+});
+
+it('translates PatientResource navigation and model labels to spanish', function () {
+    expect(PatientResource::getModelLabel())->toBe('Paciente')
+        ->and(PatientResource::getPluralModelLabel())->toBe('Pacientes')
+        ->and(PatientResource::getNavigationLabel())->toBe('Pacientes');
 });
 
 it('translates CommissionRecordResource navigation and model labels to spanish', function () {

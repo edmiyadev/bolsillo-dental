@@ -1,0 +1,97 @@
+<?php
+
+use App\Enums\IdentificationType;
+use App\Filament\Resources\Patients\Pages\CreatePatient;
+use App\Filament\Resources\Patients\Pages\EditPatient;
+use App\Filament\Resources\Patients\Pages\ListPatients;
+use App\Filament\Resources\Patients\Pages\ViewPatient;
+use App\Models\Patient;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Livewire\livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
+
+it('can list and search patients', function () {
+    $patients = Patient::factory()->count(3)->create();
+
+    livewire(ListPatients::class)
+        ->assertCanSeeTableRecords($patients)
+        ->searchTable($patients->first()->identification_number)
+        ->assertCanSeeTableRecords($patients->take(1))
+        ->assertCanNotSeeTableRecords($patients->skip(1));
+});
+
+it('can create a patient', function () {
+    livewire(CreatePatient::class)
+        ->fillForm([
+            'first_name' => 'Juan',
+            'last_name' => 'Pérez',
+            'document_type' => IdentificationType::IdentityCard,
+            'identification_number' => '00112345678',
+            'email' => 'juan@example.com',
+            'phone' => '8095551234',
+            'address' => 'Santo Domingo, DN',
+        ])
+        ->call('create')
+        ->assertNotified()
+        ->assertHasNoFormErrors()
+        ->assertRedirect();
+
+    assertDatabaseHas(Patient::class, [
+        'first_name' => 'Juan',
+        'last_name' => 'Pérez',
+        'document_type' => IdentificationType::IdentityCard->value,
+        'identification_number' => '00112345678',
+        'email' => 'juan@example.com',
+        'phone' => '8095551234',
+        'address' => 'Santo Domingo, DN',
+    ]);
+});
+
+it('validates unique identification number when creating and editing a patient', function () {
+    $existing = Patient::factory()->create([
+        'identification_number' => '00199999999',
+    ]);
+
+    livewire(CreatePatient::class)
+        ->fillForm([
+            'first_name' => 'María',
+            'last_name' => 'Gómez',
+            'document_type' => IdentificationType::IdentityCard,
+            'identification_number' => '00199999999',
+            'phone' => '8095550000',
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['identification_number' => 'unique']);
+
+    // Editing the same record should ignore its own unique identification_number
+    livewire(EditPatient::class, ['record' => $existing->id])
+        ->fillForm([
+            'first_name' => 'Actualizado',
+            'identification_number' => '00199999999',
+        ])
+        ->call('save')
+        ->assertNotified()
+        ->assertHasNoFormErrors();
+
+    assertDatabaseHas(Patient::class, [
+        'id' => $existing->id,
+        'first_name' => 'Actualizado',
+    ]);
+});
+
+it('can view a patient', function () {
+    $patient = Patient::factory()->create();
+
+    livewire(ViewPatient::class, ['record' => $patient->id])
+        ->assertOk()
+        ->assertSee($patient->first_name)
+        ->assertSee($patient->identification_number);
+});
