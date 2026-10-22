@@ -1,9 +1,9 @@
 <?php
 
+use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\CommissionOverview;
 use App\Models\CommissionRecord;
 use App\Models\User;
-use Filament\Pages\Dashboard;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Foundation\Testing\RefreshDatabase;
