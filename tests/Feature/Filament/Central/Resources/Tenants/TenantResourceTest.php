@@ -3,6 +3,8 @@
 use App\Filament\Central\Resources\Tenants\Pages\CreateTenant;
 use App\Filament\Central\Resources\Tenants\Pages\EditTenant;
 use App\Filament\Central\Resources\Tenants\Pages\ListTenants;
+use App\Models\Client;
+use App\Models\Clinic;
 use App\Models\Domain;
 use App\Models\Tenant;
 use App\Models\User;
@@ -38,9 +40,12 @@ afterEach(function (): void {
     }
 });
 
-it('lists and searches clients in the central table', function (): void {
+it('lists and searches clinics in the central table', function (): void {
+    $client = Client::factory()->create();
+
     $tenantA = Tenant::query()->create([
         'id' => 'clinica-central-a',
+        'client_id' => $client->id,
         'name' => 'Clínica Dental Aurora',
         'email' => 'aurora@example.com',
         'is_active' => true,
@@ -49,6 +54,7 @@ it('lists and searches clients in the central table', function (): void {
 
     $tenantB = Tenant::query()->create([
         'id' => 'clinica-central-b',
+        'client_id' => $client->id,
         'name' => 'Centro Odontológico Horizonte',
         'email' => 'horizonte@example.com',
         'is_active' => true,
@@ -63,12 +69,18 @@ it('lists and searches clients in the central table', function (): void {
         ->assertCanNotSeeTableRecords([$tenantB]);
 });
 
-it('creates a new client with domain, database, and initial admin user from the central panel', function (): void {
+it('creates a new clinic instance associated with a client and provisions the Clinic entity in the tenant database', function (): void {
+    $client = Client::factory()->create(['name' => 'Dr. Carlos Pérez']);
+
     Livewire::test(CreateTenant::class)
         ->fillForm([
+            'client_id' => $client->id,
             'name' => 'Clínica Dental Caribe',
             'id' => 'clinica-caribe',
             'email' => 'info@clinicacaribe.com',
+            'phone' => '809-222-3344',
+            'rnc' => '130987654',
+            'address' => 'Av. Winston Churchill #100, Santo Domingo',
             'tenancy_db_name' => 'test_filament_tenant_caribe.sqlite',
             'is_active' => true,
             'domain' => 'caribe.localhost',
@@ -84,6 +96,7 @@ it('creates a new client with domain, database, and initial admin user from the 
 
     assertDatabaseHas(Tenant::class, [
         'id' => 'clinica-caribe',
+        'client_id' => $client->id,
         'name' => 'Clínica Dental Caribe',
         'email' => 'info@clinicacaribe.com',
         'is_active' => true,
@@ -99,12 +112,23 @@ it('creates a new client with domain, database, and initial admin user from the 
 
     $tenant->run(function (): void {
         expect(User::query()->where('email', 'carlos@clinicacaribe.com')->exists())->toBeTrue();
+
+        $clinic = Clinic::query()->first();
+        expect($clinic)->not->toBeNull()
+            ->and($clinic->name)->toBe('Clínica Dental Caribe')
+            ->and($clinic->email)->toBe('info@clinicacaribe.com')
+            ->and($clinic->phone)->toBe('809-222-3344')
+            ->and($clinic->rnc)->toBe('130987654')
+            ->and($clinic->address)->toBe('Av. Winston Churchill #100, Santo Domingo');
     });
 });
 
-it('validates required fields and unique domain when creating a client', function (): void {
+it('validates required fields and unique domain when creating a clinic instance', function (): void {
+    $client = Client::factory()->create();
+
     $existing = Tenant::query()->create([
         'id' => 'existente',
+        'client_id' => $client->id,
         'name' => 'Clínica Existente',
         'is_active' => true,
         'tenancy_db_name' => 'test_filament_tenant_existente.sqlite',
@@ -113,6 +137,7 @@ it('validates required fields and unique domain when creating a client', functio
 
     Livewire::test(CreateTenant::class)
         ->fillForm([
+            'client_id' => null,
             'name' => null,
             'id' => 'existente',
             'tenancy_db_name' => 'nombre invalido con espacios!',
@@ -121,6 +146,7 @@ it('validates required fields and unique domain when creating a client', functio
         ])
         ->call('create')
         ->assertHasFormErrors([
+            'client_id' => 'required',
             'name' => 'required',
             'id' => 'unique',
             'tenancy_db_name' => 'regex',
@@ -129,9 +155,12 @@ it('validates required fields and unique domain when creating a client', functio
         ->assertNotNotified();
 });
 
-it('updates an existing client and deletes it along with its database', function (): void {
+it('updates an existing clinic instance and deletes it along with its database', function (): void {
+    $client = Client::factory()->create();
+
     $tenant = Tenant::query()->create([
         'id' => 'clinica-editable',
+        'client_id' => $client->id,
         'name' => 'Clínica Original',
         'email' => 'original@example.com',
         'is_active' => true,
@@ -141,6 +170,7 @@ it('updates an existing client and deletes it along with its database', function
 
     Livewire::test(EditTenant::class, ['record' => $tenant->id])
         ->fillForm([
+            'client_id' => $client->id,
             'name' => 'Clínica Renombrada',
             'email' => 'renombrada@example.com',
             'is_active' => false,

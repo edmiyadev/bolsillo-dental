@@ -12,7 +12,11 @@ readonly class CreateTenantData
     public function __construct(
         public string $id,
         public string $name,
+        public ?int $clientId,
         public ?string $email,
+        public ?string $phone,
+        public ?string $rnc,
+        public ?string $address,
         public bool $isActive,
         public string $databaseName,
         public array $domains,
@@ -54,7 +58,11 @@ readonly class CreateTenantData
         return new self(
             id: $id,
             name: trim((string) $data['name']),
+            clientId: filled($data['client_id'] ?? null) ? (int) $data['client_id'] : null,
             email: filled($data['email'] ?? null) ? trim((string) $data['email']) : null,
+            phone: filled($data['phone'] ?? null) ? trim((string) $data['phone']) : null,
+            rnc: filled($data['rnc'] ?? null) ? trim((string) $data['rnc']) : null,
+            address: filled($data['address'] ?? null) ? trim((string) $data['address']) : null,
             isActive: (bool) ($data['is_active'] ?? true),
             databaseName: $databaseName,
             domains: array_values(array_unique($domains)),

@@ -20,21 +20,23 @@ class TenantResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function getModelLabel(): string
     {
-        return __('Client');
+        return __('Clinic / Instance');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Clients');
+        return __('Clinics / Instances');
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('Clients');
+        return __('Clinics / Instances');
     }
 
     public static function form(Schema $schema): Schema

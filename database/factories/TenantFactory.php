@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Client;
 use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -25,8 +26,12 @@ class TenantFactory extends Factory
 
         return [
             'id' => $slug,
+            'client_id' => Client::factory(),
             'name' => $name,
             'email' => fake()->unique()->companyEmail(),
+            'phone' => fake()->phoneNumber(),
+            'rnc' => fake()->numerify('#########'),
+            'address' => fake()->address(),
             'is_active' => true,
             'tenancy_db_name' => 'bolsillo_tenant_'.Str::replace('-', '_', $slug),
         ];

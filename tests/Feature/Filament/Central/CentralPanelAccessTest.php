@@ -94,6 +94,6 @@ it('renders the TenantsOverview widget with accurate statistics', function (): v
     Livewire::test(TenantsOverview::class)
         ->assertOk()
         ->assertSee(__('Total clients'))
-        ->assertSee(__('Active clients'))
+        ->assertSee(__('Active clinics'))
         ->assertSee(__('Configured domains'));
 });
