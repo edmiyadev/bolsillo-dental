@@ -8,6 +8,7 @@ use App\Models\Tenant;
 class CreateTenantAction
 {
     public function __construct(
+        private ProvisionTenantClinicAction $provisionTenantClinic,
         private ProvisionTenantAdminUserAction $provisionTenantAdminUser,
     ) {}
 
@@ -15,8 +16,12 @@ class CreateTenantAction
     {
         $tenant = Tenant::query()->create([
             'id' => $data->id,
+            'client_id' => $data->clientId,
             'name' => $data->name,
             'email' => $data->email,
+            'phone' => $data->phone,
+            'rnc' => $data->rnc,
+            'address' => $data->address,
             'is_active' => $data->isActive,
             'tenancy_db_name' => $data->databaseName,
         ]);
@@ -26,6 +31,11 @@ class CreateTenantAction
                 'domain' => $domain,
             ]);
         }
+
+        $this->provisionTenantClinic->handle(
+            tenant: $tenant,
+            data: $data,
+        );
 
         if (
             $data->createInitialUser

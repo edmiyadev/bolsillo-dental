@@ -2,9 +2,12 @@
 
 namespace App\Filament\Central\Resources\Tenants\Schemas;
 
+use App\Filament\Central\Resources\Clients\Schemas\ClientForm;
 use App\Models\Domain;
 use App\Models\Tenant;
 use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -19,12 +22,19 @@ class TenantForm
     {
         return $schema
             ->components([
-                Section::make(__('Client & Database Details'))
+                Section::make(__('Business & Clinic Information'))
                     ->columns(2)
                     ->columnSpanFull()
                     ->schema([
+                        Select::make('client_id')
+                            ->label(__('Client'))
+                            ->relationship('client', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->createOptionForm(ClientForm::getFormComponents()),
                         TextInput::make('name')
-                            ->label(__('Client name'))
+                            ->label(__('Clinic name'))
                             ->required()
                             ->maxLength(255)
                             ->live(onBlur: true)
@@ -48,6 +58,27 @@ class TenantForm
                                     $set('domain', $slug.'.localhost');
                                 }
                             }),
+                        TextInput::make('email')
+                            ->label(__('Clinic email'))
+                            ->email()
+                            ->maxLength(255),
+                        TextInput::make('phone')
+                            ->label(__('Clinic phone'))
+                            ->tel()
+                            ->maxLength(50),
+                        TextInput::make('rnc')
+                            ->label(__('Clinic RNC'))
+                            ->maxLength(50),
+                        Textarea::make('address')
+                            ->label(__('Clinic address'))
+                            ->rows(2)
+                            ->columnSpanFull(),
+                    ]),
+
+                Section::make(__('Technical & Domain Configuration'))
+                    ->columns(2)
+                    ->columnSpanFull()
+                    ->schema([
                         TextInput::make('id')
                             ->label(__('Identifier (Slug)'))
                             ->required(fn (string $operation): bool => $operation === 'create')
@@ -56,10 +87,6 @@ class TenantForm
                             ->unique(table: Tenant::class, column: 'id', ignoreRecord: true)
                             ->disabled(fn (string $operation): bool => $operation === 'edit')
                             ->dehydrated(fn (string $operation): bool => $operation === 'create'),
-                        TextInput::make('email')
-                            ->label(__('Contact email'))
-                            ->email()
-                            ->maxLength(255),
                         TextInput::make('tenancy_db_name')
                             ->label(__('Database name'))
                             ->required(fn (string $operation): bool => $operation === 'create')
@@ -68,23 +95,14 @@ class TenantForm
                             ->disabled(fn (string $operation): bool => $operation === 'edit')
                             ->dehydrated(fn (string $operation): bool => $operation === 'create')
                             ->helperText(__('Only letters, numbers, and underscores. Created and migrated automatically.')),
-                        Toggle::make('is_active')
-                            ->label(__('Active'))
-                            ->default(true)
-                            ->required()
-                            ->columnSpanFull(),
-                    ]),
-
-                Section::make(__('Domains & Subdomains'))
-                    ->columnSpanFull()
-                    ->schema([
                         TextInput::make('domain')
                             ->label(__('Primary domain'))
                             ->placeholder('clinica-sonrisa.localhost')
                             ->visible(fn (string $operation): bool => $operation === 'create')
                             ->required(fn (string $operation): bool => $operation === 'create')
                             ->maxLength(255)
-                            ->unique(table: Domain::class, column: 'domain'),
+                            ->unique(table: Domain::class, column: 'domain')
+                            ->columnSpanFull(),
                         Repeater::make('domains')
                             ->label(__('Domains'))
                             ->relationship('domains')
@@ -97,10 +115,16 @@ class TenantForm
                                     ->unique(table: Domain::class, column: 'domain', ignoreRecord: true),
                             ])
                             ->defaultItems(1)
-                            ->minItems(1),
+                            ->minItems(1)
+                            ->columnSpanFull(),
+                        Toggle::make('is_active')
+                            ->label(__('Active'))
+                            ->default(true)
+                            ->required()
+                            ->columnSpanFull(),
                     ]),
 
-                Section::make(__('Initial Client Administrator'))
+                Section::make(__('Initial Clinic Administrator'))
                     ->columns(2)
                     ->columnSpanFull()
                     ->visible(fn (string $operation): bool => $operation === 'create')

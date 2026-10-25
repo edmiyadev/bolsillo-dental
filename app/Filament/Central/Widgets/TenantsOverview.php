@@ -2,6 +2,7 @@
 
 namespace App\Filament\Central\Widgets;
 
+use App\Models\Client;
 use App\Models\Domain;
 use App\Models\Tenant;
 use Filament\Support\Icons\Heroicon;
@@ -14,18 +15,19 @@ class TenantsOverview extends BaseWidget
 
     protected function getStats(): array
     {
-        $totalTenants = Tenant::query()->count();
+        $totalClients = Client::query()->count();
+        $activeClients = Client::query()->where('is_active', true)->count();
         $activeTenants = Tenant::query()->where('is_active', true)->count();
         $totalDomains = Domain::query()->count();
 
         return [
-            Stat::make(__('Total clients'), (string) $totalTenants)
-                ->description(__(':count active clients', ['count' => $activeTenants]))
-                ->descriptionIcon(Heroicon::OutlinedBuildingOffice2)
+            Stat::make(__('Total clients'), (string) $totalClients)
+                ->description(__(':count active clients', ['count' => $activeClients]))
+                ->descriptionIcon(Heroicon::OutlinedUsers)
                 ->color('primary'),
-            Stat::make(__('Active clients'), (string) $activeTenants)
+            Stat::make(__('Active clinics'), (string) $activeTenants)
                 ->description(__('Databases provisioned'))
-                ->descriptionIcon(Heroicon::OutlinedCheckCircle)
+                ->descriptionIcon(Heroicon::OutlinedBuildingOffice2)
                 ->color('success'),
             Stat::make(__('Configured domains'), (string) $totalDomains)
                 ->description(__('Active domains and subdomains'))

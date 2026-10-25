@@ -11,6 +11,7 @@ use Filament\Actions\EditAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
@@ -21,7 +22,12 @@ class TenantsTable
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label(__('Client name'))
+                    ->label(__('Clinic name'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('client.name')
+                    ->label(__('Client'))
+                    ->placeholder('-')
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('id')
@@ -44,7 +50,7 @@ class TenantsTable
                     ->boolean()
                     ->sortable(),
                 TextColumn::make('email')
-                    ->label(__('Contact email'))
+                    ->label(__('Clinic email'))
                     ->searchable()
                     ->placeholder('-')
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -55,6 +61,9 @@ class TenantsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('client_id')
+                    ->label(__('Client'))
+                    ->relationship('client', 'name'),
                 TernaryFilter::make('is_active')
                     ->label(__('Active')),
             ])
