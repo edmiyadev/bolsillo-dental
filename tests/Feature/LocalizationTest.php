@@ -2,6 +2,7 @@
 
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Filament\Central\Resources\Tenants\TenantResource;
 use App\Filament\Resources\CommissionRecords\CommissionRecordResource;
 use App\Filament\Resources\Services\ServiceResource;
 
@@ -30,6 +31,12 @@ it('translates CommissionRecordResource navigation and model labels to spanish',
     expect(CommissionRecordResource::getModelLabel())->toBe('Registro de comisión')
         ->and(CommissionRecordResource::getPluralModelLabel())->toBe('Registros de comisión')
         ->and(CommissionRecordResource::getNavigationLabel())->toBe('Registros de comisión');
+});
+
+it('translates TenantResource navigation and model labels to spanish', function () {
+    expect(TenantResource::getModelLabel())->toBe('Cliente')
+        ->and(TenantResource::getPluralModelLabel())->toBe('Clientes')
+        ->and(TenantResource::getNavigationLabel())->toBe('Clientes');
 });
 
 it('translates common UI labels and notifications to spanish', function () {

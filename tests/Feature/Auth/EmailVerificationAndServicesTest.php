@@ -58,7 +58,7 @@ it('creates default services when the user verifies their email via the signed v
         ->assertRedirect(route('filament.admin.pages.dashboard'));
 
     expect($user->refresh()->hasVerifiedEmail())->toBeTrue();
-    expect($user->services()->count())->toBe(5);
+    expect($user->services()->count())->toBe(4);
 });
 
 it('creates default services when Verified event is dispatched', function () {
@@ -68,5 +68,5 @@ it('creates default services when Verified event is dispatched', function () {
 
     event(new Verified($user));
 
-    expect($user->services()->count())->toBe(5);
+    expect($user->services()->count())->toBe(4);
 });
