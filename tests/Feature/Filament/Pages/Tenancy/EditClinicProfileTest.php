@@ -1,6 +1,6 @@
 <?php
 
-use App\Filament\Pages\Tenancy\EditClinicProfile;
+use App\Filament\Clusters\Settings\Pages\EditClinicProfile;
 use App\Models\Clinic;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;

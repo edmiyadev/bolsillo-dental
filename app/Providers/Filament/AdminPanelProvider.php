@@ -2,9 +2,10 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Clusters\Settings\Pages\EditClinicProfile;
 use App\Filament\Pages\Dashboard;
-use App\Filament\Pages\Tenancy\EditClinicProfile;
 use App\Http\Middleware\InitializeTenancyByDomainOrSubdomain;
+use App\Models\Clinic;
 use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -29,6 +30,9 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('/')
+            ->brandName(fn (): string => tenancy()->initialized
+                ? (Clinic::query()->first()?->name ?? (string) config('app.name', 'Bolsillo Dental'))
+                : (string) config('app.name', 'Bolsillo Dental'))
             ->login()
             ->registration()
             ->passwordReset()
@@ -48,6 +52,7 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarWidth('10')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
             ->pages([
                 Dashboard::class,
             ])

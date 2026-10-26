@@ -25,7 +25,6 @@ class CentralPanelProvider extends PanelProvider
         return $panel
             ->id('central')
             ->path('central')
-            ->brandName('Bolsillo Dental — Central')
             ->login()
             ->profile(isSimple: false)
             ->colors([
