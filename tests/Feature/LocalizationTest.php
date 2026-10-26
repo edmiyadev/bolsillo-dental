@@ -3,6 +3,8 @@
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
 use App\Enums\IdentificationType;
+use App\Filament\Central\Resources\Clients\ClientResource;
+use App\Filament\Central\Resources\Tenants\TenantResource;
 use App\Filament\Resources\CommissionRecords\CommissionRecordResource;
 use App\Filament\Resources\Patients\PatientResource;
 use App\Filament\Resources\Services\ServiceResource;
@@ -43,6 +45,15 @@ it('translates CommissionRecordResource navigation and model labels to spanish',
     expect(CommissionRecordResource::getModelLabel())->toBe('Registro de comisión')
         ->and(CommissionRecordResource::getPluralModelLabel())->toBe('Registros de comisión')
         ->and(CommissionRecordResource::getNavigationLabel())->toBe('Registros de comisión');
+});
+
+it('translates ClientResource and TenantResource navigation and model labels to spanish', function () {
+    expect(ClientResource::getModelLabel())->toBe('Cliente')
+        ->and(ClientResource::getPluralModelLabel())->toBe('Clientes')
+        ->and(ClientResource::getNavigationLabel())->toBe('Clientes')
+        ->and(TenantResource::getModelLabel())->toBe('Clínica / Instancia')
+        ->and(TenantResource::getPluralModelLabel())->toBe('Clínicas / Instancias')
+        ->and(TenantResource::getNavigationLabel())->toBe('Clínicas / Instancias');
 });
 
 it('translates common UI labels and notifications to spanish', function () {

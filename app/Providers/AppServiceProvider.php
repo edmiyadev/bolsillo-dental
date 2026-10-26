@@ -27,5 +27,9 @@ class AppServiceProvider extends ServiceProvider
         Number::useLocale('es_DO');
 
         Event::listen(Verified::class, SetupVerifiedUser::class);
+
+        if ($this->app->runningUnitTests()) {
+            $this->loadMigrationsFrom(database_path('migrations/tenant'));
+        }
     }
 }

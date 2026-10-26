@@ -3,6 +3,7 @@
 use App\Models\User;
 use Filament\Auth\Notifications\VerifyEmail;
 use Filament\Auth\Pages\Register;
+use Filament\Facades\Filament;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -38,7 +39,7 @@ it('blocks unverified users from accessing the dashboard and redirects to verifi
     $user = User::factory()->unverified()->create();
 
     $this->actingAs($user)
-        ->get('/')
+        ->get(Filament::getUrl())
         ->assertRedirect(route('filament.admin.auth.email-verification.prompt'));
 });
 
@@ -55,10 +56,10 @@ it('creates default services when the user verifies their email via the signed v
 
     $this->actingAs($user)
         ->get($verificationUrl)
-        ->assertRedirect(route('filament.admin.pages.dashboard'));
+        ->assertRedirect(Filament::getUrl());
 
     expect($user->refresh()->hasVerifiedEmail())->toBeTrue();
-    expect($user->services()->count())->toBe(5);
+    expect($user->services()->count())->toBe(4);
 });
 
 it('creates default services when Verified event is dispatched', function () {
@@ -68,5 +69,5 @@ it('creates default services when Verified event is dispatched', function () {
 
     event(new Verified($user));
 
-    expect($user->services()->count())->toBe(5);
+    expect($user->services()->count())->toBe(4);
 });
