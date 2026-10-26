@@ -71,7 +71,17 @@ it('creates a tenant linked to a client, provisions the clinic record in the ten
             ->and($clinic->email)->toBe('contacto@clinicasonrisa.com')
             ->and($clinic->phone)->toBe('809-555-1234')
             ->and($clinic->rnc)->toBe('131234567')
-            ->and($clinic->address)->toBe('Calle El Sol #10, Santiago');
+            ->and($clinic->address)->toBe('Calle El Sol #10, Santiago')
+            ->and($clinic->branches()->count())->toBe(1);
+
+        $mainBranch = $clinic->mainBranch;
+        expect($mainBranch)->not->toBeNull()
+            ->and($mainBranch->name)->toBe('Sede Principal')
+            ->and($mainBranch->code)->toBe('MAIN')
+            ->and($mainBranch->phone)->toBe('809-555-1234')
+            ->and($mainBranch->address)->toBe('Calle El Sol #10, Santiago')
+            ->and($mainBranch->is_main)->toBeTrue()
+            ->and($mainBranch->is_active)->toBeTrue();
 
         $user = User::query()->where('email', 'maria@clinicasonrisa.com')->first();
 

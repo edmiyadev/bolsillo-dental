@@ -1,8 +1,11 @@
 <?php
 
-namespace App\Filament\Pages\Tenancy;
+namespace App\Filament\Clusters\Settings\Pages;
 
+use App\Actions\Tenants\ProvisionTenantMainBranchAction;
+use App\Filament\Clusters\Settings\SettingsCluster;
 use App\Models\Clinic;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -13,6 +16,7 @@ use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 
 /**
@@ -20,7 +24,11 @@ use Illuminate\Contracts\Support\Htmlable;
  */
 class EditClinicProfile extends Page
 {
-    protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $cluster = SettingsCluster::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $slug = 'clinic-profile';
 
@@ -115,8 +123,14 @@ class EditClinicProfile extends Page
 
     protected function getClinic(): Clinic
     {
-        return Clinic::query()->first() ?? Clinic::query()->create([
+        $clinic = Clinic::query()->first() ?? Clinic::query()->create([
             'name' => (string) config('app.name', 'Mi Clínica'),
         ]);
+
+        if ($clinic->branches()->doesntExist()) {
+            app(ProvisionTenantMainBranchAction::class)->handle($clinic);
+        }
+
+        return $clinic;
     }
 }
