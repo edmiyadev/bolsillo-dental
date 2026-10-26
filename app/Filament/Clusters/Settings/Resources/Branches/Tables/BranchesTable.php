@@ -2,7 +2,6 @@
 
 namespace App\Filament\Clusters\Settings\Resources\Branches\Tables;
 
-use App\Models\Branch;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
@@ -48,8 +47,7 @@ class BranchesTable
             ])
             ->recordActions([
                 EditAction::make(),
-                DeleteAction::make()
-                    ->hidden(fn (Branch $record): bool => $record->clinic && $record->clinic->branches()->count() <= 1),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 //

@@ -2,11 +2,9 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Clusters\Settings\Pages\EditClinicProfile;
 use App\Filament\Pages\Dashboard;
 use App\Http\Middleware\InitializeTenancyByDomainOrSubdomain;
 use App\Models\Clinic;
-use Filament\Actions\Action;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -14,7 +12,6 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Support\Icons\Heroicon;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -39,12 +36,6 @@ class AdminPanelProvider extends PanelProvider
             ->emailVerification()
             ->emailChangeVerification()
             ->profile(isSimple: false)
-            ->userMenuItems([
-                Action::make('clinic_profile')
-                    ->label(fn (): string => __('Clinic profile'))
-                    ->icon(Heroicon::OutlinedBuildingOffice2)
-                    ->url(fn (): string => EditClinicProfile::getUrl()),
-            ])
             ->colors([
                 'primary' => Color::Cyan,
             ])

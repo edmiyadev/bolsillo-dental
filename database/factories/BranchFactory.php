@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\DayOfWeek;
 use App\Models\Branch;
 use App\Models\Clinic;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,7 +27,7 @@ class BranchFactory extends Factory
             'code' => 'SUC-'.fake()->unique()->numerify('###'),
             'phone' => '809-555-'.fake()->numerify('####'),
             'address' => fake()->address(),
-            'opening_hours' => Branch::defaultOpeningHours(),
+            'opening_hours' => DayOfWeek::defaultSchedule(),
             'is_main' => false,
             'is_active' => true,
         ];
