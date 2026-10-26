@@ -2,12 +2,16 @@
 
 namespace App\Filament\Clusters\Settings\Resources\Branches\Schemas;
 
+use App\Enums\DayOfWeek;
 use App\Models\Branch;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Repeater\TableColumn;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Grid;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -71,40 +75,46 @@ class BranchForm
                 Section::make(__('Opening hours'))
                     ->columnSpanFull()
                     ->description(__('Configure weekly operating schedule for this branch.'))
-                    ->schema(self::getOpeningHoursComponents()),
+                    ->schema([
+                        Repeater::make('opening_hours')
+                            ->label(__('Opening hours'))
+                            ->table([
+                                TableColumn::make(__('Day'))->width('200px'),
+                                TableColumn::make(__('Status'))->width('120px'),
+                                TableColumn::make(__('Opening time')),
+                                TableColumn::make(__('Closing time')),
+                            ])
+                            ->schema([
+                                Hidden::make('day'),
+                                TextEntry::make('day_label')
+                                    ->label(__('Day'))
+                                    ->state(fn (Get $get): string => DayOfWeek::tryFrom((string) $get('day'))?->getLabel() ?? '')
+                                    ->hiddenLabel(),
+                                Toggle::make('is_open')
+                                    ->label(__('Status'))
+                                    ->inline(false)
+                                    ->hiddenLabel()
+                                    ->live(),
+                                TimePicker::make('open_time')
+                                    ->label(__('Opening time'))
+                                    ->seconds(false)
+                                    ->hiddenLabel()
+                                    ->minutesStep(5)
+                                    // ->defaultFocusedDate('08:00')
+                                    ->disabled(fn (Get $get): bool => ! (bool) $get('is_open')),
+                                TimePicker::make('close_time')
+                                    ->label(__('Closing time'))
+                                    ->seconds(false)
+                                    ->hiddenLabel()
+                                    ->minutesStep(5)
+                                    ->disabled(fn (Get $get): bool => ! (bool) $get('is_open')),
+                            ])
+                            ->default(DayOfWeek::defaultSchedule())
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->columnSpanFull(),
+                    ]),
             ]);
-    }
-
-    /**
-     * @return array<int, Grid>
-     */
-    private static function getOpeningHoursComponents(): array
-    {
-        $defaults = Branch::defaultOpeningHours();
-        $components = [];
-
-        foreach (Branch::daysOfWeek() as $day => $label) {
-            $defaultDay = $defaults[$day] ?? ['is_open' => false, 'open_time' => '08:00', 'close_time' => '18:00'];
-
-            $components[] = Grid::make(3)
-                ->schema([
-                    Toggle::make("opening_hours.{$day}.is_open")
-                        ->label($label)
-                        ->default((bool) ($defaultDay['is_open'] ?? false))
-                        ->live(),
-                    TimePicker::make("opening_hours.{$day}.open_time")
-                        ->label(__('Opening time'))
-                        ->seconds(false)
-                        ->default($defaultDay['open_time'] ?? '08:00')
-                        ->visible(fn (Get $get): bool => (bool) $get("opening_hours.{$day}.is_open")),
-                    TimePicker::make("opening_hours.{$day}.close_time")
-                        ->label(__('Closing time'))
-                        ->seconds(false)
-                        ->default($defaultDay['close_time'] ?? '18:00')
-                        ->visible(fn (Get $get): bool => (bool) $get("opening_hours.{$day}.is_open")),
-                ]);
-        }
-
-        return $components;
     }
 }

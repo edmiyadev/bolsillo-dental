@@ -41,6 +41,14 @@ it('can render the branch list page inside the settings cluster', function (): v
         ->assertCanSeeTableRecords([$this->mainBranch]);
 });
 
+it('maintains cluster sub navigation on create and edit pages', function (): void {
+    $createPage = Livewire::test(CreateBranch::class);
+    expect($createPage->instance()->getSubNavigation())->not->toBeEmpty();
+
+    $editPage = Livewire::test(EditBranch::class, ['record' => $this->mainBranch->id]);
+    expect($editPage->instance()->getSubNavigation())->not->toBeEmpty();
+});
+
 it('can create a new branch with custom hours', function (): void {
     $this->get(BranchResource::getUrl('create'))
         ->assertOk();

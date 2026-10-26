@@ -2,6 +2,7 @@
 
 namespace App\Actions\Tenants;
 
+use App\Enums\DayOfWeek;
 use App\Models\Branch;
 use App\Models\Clinic;
 
@@ -16,7 +17,7 @@ class ProvisionTenantMainBranchAction
                 'code' => 'MAIN',
                 'phone' => $phone ?? $clinic->phone,
                 'address' => $address ?? $clinic->address,
-                'opening_hours' => Branch::defaultOpeningHours(),
+                'opening_hours' => DayOfWeek::defaultSchedule(),
                 'is_active' => true,
             ],
         );

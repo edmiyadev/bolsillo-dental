@@ -32,6 +32,11 @@ class EditClinicProfile extends Page
 
     protected static ?string $slug = 'clinic-profile';
 
+    public function getBreadcrumb(): ?string
+    {
+        return __('Clinic profile');
+    }
+
     /**
      * @var array<string, mixed>|null
      */
