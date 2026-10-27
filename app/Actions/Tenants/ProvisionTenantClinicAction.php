@@ -5,6 +5,8 @@ namespace App\Actions\Tenants;
 use App\Data\Tenants\CreateTenantData;
 use App\Models\Clinic;
 use App\Models\Tenant;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 
 class ProvisionTenantClinicAction
 {
@@ -30,6 +32,9 @@ class ProvisionTenantClinicAction
                 phone: $data->phone,
                 address: $data->address,
             );
+
+            (new RoleSeeder)->run();
+            (new PermissionSeeder)->run();
         });
     }
 }
