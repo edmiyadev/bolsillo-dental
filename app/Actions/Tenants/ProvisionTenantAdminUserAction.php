@@ -3,6 +3,7 @@
 namespace App\Actions\Tenants;
 
 use App\Actions\Services\CreateDefaultServicesForUserAction;
+use App\Enums\RoleEnum;
 use App\Models\Tenant;
 use App\Models\User;
 
@@ -28,6 +29,8 @@ class ProvisionTenantAdminUserAction
                     'email_verified_at' => now(),
                 ])->save();
             }
+
+            $user->syncRoles([RoleEnum::Admin->value]);
 
             $this->createDefaultServices->handle($user);
         });

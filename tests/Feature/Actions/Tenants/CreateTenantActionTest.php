@@ -2,13 +2,16 @@
 
 use App\Actions\Tenants\CreateTenantAction;
 use App\Data\Tenants\CreateTenantData;
+use App\Enums\RoleEnum;
 use App\Models\Client;
 use App\Models\Clinic;
 use App\Models\CommissionRecord;
+use App\Models\Role;
 use App\Models\Service;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
@@ -88,7 +91,18 @@ it('creates a tenant linked to a client, provisions the clinic record in the ten
         expect($user)->not->toBeNull()
             ->and($user->name)->toBe('Dra. María Gómez')
             ->and($user->hasVerifiedEmail())->toBeTrue()
+            ->and($user->hasRole(RoleEnum::Admin->value))->toBeTrue()
+            ->and($user->hasRole(RoleEnum::SuperAdmin->value))->toBeFalse()
             ->and($user->services()->count())->toBe(4);
+
+        foreach (RoleEnum::cases() as $roleEnum) {
+            expect(Role::query()->where('name', $roleEnum->value)->exists())->toBeTrue();
+        }
+
+        $adminRole = Role::findByName(RoleEnum::Admin->value, 'web');
+        expect(Role::query()->count())->toBe(count(RoleEnum::cases()))
+            ->and(Permission::query()->count())->toBeGreaterThan(0)
+            ->and($adminRole->permissions()->count())->toBe(Permission::query()->count());
     });
 });
 

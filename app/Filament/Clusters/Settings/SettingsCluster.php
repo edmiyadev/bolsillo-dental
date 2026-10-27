@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters\Settings;
 
+use App\Enums\NavigationGroup;
 use BackedEnum;
 use Filament\Clusters\Cluster;
 use Filament\Support\Icons\Heroicon;
@@ -15,7 +16,7 @@ class SettingsCluster extends Cluster
 
     public static function getNavigationGroup(): string|UnitEnum|null
     {
-        return __('Settings');
+        return NavigationGroup::Settings;
     }
 
     public static function getNavigationLabel(): string
