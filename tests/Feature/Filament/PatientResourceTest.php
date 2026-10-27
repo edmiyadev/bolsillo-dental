@@ -8,9 +8,9 @@ use App\Filament\Resources\Patients\Pages\ViewPatient;
 use App\Models\Patient;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
-use function Pest\Livewire\livewire;
 
 uses(RefreshDatabase::class);
 
@@ -21,7 +21,7 @@ beforeEach(function () {
 it('can list and search patients', function () {
     $patients = Patient::factory()->count(3)->create();
 
-    livewire(ListPatients::class)
+    Livewire::test(ListPatients::class)
         ->assertCanSeeTableRecords($patients)
         ->searchTable($patients->first()->identification_number)
         ->assertCanSeeTableRecords($patients->take(1))
@@ -29,7 +29,7 @@ it('can list and search patients', function () {
 });
 
 it('can create a patient', function () {
-    livewire(CreatePatient::class)
+    Livewire::test(CreatePatient::class)
         ->fillForm([
             'first_name' => 'Juan',
             'last_name' => 'Pérez',
@@ -60,7 +60,7 @@ it('validates unique identification number when creating and editing a patient',
         'identification_number' => '00199999999',
     ]);
 
-    livewire(CreatePatient::class)
+    Livewire::test(CreatePatient::class)
         ->fillForm([
             'first_name' => 'María',
             'last_name' => 'Gómez',
@@ -72,7 +72,7 @@ it('validates unique identification number when creating and editing a patient',
         ->assertHasFormErrors(['identification_number' => 'unique']);
 
     // Editing the same record should ignore its own unique identification_number
-    livewire(EditPatient::class, ['record' => $existing->id])
+    Livewire::test(EditPatient::class, ['record' => $existing->id])
         ->fillForm([
             'first_name' => 'Actualizado',
             'identification_number' => '00199999999',
@@ -90,7 +90,7 @@ it('validates unique identification number when creating and editing a patient',
 it('can view a patient', function () {
     $patient = Patient::factory()->create();
 
-    livewire(ViewPatient::class, ['record' => $patient->id])
+    Livewire::test(ViewPatient::class, ['record' => $patient->id])
         ->assertOk()
         ->assertSee($patient->first_name)
         ->assertSee($patient->identification_number);
