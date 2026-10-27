@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'clinic_id',
@@ -32,6 +33,14 @@ class Branch extends Model
     public function clinic(): BelongsTo
     {
         return $this->belongsTo(Clinic::class);
+    }
+
+    /**
+     * @return HasMany<Cubicle, $this>
+     */
+    public function cubicles(): HasMany
+    {
+        return $this->hasMany(Cubicle::class);
     }
 
     public function isOnlyActiveBranch(): bool

@@ -5,6 +5,7 @@ namespace App\Filament\Clusters\Settings\Resources\Branches;
 use App\Filament\Clusters\Settings\Resources\Branches\Pages\CreateBranch;
 use App\Filament\Clusters\Settings\Resources\Branches\Pages\EditBranch;
 use App\Filament\Clusters\Settings\Resources\Branches\Pages\ListBranches;
+use App\Filament\Clusters\Settings\Resources\Branches\RelationManagers\CubiclesRelationManager;
 use App\Filament\Clusters\Settings\Resources\Branches\Schemas\BranchForm;
 use App\Filament\Clusters\Settings\Resources\Branches\Tables\BranchesTable;
 use App\Filament\Clusters\Settings\SettingsCluster;
@@ -54,7 +55,9 @@ class BranchResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            CubiclesRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
