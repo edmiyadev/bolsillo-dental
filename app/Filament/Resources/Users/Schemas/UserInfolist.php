@@ -47,7 +47,7 @@ class UserInfolist
                                     ->boolean(),
                                 RepeatableEntry::make('working_schedule')
                                     ->label(__('Working days'))
-                                    ->state(fn (BranchUser $record): array => $record->workingScheduleRows())
+                                    ->state(fn (BranchUser $record): array => $record->schedule?->workingScheduleRows() ?? [])
                                     ->placeholder('-')
                                     ->columnSpanFull()
                                     ->table([
