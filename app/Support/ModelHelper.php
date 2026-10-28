@@ -20,7 +20,7 @@ class ModelHelper
             return [];
         }
 
-        $defaultExclusions = ['Client', 'Tenant', 'Domain'];
+        $defaultExclusions = ['Client', 'Tenant', 'Domain', 'BranchUser'];
         $allExclusions = array_unique(array_merge($defaultExclusions, $excludedModels));
 
         $modelFiles = File::files($modelPath);
