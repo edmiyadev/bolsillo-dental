@@ -1,13 +1,17 @@
 <?php
 
+use App\Enums\DayOfWeek;
 use App\Enums\RoleEnum;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Filament\Resources\Users\UserResource;
+use App\Models\Branch;
+use App\Models\Clinic;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\ModelHelper;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
@@ -123,8 +127,14 @@ it('edits an existing collaborator and updates roles', function (): void {
         ->and($collaborator->hasRole(RoleEnum::Receptionist->value))->toBeFalse();
 });
 
-it('renders the view collaborator page with back and action buttons', function (): void {
+it('renders the view collaborator page with assigned branches and working days summary', function (): void {
     $this->actingAs($this->superAdmin);
+
+    $clinic = Clinic::factory()->create();
+    $mainBranch = Branch::factory()->main()->create([
+        'clinic_id' => $clinic->id,
+        'name' => 'Sede Principal Naco',
+    ]);
 
     $collaborator = User::factory()->create([
         'name' => 'Dr. Marcos Santos',
@@ -132,10 +142,32 @@ it('renders the view collaborator page with back and action buttons', function (
     ]);
     $collaborator->assignRole(RoleEnum::Dentist->value);
 
+    $collaborator->branchSchedules()->create([
+        'branch_id' => $mainBranch->id,
+        'is_active' => true,
+        'schedule' => array_map(
+            fn (DayOfWeek $day): array => [
+                'day' => $day->value,
+                'is_open' => in_array($day, [DayOfWeek::Monday, DayOfWeek::Wednesday, DayOfWeek::Friday], true),
+                'open_time' => in_array($day, [DayOfWeek::Monday, DayOfWeek::Wednesday, DayOfWeek::Friday], true) ? '08:00' : null,
+                'close_time' => in_array($day, [DayOfWeek::Monday, DayOfWeek::Wednesday, DayOfWeek::Friday], true) ? '14:00' : null,
+            ],
+            DayOfWeek::cases(),
+        ),
+    ]);
+
     Livewire::test(ViewUser::class, ['record' => $collaborator->id])
         ->assertOk()
         ->assertSee('Dr. Marcos Santos')
-        ->assertSee('marcos@bolsillodental.test');
+        ->assertSee('marcos@bolsillodental.test')
+        ->assertSee('Sede Principal Naco')
+        ->assertSee(DayOfWeek::Monday->getLabel())
+        ->assertSee(DayOfWeek::Wednesday->getLabel())
+        ->assertSee(DayOfWeek::Friday->getLabel())
+        ->assertSee('08:00')
+        ->assertSee('14:00')
+        ->assertDontSee(DayOfWeek::Tuesday->getLabel())
+        ->assertDontSee(DayOfWeek::Sunday->getLabel());
 });
 
 it('supports soft delete, restore, and force delete on collaborators', function (): void {
@@ -213,4 +245,174 @@ it('prevents a collaborator from deleting or force deleting themselves via UserP
     // Can delete or force delete another user
     expect($collaborator->can('delete', $otherUser))->toBeTrue()
         ->and($collaborator->can('forceDelete', $otherUser))->toBeTrue();
+});
+
+it('assigns multiple branches and non-overlapping schedules to a collaborator', function (): void {
+    $this->actingAs($this->superAdmin);
+
+    $clinic = Clinic::factory()->create();
+    $mainBranch = Branch::factory()->main()->create([
+        'clinic_id' => $clinic->id,
+        'name' => 'Sede Principal Naco',
+        'opening_hours' => DayOfWeek::defaultSchedule(),
+    ]);
+    $piantiniBranch = Branch::factory()->create([
+        'clinic_id' => $clinic->id,
+        'name' => 'Sucursal Piantini',
+        'code' => 'PIAN-01',
+        'opening_hours' => DayOfWeek::defaultSchedule(),
+    ]);
+
+    $morningSchedule = array_map(
+        fn (DayOfWeek $day): array => [
+            'day' => $day->value,
+            'is_open' => $day === DayOfWeek::Monday,
+            'open_time' => $day === DayOfWeek::Monday ? '08:00' : null,
+            'close_time' => $day === DayOfWeek::Monday ? '12:00' : null,
+        ],
+        DayOfWeek::cases(),
+    );
+
+    $afternoonSchedule = array_map(
+        fn (DayOfWeek $day): array => [
+            'day' => $day->value,
+            'is_open' => $day === DayOfWeek::Monday,
+            'open_time' => $day === DayOfWeek::Monday ? '13:00' : null,
+            'close_time' => $day === DayOfWeek::Monday ? '18:00' : null,
+        ],
+        DayOfWeek::cases(),
+    );
+
+    Livewire::test(CreateUser::class)
+        ->fillForm([
+            'name' => 'Dr. Roberto Méndez',
+            'email' => 'roberto@bolsillodental.test',
+            'password' => 'secret1234',
+            'branchSchedules' => [
+                [
+                    'branch_id' => $mainBranch->id,
+                    'is_active' => true,
+                    'schedule' => $morningSchedule,
+                ],
+                [
+                    'branch_id' => $piantiniBranch->id,
+                    'is_active' => true,
+                    'schedule' => $afternoonSchedule,
+                ],
+            ],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors()
+        ->assertNotified();
+
+    $collaborator = User::where('email', 'roberto@bolsillodental.test')->firstOrFail();
+
+    expect($collaborator->branches)->toHaveCount(2)
+        ->and($collaborator->branchSchedules)->toHaveCount(2)
+        ->and($collaborator->branches->pluck('id')->all())->toEqualCanonicalizing([$mainBranch->id, $piantiniBranch->id]);
+});
+
+it('fails validation when collaborator schedule is outside branch opening hours or on a closed day', function (): void {
+    $this->actingAs($this->superAdmin);
+
+    $clinic = Clinic::factory()->create();
+    $mainBranch = Branch::factory()->main()->create([
+        'clinic_id' => $clinic->id,
+        'name' => 'Sede Principal Naco',
+        'opening_hours' => DayOfWeek::defaultSchedule(), // 08:00 - 18:00 Mon-Fri, closed Sunday
+    ]);
+
+    $collaborator = User::factory()->create([
+        'name' => 'Dra. Elena Gómez',
+        'email' => 'elena@bolsillodental.test',
+    ]);
+
+    $outOfHoursSchedule = array_map(
+        fn (DayOfWeek $day): array => [
+            'day' => $day->value,
+            'is_open' => $day === DayOfWeek::Monday,
+            'open_time' => $day === DayOfWeek::Monday ? '07:00' : null,
+            'close_time' => $day === DayOfWeek::Monday ? '20:00' : null,
+        ],
+        DayOfWeek::cases(),
+    );
+
+    Livewire::test(EditUser::class, ['record' => $collaborator->id])
+        ->fillForm([
+            'branchSchedules' => [
+                [
+                    'branch_id' => $mainBranch->id,
+                    'is_active' => true,
+                    'schedule' => $outOfHoursSchedule,
+                ],
+            ],
+        ])
+        ->call('save')
+        ->assertHasFormErrors(['branchSchedules']);
+});
+
+it('fails validation when collaborator schedules overlap on the same day across two active branches', function (): void {
+    $this->actingAs($this->superAdmin);
+
+    $clinic = Clinic::factory()->create();
+    $mainBranch = Branch::factory()->main()->create([
+        'clinic_id' => $clinic->id,
+        'name' => 'Sede Principal Naco',
+        'opening_hours' => DayOfWeek::defaultSchedule(),
+    ]);
+    $piantiniBranch = Branch::factory()->create([
+        'clinic_id' => $clinic->id,
+        'name' => 'Sucursal Piantini',
+        'code' => 'PIAN-01',
+        'opening_hours' => DayOfWeek::defaultSchedule(),
+    ]);
+
+    $collaborator = User::factory()->create([
+        'name' => 'Dr. Luis Herrera',
+        'email' => 'luis@bolsillodental.test',
+    ]);
+
+    $scheduleBranchA = array_map(
+        fn (DayOfWeek $day): array => [
+            'day' => $day->value,
+            'is_open' => $day === DayOfWeek::Tuesday,
+            'open_time' => $day === DayOfWeek::Tuesday ? '08:00' : null,
+            'close_time' => $day === DayOfWeek::Tuesday ? '14:00' : null,
+        ],
+        DayOfWeek::cases(),
+    );
+
+    $scheduleBranchB = array_map(
+        fn (DayOfWeek $day): array => [
+            'day' => $day->value,
+            'is_open' => $day === DayOfWeek::Tuesday,
+            'open_time' => $day === DayOfWeek::Tuesday ? '12:00' : null,
+            'close_time' => $day === DayOfWeek::Tuesday ? '17:00' : null,
+        ],
+        DayOfWeek::cases(),
+    );
+
+    Livewire::test(EditUser::class, ['record' => $collaborator->id])
+        ->fillForm([
+            'branchSchedules' => [
+                [
+                    'branch_id' => $mainBranch->id,
+                    'is_active' => true,
+                    'schedule' => $scheduleBranchA,
+                ],
+                [
+                    'branch_id' => $piantiniBranch->id,
+                    'is_active' => true,
+                    'schedule' => $scheduleBranchB,
+                ],
+            ],
+        ])
+        ->call('save')
+        ->assertHasFormErrors(['branchSchedules']);
+});
+
+it('excludes BranchUser from ModelHelper::getModelsWithExclusions', function (): void {
+    $models = ModelHelper::getModelsWithExclusions();
+
+    expect($models)->not->toContain('BranchUser');
 });

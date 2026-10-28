@@ -31,6 +31,9 @@ class UsersTable
                 TextColumn::make('roles.name')
                     ->label(__('Roles'))
                     ->badge(),
+                TextColumn::make('branches.name')
+                    ->label(__('Branches'))
+                    ->badge(),
                 TextColumn::make('email_verified_at')
                     ->label(__('Email verified at'))
                     ->dateTime()

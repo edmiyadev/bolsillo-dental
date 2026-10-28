@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
@@ -41,6 +42,25 @@ class Branch extends Model
     public function cubicles(): HasMany
     {
         return $this->hasMany(Cubicle::class);
+    }
+
+    /**
+     * @return BelongsToMany<User, $this, BranchUser>
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class)
+            ->using(BranchUser::class)
+            ->withPivot(['id', 'schedule', 'is_active'])
+            ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<BranchUser, $this>
+     */
+    public function collaboratorSchedules(): HasMany
+    {
+        return $this->hasMany(BranchUser::class);
     }
 
     public function isOnlyActiveBranch(): bool

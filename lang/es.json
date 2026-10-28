@@ -382,5 +382,19 @@
     "Yes": "Sí",
     "You are receiving this email because we received a password reset request for your account.": "Ha recibido este mensaje porque se solicitó un restablecimiento de contraseña para su cuenta.",
     "You cannot deactivate the only active branch.": "No puedes desactivar la única sucursal activa.",
-    "You cannot delete the only branch of the clinic.": "No puedes eliminar la única sucursal de la clínica."
+    "You cannot delete the only branch of the clinic.": "No puedes eliminar la única sucursal de la clínica.",
+    "A collaborator cannot have the same branch assigned more than once.": "Un colaborador no puede tener la misma sucursal asignada más de una vez.",
+    "Assign branch": "Asignar sucursal",
+    "Assign the collaborator to one or more branches and configure their working hours in each.": "Asigna el colaborador a una o más sucursales y configura su horario laboral en cada una.",
+    "Assigned branches": "Sucursales asignadas",
+    "Branches and Schedules": "Sucursales y Horarios",
+    "Please specify both start and end times for :day at :branch.": "Por favor especifique tanto la hora de inicio como la de fin para el :day en :branch.",
+    "The collaborator cannot work on :day at :branch because the branch is closed on that day.": "El colaborador no puede laborar el :day en :branch porque la sucursal permanece cerrada ese día.",
+    "The end time must be after the start time on :day at :branch.": "La hora de fin debe ser posterior a la hora de inicio el :day en :branch.",
+    "The schedule on :day at :branch (:start - :end) must be within the branch opening hours (:branch_start - :branch_end).": "El horario del :day en :branch (:start - :end) debe estar dentro del horario de apertura de la sucursal (:branch_start - :branch_end).",
+    "The schedule on :day overlaps between :branch_a (:start_a - :end_a) and :branch_b (:start_b - :end_b).": "El horario del :day se solapa entre :branch_a (:start_a - :end_a) y :branch_b (:start_b - :end_b).",
+    "Weekly schedule": "Horario semanal",
+    "Working days": "Días laborables",
+    "No branches assigned": "Sin sucursales asignadas",
+    "Works": "Labora"
 }

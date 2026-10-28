@@ -9,6 +9,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -36,6 +37,25 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function commissionRecords(): HasMany
     {
         return $this->hasMany(CommissionRecord::class);
+    }
+
+    /**
+     * @return BelongsToMany<Branch, $this, BranchUser>
+     */
+    public function branches(): BelongsToMany
+    {
+        return $this->belongsToMany(Branch::class)
+            ->using(BranchUser::class)
+            ->withPivot(['id', 'schedule', 'is_active'])
+            ->withTimestamps();
+    }
+
+    /**
+     * @return HasMany<BranchUser, $this>
+     */
+    public function branchSchedules(): HasMany
+    {
+        return $this->hasMany(BranchUser::class);
     }
 
     public function canAccessPanel(Panel $panel): bool

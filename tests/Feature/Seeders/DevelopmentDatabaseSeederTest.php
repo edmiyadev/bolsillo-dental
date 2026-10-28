@@ -53,12 +53,14 @@ it('seeds full development dataset for central and tenant context', function ():
         $admin = User::query()->where('email', 'admin@sonrisa.com')->first();
         expect($admin)->not->toBeNull()
             ->and($admin->hasRole(RoleEnum::Admin->value))->toBeTrue()
-            ->and($admin->services()->count())->toBeGreaterThanOrEqual(4);
+            ->and($admin->services()->count())->toBeGreaterThanOrEqual(4)
+            ->and($admin->branches()->count())->toBe(1);
 
         $dentist = User::query()->where('email', 'dr.ramirez@sonrisa.com')->first();
         expect($dentist)->not->toBeNull()
             ->and($dentist->hasRole(RoleEnum::Dentist->value))->toBeTrue()
-            ->and($dentist->services()->count())->toBeGreaterThanOrEqual(4);
+            ->and($dentist->services()->count())->toBeGreaterThanOrEqual(4)
+            ->and($dentist->branches()->count())->toBe(2);
 
         $receptionist = User::query()->where('email', 'recepcion@sonrisa.com')->first();
         expect($receptionist)->not->toBeNull()

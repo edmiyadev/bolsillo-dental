@@ -24,8 +24,9 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class DevelopmentDatabaseSeeder extends Seeder
 {
@@ -80,8 +81,12 @@ class DevelopmentDatabaseSeeder extends Seeder
                 }
             } else {
                 try {
-                    \Illuminate\Support\Facades\DB::statement("DROP DATABASE IF EXISTS \"{$dbName}\"");
+                    DB::statement("DROP DATABASE IF EXISTS \"{$dbName}\" WITH (FORCE)");
                 } catch (\Throwable) {
+                    try {
+                        DB::statement("DROP DATABASE IF EXISTS \"{$dbName}\"");
+                    } catch (\Throwable) {
+                    }
                 }
             }
 
@@ -102,10 +107,15 @@ class DevelopmentDatabaseSeeder extends Seeder
                 'admin_password' => 'password',
             ]));
         } else {
-            // Asegurar que los dominios existan
+            // Asegurar que los dominios existan y que el tenant tenga las últimas migraciones
             foreach (['sonrisa.localhost', 'sonrisa'] as $domain) {
                 $tenant->domains()->firstOrCreate(['domain' => $domain]);
             }
+
+            Artisan::call('tenants:migrate', [
+                '--tenants' => [$tenant->id],
+                '--force' => true,
+            ]);
         }
 
         // 4. Contexto del Tenant: Poblar la clínica dental
@@ -297,6 +307,60 @@ class DevelopmentDatabaseSeeder extends Seeder
             $user->syncRoles([$staff['role']]);
             $usersByEmail[$staff['email']] = $user;
         }
+
+        // 3.1 Asignar Sucursales y Horarios a los Colaboradores
+        $morningMainSchedule = array_map(
+            fn (DayOfWeek $day): array => [
+                'day' => $day->value,
+                'is_open' => $day !== DayOfWeek::Sunday,
+                'open_time' => $day !== DayOfWeek::Sunday ? '08:00' : null,
+                'close_time' => match ($day) {
+                    DayOfWeek::Sunday => null,
+                    DayOfWeek::Saturday => '13:00',
+                    default => '12:00',
+                },
+            ],
+            DayOfWeek::cases(),
+        );
+
+        $afternoonPiantiniSchedule = array_map(
+            fn (DayOfWeek $day): array => [
+                'day' => $day->value,
+                'is_open' => ! in_array($day, [DayOfWeek::Saturday, DayOfWeek::Sunday], true),
+                'open_time' => ! in_array($day, [DayOfWeek::Saturday, DayOfWeek::Sunday], true) ? '13:00' : null,
+                'close_time' => ! in_array($day, [DayOfWeek::Saturday, DayOfWeek::Sunday], true) ? '18:00' : null,
+            ],
+            DayOfWeek::cases(),
+        );
+
+        $usersByEmail['admin@sonrisa.com']->branchSchedules()->updateOrCreate(
+            ['branch_id' => $mainBranch->id],
+            ['schedule' => DayOfWeek::defaultSchedule(), 'is_active' => true],
+        );
+
+        $usersByEmail['dr.ramirez@sonrisa.com']->branchSchedules()->updateOrCreate(
+            ['branch_id' => $mainBranch->id],
+            ['schedule' => $morningMainSchedule, 'is_active' => true],
+        );
+        $usersByEmail['dr.ramirez@sonrisa.com']->branchSchedules()->updateOrCreate(
+            ['branch_id' => $piantiniBranch->id],
+            ['schedule' => $afternoonPiantiniSchedule, 'is_active' => true],
+        );
+
+        $usersByEmail['dra.morales@sonrisa.com']->branchSchedules()->updateOrCreate(
+            ['branch_id' => $piantiniBranch->id],
+            ['schedule' => DayOfWeek::defaultSchedule(), 'is_active' => true],
+        );
+
+        $usersByEmail['recepcion@sonrisa.com']->branchSchedules()->updateOrCreate(
+            ['branch_id' => $mainBranch->id],
+            ['schedule' => DayOfWeek::defaultSchedule(), 'is_active' => true],
+        );
+
+        $usersByEmail['asistente@sonrisa.com']->branchSchedules()->updateOrCreate(
+            ['branch_id' => $mainBranch->id],
+            ['schedule' => DayOfWeek::defaultSchedule(), 'is_active' => true],
+        );
 
         // 4. Servicios para cada Doctor
         $drRamirez = $usersByEmail['dr.ramirez@sonrisa.com'];
