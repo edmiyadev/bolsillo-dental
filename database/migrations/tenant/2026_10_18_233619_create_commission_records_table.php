@@ -23,6 +23,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->date('worked_at');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['user_id', 'status']);
             $table->index(['user_id', 'worked_at']);

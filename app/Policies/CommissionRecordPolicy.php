@@ -32,6 +32,16 @@ class CommissionRecordPolicy
         return $record->user_id === $user->id;
     }
 
+    public function restore(User $user, CommissionRecord $record): bool
+    {
+        return $record->user_id === $user->id;
+    }
+
+    public function forceDelete(User $user, CommissionRecord $record): bool
+    {
+        return $record->user_id === $user->id;
+    }
+
     public function deleteAny(User $user): bool
     {
         return true;
