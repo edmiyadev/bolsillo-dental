@@ -11,6 +11,10 @@ use Illuminate\Support\Number;
 
 class CommissionOverview extends StatsOverviewWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->can('view_commission_records') ?? false;
+    }
     /**
      * @return array<Stat>
      */

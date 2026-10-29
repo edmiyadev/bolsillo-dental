@@ -18,7 +18,8 @@ class Dashboard extends BaseDashboard
             Action::make('createCommissionRecord')
                 ->label(__('New commission record'))
                 ->icon(Heroicon::OutlinedPlus)
-                ->url(CommissionRecordResource::getUrl('create')),
+                ->url(CommissionRecordResource::getUrl('create'))
+                ->visible(fn (): bool => auth()->user()?->can('create_commission_records') ?? false),
         ];
     }
 }

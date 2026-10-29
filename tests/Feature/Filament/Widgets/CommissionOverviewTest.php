@@ -1,18 +1,27 @@
 <?php
 
+use App\Enums\RoleEnum;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\CommissionOverview;
 use App\Models\CommissionRecord;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
+use function Pest\Laravel\seed;
+
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    seed([RoleSeeder::class, PermissionSeeder::class]);
+});
+
 it('renders dashboard with only the commission overview widget', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     Livewire::test(Dashboard::class)
         ->assertOk()
@@ -22,7 +31,7 @@ it('renders dashboard with only the commission overview widget', function () {
 });
 
 it('calculates pending, paid, and monthly commissions correctly', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     // Pending record from this month
     CommissionRecord::factory()->pending()->fixedCommission(1500)->create([

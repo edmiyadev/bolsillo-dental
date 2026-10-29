@@ -6,6 +6,8 @@ use App\Filament\Resources\Services\Pages\EditService;
 use App\Filament\Resources\Services\Pages\ListServices;
 use App\Models\Service;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -13,11 +15,16 @@ use Livewire\Livewire;
 use function Pest\Laravel\assertDatabaseCount;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertModelMissing;
+use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    seed([RoleSeeder::class, PermissionSeeder::class]);
+});
+
 it('lists and searches services in the table', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $services = Service::factory()
         ->count(2)
@@ -36,7 +43,7 @@ it('lists and searches services in the table', function () {
 });
 
 it('creates a service with a percentage commission', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     Livewire::test(CreateService::class)
         ->fillForm([
@@ -59,7 +66,7 @@ it('creates a service with a percentage commission', function () {
 });
 
 it('creates a service with a fixed commission greater than 100', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     Livewire::test(CreateService::class)
         ->fillForm([
@@ -82,7 +89,7 @@ it('creates a service with a fixed commission greater than 100', function () {
 });
 
 it('creates a service with fixed commission and empty default price', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     Livewire::test(CreateService::class)
         ->fillForm([
@@ -105,7 +112,7 @@ it('creates a service with fixed commission and empty default price', function (
 });
 
 it('requires default price when commission_type is percentage', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     Livewire::test(CreateService::class)
         ->fillForm([
@@ -122,7 +129,7 @@ it('requires default price when commission_type is percentage', function () {
 });
 
 it('rejects a percentage commission greater than 100', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     Livewire::test(CreateService::class)
         ->fillForm([
@@ -139,7 +146,7 @@ it('rejects a percentage commission greater than 100', function () {
 });
 
 it('updates an existing service', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->percentageCommission(15.00)->create([
         'name' => 'Orthodontics',
@@ -167,7 +174,7 @@ it('updates an existing service', function () {
 });
 
 it('deletes a service from the edit page', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->create();
 
@@ -179,8 +186,8 @@ it('deletes a service from the edit page', function () {
 });
 
 it('only displays services owned by the authenticated user in the list table', function () {
-    $user = User::factory()->create();
-    $otherUser = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
+    $otherUser = User::factory()->superAdmin()->create();
 
     $userService = Service::factory()->for($user)->create(['name' => 'My Cleaning']);
     $otherService = Service::factory()->for($otherUser)->create(['name' => 'Other Person Service']);
@@ -193,7 +200,7 @@ it('only displays services owned by the authenticated user in the list table', f
 });
 
 it('assigns user_id automatically to the authenticated user on create', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
     $this->actingAs($user);
 
     Livewire::test(CreateService::class)
@@ -214,8 +221,8 @@ it('assigns user_id automatically to the authenticated user on create', function
 });
 
 it('forbids editing a service owned by another user with a 404 response', function () {
-    $user = User::factory()->create();
-    $otherUser = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
+    $otherUser = User::factory()->superAdmin()->create();
 
     $otherService = Service::factory()->for($otherUser)->create();
 

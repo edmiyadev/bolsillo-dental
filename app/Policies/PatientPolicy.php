@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Patient;
+use App\Models\User;
+
+class PatientPolicy
+{
+    public function viewAny(User $user): bool
+    {
+        return $user->can('view_patients');
+    }
+
+    public function view(User $user, ?Patient $patient = null): bool
+    {
+        return $user->can('view_patients');
+    }
+
+    public function create(User $user): bool
+    {
+        return $user->can('create_patients');
+    }
+
+    public function update(User $user, ?Patient $patient = null): bool
+    {
+        return $user->can('update_patients');
+    }
+
+    public function delete(User $user, ?Patient $patient = null): bool
+    {
+        return $user->can('delete_patients');
+    }
+
+    public function deleteAny(User $user): bool
+    {
+        return $user->can('delete_patients');
+    }
+
+    public function restore(User $user, ?Patient $patient = null): bool
+    {
+        return $user->can('restore_patients');
+    }
+
+    public function forceDelete(User $user, ?Patient $patient = null): bool
+    {
+        return $user->can('force_delete_patients');
+    }
+}
