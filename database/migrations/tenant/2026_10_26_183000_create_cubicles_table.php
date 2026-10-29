@@ -21,6 +21,7 @@ return new class extends Migration
             $table->json('specialty_schedules')->nullable();
             $table->string('status')->default(CubicleStatus::Active->value);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['branch_id', 'code']);
         });

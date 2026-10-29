@@ -9,8 +9,13 @@ use App\Models\CommissionRecord;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -18,6 +23,7 @@ use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -70,6 +76,11 @@ class CommissionRecordsTable
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('deleted_at')
+                    ->label(__('Deleted at'))
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -95,13 +106,14 @@ class CommissionRecordsTable
                                 fn (Builder $query, string $date): Builder => $query->whereDate('worked_at', '<=', $date),
                             );
                     }),
+                TrashedFilter::make(),
             ])
             ->recordActions([
                 Action::make('markAsPaid')
                     ->label(__('Mark as paid'))
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->color('success')
-                    ->visible(fn (CommissionRecord $record): bool => $record->status !== CommissionStatus::Paid)
+                    ->visible(fn (CommissionRecord $record): bool => $record->status !== CommissionStatus::Paid && ! $record->trashed())
                     ->requiresConfirmation()
                     ->action(function (CommissionRecord $record, MarkCommissionRecordsAsPaidAction $markAsPaid): void {
                         $markAsPaid->handle($record);
@@ -112,6 +124,9 @@ class CommissionRecordsTable
                             ->send();
                     }),
                 EditAction::make(),
+                DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -130,6 +145,8 @@ class CommissionRecordsTable
                         })
                         ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
                 ]),
             ]);
     }

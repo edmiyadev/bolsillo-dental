@@ -4,6 +4,8 @@ namespace App\Filament\Clusters\Settings\Resources\Cubicles\Pages;
 
 use App\Filament\Clusters\Settings\Resources\Cubicles\CubicleResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditCubicle extends EditRecord
@@ -26,6 +28,8 @@ class EditCubicle extends EditRecord
     {
         return [
             DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
         ];
     }
 }

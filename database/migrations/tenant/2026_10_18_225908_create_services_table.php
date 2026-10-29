@@ -19,6 +19,7 @@ return new class extends Migration
             $table->decimal('default_commission', 10, 2);
             $table->string('commission_type')->default('percentage');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('user_id');
         });

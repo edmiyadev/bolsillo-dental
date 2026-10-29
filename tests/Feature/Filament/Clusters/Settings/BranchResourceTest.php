@@ -10,10 +10,15 @@ use App\Models\Clinic;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertModelMissing;
+use function Pest\Laravel\assertSoftDeleted;
 use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
@@ -167,4 +172,41 @@ it('blocks deleting the only branch of the clinic', function (): void {
 
     expect(fn () => $this->mainBranch->delete())
         ->toThrow(DomainException::class);
+});
+
+it('supports soft delete, restore, and force delete on branches when multiple branches exist', function (): void {
+    $secondBranch = Branch::factory()->create([
+        'clinic_id' => $this->clinic->id,
+        'name' => 'Sucursal Bella Vista',
+        'code' => 'BV-01',
+    ]);
+
+    // 1. Soft delete
+    Livewire::test(EditBranch::class, ['record' => $secondBranch->id])
+        ->callAction(DeleteAction::class)
+        ->assertNotified();
+
+    assertSoftDeleted($secondBranch);
+    expect($secondBranch->fresh()->trashed())->toBeTrue();
+
+    // 2. Filter trashed in list table
+    Livewire::test(ListBranches::class)
+        ->assertCanNotSeeTableRecords([$secondBranch])
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$secondBranch]);
+
+    // 3. Restore
+    Livewire::test(EditBranch::class, ['record' => $secondBranch->id])
+        ->callAction(RestoreAction::class)
+        ->assertNotified();
+
+    expect($secondBranch->fresh()->trashed())->toBeFalse();
+
+    // 4. Force delete
+    $secondBranch->delete();
+    Livewire::test(EditBranch::class, ['record' => $secondBranch->id])
+        ->callAction(ForceDeleteAction::class)
+        ->assertNotified();
+
+    assertModelMissing($secondBranch);
 });

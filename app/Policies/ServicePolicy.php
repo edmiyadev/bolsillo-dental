@@ -36,6 +36,16 @@ class ServicePolicy
             && ($service->user_id === $user->id || $user->hasRole(RoleEnum::Admin->value));
     }
 
+    public function restore(User $user, Service $service): bool
+    {
+        return $service->user_id === $user->id;
+    }
+
+    public function forceDelete(User $user, Service $service): bool
+    {
+        return $service->user_id === $user->id;
+    }
+
     public function deleteAny(User $user): bool
     {
         return $user->can('delete_services');
