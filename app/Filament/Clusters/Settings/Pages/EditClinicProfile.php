@@ -47,6 +47,13 @@ class EditClinicProfile extends Page
         return __('Clinic profile');
     }
 
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && ($user->can('view_clinics') || $user->can('update_clinics'));
+    }
+
     public function getTitle(): string|Htmlable
     {
         return __('Clinic profile');
@@ -54,6 +61,8 @@ class EditClinicProfile extends Page
 
     public function mount(): void
     {
+        abort_unless(static::canAccess(), 403);
+
         $this->form->fill($this->getClinic()->attributesToArray());
     }
 
@@ -116,6 +125,8 @@ class EditClinicProfile extends Page
 
     public function save(): void
     {
+        abort_unless(auth()->user()?->can('update_clinics') ?? false, 403);
+
         $data = $this->form->getState();
 
         $this->getClinic()->update($data);

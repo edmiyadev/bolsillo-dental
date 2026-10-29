@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\RoleEnum;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -41,5 +43,29 @@ class UserFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'email_verified_at' => null,
         ]);
+    }
+
+    public function withRole(RoleEnum|string $role): static
+    {
+        return $this->afterCreating(function (User $user) use ($role): void {
+            $roleName = $role instanceof RoleEnum ? $role->value : $role;
+            Role::findOrCreate($roleName, 'web');
+            $user->assignRole($roleName);
+        });
+    }
+
+    public function superAdmin(): static
+    {
+        return $this->withRole(RoleEnum::SuperAdmin);
+    }
+
+    public function admin(): static
+    {
+        return $this->withRole(RoleEnum::Admin);
+    }
+
+    public function dentist(): static
+    {
+        return $this->withRole(RoleEnum::Dentist);
     }
 }

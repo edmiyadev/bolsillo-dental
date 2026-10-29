@@ -1,16 +1,22 @@
 <?php
 
+use App\Enums\RoleEnum;
 use App\Filament\Clusters\Settings\Pages\EditClinicProfile;
 use App\Models\Clinic;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
 
 it('renders and updates the clinic profile in the tenant panel', function (): void {
+    seed([RoleSeeder::class, PermissionSeeder::class]);
+
     $clinic = Clinic::factory()->create([
         'name' => 'Clínica Dental Sonrisa',
         'email' => 'contacto@sonrisa.com',
@@ -20,6 +26,7 @@ it('renders and updates the clinic profile in the tenant panel', function (): vo
     ]);
 
     $user = User::factory()->create();
+    $user->assignRole(RoleEnum::SuperAdmin->value);
 
     $this->actingAs($user)
         ->get('/services')

@@ -3,6 +3,7 @@
 use App\Enums\CubicleStatus;
 use App\Enums\DayOfWeek;
 use App\Enums\DentalSpecialty;
+use App\Enums\RoleEnum;
 use App\Filament\Clusters\Settings\Resources\Branches\Pages\EditBranch;
 use App\Filament\Clusters\Settings\Resources\Branches\RelationManagers\CubiclesRelationManager;
 use App\Filament\Clusters\Settings\Resources\Cubicles\CubicleResource;
@@ -13,14 +14,19 @@ use App\Models\Branch;
 use App\Models\Clinic;
 use App\Models\Cubicle;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    seed([RoleSeeder::class, PermissionSeeder::class]);
+
     $this->clinic = Clinic::factory()->create([
         'name' => 'Clínica Dental Sonrisa',
         'phone' => '809-555-0100',
@@ -34,6 +40,7 @@ beforeEach(function (): void {
     ]);
 
     $this->user = User::factory()->create();
+    $this->user->assignRole(RoleEnum::SuperAdmin->value);
     $this->actingAs($this->user);
 });
 

@@ -1,21 +1,29 @@
 <?php
 
 use App\Enums\IdentificationType;
+use App\Enums\RoleEnum;
 use App\Filament\Resources\Patients\Pages\CreatePatient;
 use App\Filament\Resources\Patients\Pages\EditPatient;
 use App\Filament\Resources\Patients\Pages\ListPatients;
 use App\Filament\Resources\Patients\Pages\ViewPatient;
 use App\Models\Patient;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->actingAs(User::factory()->create());
+    seed([RoleSeeder::class, PermissionSeeder::class]);
+
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::SuperAdmin->value);
+    $this->actingAs($user);
 });
 
 it('can list and search patients', function () {

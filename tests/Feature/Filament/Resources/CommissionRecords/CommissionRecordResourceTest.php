@@ -8,17 +8,24 @@ use App\Filament\Resources\CommissionRecords\Pages\ListCommissionRecords;
 use App\Models\CommissionRecord;
 use App\Models\Service;
 use App\Models\User;
+use Database\Seeders\PermissionSeeder;
+use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertModelMissing;
+use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function (): void {
+    seed([RoleSeeder::class, PermissionSeeder::class]);
+});
+
 it('lists and searches commission records in the table', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $serviceA = Service::factory()->create(['name' => 'Root Canal']);
     $serviceB = Service::factory()->create(['name' => 'Teeth Cleaning']);
@@ -35,7 +42,7 @@ it('lists and searches commission records in the table', function () {
 });
 
 it('filters commission records by status', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $pending = CommissionRecord::factory()->pending()->create();
     $paid = CommissionRecord::factory()->paid()->create();
@@ -48,7 +55,7 @@ it('filters commission records by status', function () {
 });
 
 it('filters commission records by worked_at date range', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $oldRecord = CommissionRecord::factory()->create(['worked_at' => '2026-01-10']);
     $recentRecord = CommissionRecord::factory()->create(['worked_at' => '2026-02-15']);
@@ -63,7 +70,7 @@ it('filters commission records by worked_at date range', function () {
 });
 
 it('auto-completes fields when a service is selected on create form', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->percentageCommission(25.00)->create([
         'default_price' => 200.00,
@@ -80,7 +87,7 @@ it('auto-completes fields when a service is selected on create form', function (
 });
 
 it('clears inherited and calculated fields when service is unselected on create form', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->percentageCommission(25.00)->create([
         'default_price' => 200.00,
@@ -104,7 +111,7 @@ it('clears inherited and calculated fields when service is unselected on create 
 });
 
 it('creates a commission record with calculated earnings via percentage', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->create();
 
@@ -136,7 +143,7 @@ it('creates a commission record with calculated earnings via percentage', functi
 });
 
 it('creates a commission record with fixed commission and observer enforces calculation', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->create();
 
@@ -165,7 +172,7 @@ it('creates a commission record with fixed commission and observer enforces calc
 });
 
 it('creates a commission record with fixed commission and empty price', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->create();
 
@@ -194,7 +201,7 @@ it('creates a commission record with fixed commission and empty price', function
 });
 
 it('requires price when commission_type is percentage', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $service = Service::factory()->create();
 
@@ -213,7 +220,7 @@ it('requires price when commission_type is percentage', function () {
 });
 
 it('updates an existing commission record', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $record = CommissionRecord::factory()->create([
         'price' => 100.00,
@@ -241,7 +248,7 @@ it('updates an existing commission record', function () {
 });
 
 it('marks a single record as paid from table action', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $record = CommissionRecord::factory()->pending()->create();
 
@@ -253,7 +260,7 @@ it('marks a single record as paid from table action', function () {
 });
 
 it('marks multiple records as paid from bulk action', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $records = CommissionRecord::factory()->count(3)->pending()->create();
 
@@ -267,7 +274,7 @@ it('marks multiple records as paid from bulk action', function () {
 });
 
 it('deletes a commission record from the edit page', function () {
-    $this->actingAs(User::factory()->create());
+    $this->actingAs(User::factory()->superAdmin()->create());
 
     $record = CommissionRecord::factory()->create();
 
@@ -279,8 +286,8 @@ it('deletes a commission record from the edit page', function () {
 });
 
 it('only displays commission records owned by the authenticated user in the list table', function () {
-    $user = User::factory()->create();
-    $otherUser = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
+    $otherUser = User::factory()->superAdmin()->create();
 
     $userRecord = CommissionRecord::factory()->for($user)->create();
     $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
@@ -293,7 +300,7 @@ it('only displays commission records owned by the authenticated user in the list
 });
 
 it('assigns user_id automatically to the authenticated user on create', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
     $service = Service::factory()->for($user)->create();
 
     $this->actingAs($user);
@@ -319,8 +326,8 @@ it('assigns user_id automatically to the authenticated user on create', function
 });
 
 it('forbids editing a commission record owned by another user with a 404 response', function () {
-    $user = User::factory()->create();
-    $otherUser = User::factory()->create();
+    $user = User::factory()->superAdmin()->create();
+    $otherUser = User::factory()->superAdmin()->create();
 
     $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
 

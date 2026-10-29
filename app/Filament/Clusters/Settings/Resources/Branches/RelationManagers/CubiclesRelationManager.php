@@ -14,6 +14,11 @@ class CubiclesRelationManager extends RelationManager
 {
     protected static string $relationship = 'cubicles';
 
+    public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+    {
+        return auth()->user()?->can('viewAny', \App\Models\Cubicle::class) ?? false;
+    }
+
     public static function getTitle(Model $ownerRecord, string $pageClass): string
     {
         return __('Cubicles');

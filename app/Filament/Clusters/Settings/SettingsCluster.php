@@ -14,6 +14,11 @@ class SettingsCluster extends Cluster
 
     protected static ?int $navigationSort = 90;
 
+    public static function canAccess(): bool
+    {
+        return static::canAccessClusteredComponents();
+    }
+
     public static function getNavigationGroup(): string|UnitEnum|null
     {
         return NavigationGroup::Settings;
