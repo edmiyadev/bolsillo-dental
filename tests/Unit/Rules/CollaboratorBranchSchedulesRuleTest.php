@@ -50,3 +50,28 @@ it('fails validation when same branch is assigned multiple times', function (): 
 
     expect($errorMessage)->not->toBeNull();
 });
+
+it('normalizes single-digit hours and compares intervals accurately', function (): void {
+    $clinic = Clinic::factory()->create();
+    $mainBranch = Branch::factory()->main()->create([
+        'clinic_id' => $clinic->id,
+        'opening_hours' => DayOfWeek::defaultSchedule(),
+    ]);
+
+    $rule = new CollaboratorBranchSchedulesRule;
+    $failed = false;
+
+    $rule->validate('branchSchedules', [
+        [
+            'branch_id' => $mainBranch->id,
+            'is_active' => true,
+            'schedule' => [
+                ['day' => 'monday', 'is_open' => true, 'open_time' => '8:00', 'close_time' => '12:00'],
+            ],
+        ],
+    ], function () use (&$failed): void {
+        $failed = true;
+    });
+
+    expect($failed)->toBeFalse();
+});

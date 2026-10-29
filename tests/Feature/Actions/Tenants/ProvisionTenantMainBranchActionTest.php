@@ -4,6 +4,7 @@ use App\Actions\Tenants\ProvisionTenantMainBranchAction;
 use App\Enums\DayOfWeek;
 use App\Models\Branch;
 use App\Models\Clinic;
+use App\ValueObjects\WeeklySchedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -26,7 +27,8 @@ it('provisions the main branch for a clinic with default values', function (): v
         ->and($branch->is_main)->toBeTrue()
         ->and($branch->is_active)->toBeTrue()
         ->and($branch->clinic_id)->toBe($clinic->id)
-        ->and($branch->opening_hours)->toBe(DayOfWeek::defaultSchedule());
+        ->and($branch->opening_hours)->toBeInstanceOf(WeeklySchedule::class)
+        ->and($branch->opening_hours->toArray())->toEqual(DayOfWeek::defaultSchedule());
 
     // Calling again does not duplicate
     $action->handle($clinic);

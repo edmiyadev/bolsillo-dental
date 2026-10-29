@@ -17,6 +17,7 @@ it('creates a weekly schedule from array or json', function (): void {
         ->and($schedule->workingDays())->toHaveCount(1)
         ->and($schedule->isOpenOn('monday'))->toBeTrue()
         ->and($schedule->isOpenOn('sunday'))->toBeFalse()
+        ->and($schedule->intervalFor(DayOfWeek::Sunday))->toBeNull()
         ->and($schedule->intervalFor(DayOfWeek::Monday))->toEqual([
             'open_time' => '08:00',
             'close_time' => '17:00',

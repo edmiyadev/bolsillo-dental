@@ -113,15 +113,26 @@ class WeeklySchedule implements Arrayable, Castable, Countable, IteratorAggregat
      */
     public function intervalFor(string|DayOfWeek $day): ?array
     {
+        if (! $this->isOpenOn($day)) {
+            return null;
+        }
+
         $daySchedule = $this->daySchedule($day);
 
         if (! is_array($daySchedule)) {
             return null;
         }
 
+        $openTime = substr((string) ($daySchedule['open_time'] ?? ''), 0, 5);
+        $closeTime = substr((string) ($daySchedule['close_time'] ?? ''), 0, 5);
+
+        if ($openTime === '' || $closeTime === '') {
+            return null;
+        }
+
         return [
-            'open_time' => substr((string) ($daySchedule['open_time'] ?? ''), 0, 5),
-            'close_time' => substr((string) ($daySchedule['close_time'] ?? ''), 0, 5),
+            'open_time' => $openTime,
+            'close_time' => $closeTime,
         ];
     }
 
