@@ -54,6 +54,7 @@ class UserResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
+            ->with(['roles', 'branches'])
             ->whereDoesntHave('roles', fn (Builder $query): Builder => $query
                 ->where('name', RoleEnum::SuperAdmin->value)
             );

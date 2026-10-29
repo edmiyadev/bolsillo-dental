@@ -6,6 +6,7 @@ use App\Enums\DayOfWeek;
 use App\Enums\RoleEnum;
 use App\Models\Branch;
 use App\Rules\CollaboratorBranchSchedulesRule;
+use App\ValueObjects\WeeklySchedule;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Repeater\TableColumn;
@@ -76,7 +77,20 @@ class UserForm
                             ->schema([
                                 Select::make('branch_id')
                                     ->label(__('Branch'))
-                                    ->options(fn (): array => Branch::query()->where('is_active', true)->pluck('name', 'id')->all())
+                                    ->options(function (Get $get): array {
+                                        $selectedId = $get('branch_id');
+
+                                        return Branch::query()
+                                            ->where(function (Builder $query) use ($selectedId): void {
+                                                $query->where('is_active', true);
+
+                                                if (filled($selectedId)) {
+                                                    $query->orWhere('id', $selectedId);
+                                                }
+                                            })
+                                            ->pluck('name', 'id')
+                                            ->all();
+                                    })
                                     ->required()
                                     ->disableOptionsWhenSelectedInSiblingRepeaterItems()
                                     ->live()
@@ -86,9 +100,11 @@ class UserForm
                                         }
 
                                         $branch = Branch::query()->find($state);
-                                        $openingHours = is_array($branch?->opening_hours) && $branch->opening_hours !== []
-                                            ? $branch->opening_hours
-                                            : DayOfWeek::defaultSchedule();
+                                        $openingHours = $branch?->opening_hours instanceof WeeklySchedule
+                                            ? $branch->opening_hours->toArray()
+                                            : (is_array($branch?->opening_hours) && $branch->opening_hours !== []
+                                                ? $branch->opening_hours
+                                                : DayOfWeek::defaultSchedule());
 
                                         $set('schedule', $openingHours);
                                     }),

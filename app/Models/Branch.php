@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Observers\BranchObserver;
+use App\ValueObjects\WeeklySchedule;
 use Database\Factories\BranchFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -82,7 +83,7 @@ class Branch extends Model
         return [
             'is_main' => 'boolean',
             'is_active' => 'boolean',
-            'opening_hours' => 'array',
+            'opening_hours' => WeeklySchedule::class,
         ];
     }
 }
