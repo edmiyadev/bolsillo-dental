@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('is_main')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['clinic_id', 'code']);
         });

@@ -32,6 +32,16 @@ class ServicePolicy
         return $service->user_id === $user->id;
     }
 
+    public function restore(User $user, Service $service): bool
+    {
+        return $service->user_id === $user->id;
+    }
+
+    public function forceDelete(User $user, Service $service): bool
+    {
+        return $service->user_id === $user->id;
+    }
+
     public function deleteAny(User $user): bool
     {
         return true;

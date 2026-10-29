@@ -13,10 +13,15 @@ use App\Models\Branch;
 use App\Models\Clinic;
 use App\Models\Cubicle;
 use App\Models\User;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertModelMissing;
+use function Pest\Laravel\assertSoftDeleted;
 
 uses(RefreshDatabase::class);
 
@@ -200,4 +205,39 @@ it('can create a cubicle with specialty schedule rules via form', function (): v
     expect($created->specialty_schedules)->toHaveCount(1)
         ->and($created->specialty_schedules[0]['day'])->toBe('thursday')
         ->and($created->specialty_schedules[0]['specialty'])->toBe('orthodontics');
+});
+
+it('supports soft delete, restore, and force delete on cubicles', function (): void {
+    $cubicle = Cubicle::factory()->create([
+        'branch_id' => $this->branch->id,
+    ]);
+
+    // 1. Soft delete
+    Livewire::test(EditCubicle::class, ['record' => $cubicle->id])
+        ->callAction(DeleteAction::class)
+        ->assertNotified();
+
+    assertSoftDeleted($cubicle);
+    expect($cubicle->fresh()->trashed())->toBeTrue();
+
+    // 2. Filter trashed in list table
+    Livewire::test(ListCubicles::class)
+        ->assertCanNotSeeTableRecords([$cubicle])
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$cubicle]);
+
+    // 3. Restore
+    Livewire::test(EditCubicle::class, ['record' => $cubicle->id])
+        ->callAction(RestoreAction::class)
+        ->assertNotified();
+
+    expect($cubicle->fresh()->trashed())->toBeFalse();
+
+    // 4. Force delete
+    $cubicle->delete();
+    Livewire::test(EditCubicle::class, ['record' => $cubicle->id])
+        ->callAction(ForceDeleteAction::class)
+        ->assertNotified();
+
+    assertModelMissing($cubicle);
 });
