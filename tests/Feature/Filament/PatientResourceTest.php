@@ -10,10 +10,15 @@ use App\Models\Patient;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertModelMissing;
+use function Pest\Laravel\assertSoftDeleted;
 use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
@@ -102,4 +107,37 @@ it('can view a patient', function () {
         ->assertOk()
         ->assertSee($patient->first_name)
         ->assertSee($patient->identification_number);
+});
+
+it('supports soft delete, restore, and force delete on patients', function () {
+    $patient = Patient::factory()->create();
+
+    // 1. Soft delete
+    Livewire::test(EditPatient::class, ['record' => $patient->id])
+        ->callAction(DeleteAction::class)
+        ->assertNotified();
+
+    assertSoftDeleted($patient);
+    expect($patient->fresh()->trashed())->toBeTrue();
+
+    // 2. Filter trashed in list table
+    Livewire::test(ListPatients::class)
+        ->assertCanNotSeeTableRecords([$patient])
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$patient]);
+
+    // 3. Restore
+    Livewire::test(EditPatient::class, ['record' => $patient->id])
+        ->callAction(RestoreAction::class)
+        ->assertNotified();
+
+    expect($patient->fresh()->trashed())->toBeFalse();
+
+    // 4. Force delete
+    $patient->delete();
+    Livewire::test(EditPatient::class, ['record' => $patient->id])
+        ->callAction(ForceDeleteAction::class)
+        ->assertNotified();
+
+    assertModelMissing($patient);
 });

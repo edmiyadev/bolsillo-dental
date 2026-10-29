@@ -4,6 +4,8 @@ namespace App\Filament\Clusters\Settings\Resources\Branches\Pages;
 
 use App\Filament\Clusters\Settings\Resources\Branches\BranchResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditBranch extends EditRecord
@@ -27,6 +29,9 @@ class EditBranch extends EditRecord
         return [
             DeleteAction::make()
                 ->hidden(fn (): bool => (bool) ($this->record->clinic && $this->record->clinic->branches()->count() <= 1)),
+            ForceDeleteAction::make()
+                ->hidden(fn (): bool => (bool) ($this->record->clinic && $this->record->clinic->branches()->count() <= 1)),
+            RestoreAction::make(),
         ];
     }
 }

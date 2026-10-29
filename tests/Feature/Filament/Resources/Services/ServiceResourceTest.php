@@ -9,12 +9,15 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseCount;
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertModelMissing;
+use function Pest\Laravel\assertSoftDeleted;
 use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
@@ -173,13 +176,37 @@ it('updates an existing service', function () {
     ]);
 });
 
-it('deletes a service from the edit page', function () {
-    $this->actingAs(User::factory()->superAdmin()->create());
+it('soft deletes a service from the edit page and supports restore and force delete', function () {
+    $user = User::factory()->superAdmin()->create();
+    $this->actingAs($user);
 
-    $service = Service::factory()->create();
+    $service = Service::factory()->for($user)->create();
 
+    // 1. Soft delete
     Livewire::test(EditService::class, ['record' => $service->id])
         ->callAction(DeleteAction::class)
+        ->assertNotified();
+
+    assertSoftDeleted($service);
+    expect($service->fresh()->trashed())->toBeTrue();
+
+    // 2. Filter trashed in list table
+    Livewire::test(ListServices::class)
+        ->assertCanNotSeeTableRecords([$service])
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$service]);
+
+    // 3. Restore
+    Livewire::test(EditService::class, ['record' => $service->id])
+        ->callAction(RestoreAction::class)
+        ->assertNotified();
+
+    expect($service->fresh()->trashed())->toBeFalse();
+
+    // 4. Force delete
+    $service->delete();
+    Livewire::test(EditService::class, ['record' => $service->id])
+        ->callAction(ForceDeleteAction::class)
         ->assertNotified();
 
     assertModelMissing($service);

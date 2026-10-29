@@ -11,6 +11,8 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
@@ -18,6 +20,8 @@ use Spatie\Permission\Models\Permission;
 
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertDatabaseMissing;
+use function Pest\Laravel\assertModelMissing;
+use function Pest\Laravel\assertSoftDeleted;
 use function Pest\Laravel\seed;
 
 uses(RefreshDatabase::class);
@@ -140,7 +144,7 @@ it('protects super_admin role from update or delete via policy and gate', functi
         ->and($this->superAdmin->can('delete', $customRole))->toBeTrue();
 });
 
-it('deletes a custom role from the edit page', function (): void {
+it('supports soft delete, restore, and force delete on roles', function (): void {
     $this->actingAs($this->superAdmin);
 
     $role = Role::create([
@@ -148,6 +152,7 @@ it('deletes a custom role from the edit page', function (): void {
         'guard_name' => 'web',
     ]);
 
+    // 1. Soft delete
     Livewire::test(EditRole::class, ['record' => $role->id])
         ->callAction(DeleteAction::class)
         ->assertNotified();
@@ -156,4 +161,27 @@ it('deletes a custom role from the edit page', function (): void {
         'id' => $role->id,
         'deleted_at' => null,
     ]);
+    assertSoftDeleted($role);
+    expect($role->fresh()->trashed())->toBeTrue();
+
+    // 2. Filter trashed in list table
+    Livewire::test(ListRoles::class)
+        ->assertCanNotSeeTableRecords([$role])
+        ->filterTable('trashed', true)
+        ->assertCanSeeTableRecords([$role]);
+
+    // 3. Restore
+    Livewire::test(EditRole::class, ['record' => $role->id])
+        ->callAction(RestoreAction::class)
+        ->assertNotified();
+
+    expect($role->fresh()->trashed())->toBeFalse();
+
+    // 4. Force delete
+    $role->delete();
+    Livewire::test(EditRole::class, ['record' => $role->id])
+        ->callAction(ForceDeleteAction::class)
+        ->assertNotified();
+
+    assertModelMissing($role);
 });
