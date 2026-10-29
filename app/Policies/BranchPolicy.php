@@ -50,14 +50,4 @@ class BranchPolicy
             && $branch->clinic
             && $branch->clinic->branches()->count() > 1;
     }
-
-    public function restore(User $user, Branch $branch): bool
-    {
-        return true;
-    }
-
-    public function forceDelete(User $user, Branch $branch): bool
-    {
-        return (bool) ($branch->clinic && $branch->clinic->branches()->count() > 1);
-    }
 }
