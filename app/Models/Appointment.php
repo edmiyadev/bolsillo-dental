@@ -79,7 +79,7 @@ class Appointment extends Model
      */
     public function service(): BelongsTo
     {
-        return $this->belongsTo(Service::class)->withTrashed();
+        return $this->belongsTo(Service::class)->withoutGlobalScopes()->withTrashed();
     }
 
     public function reasonLabel(): string

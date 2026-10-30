@@ -76,7 +76,12 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
             return $specialtyValue === DentalSpecialty::General->value;
         }
 
-        return in_array($specialtyValue, $specialties, true);
+        $supportedValues = array_map(
+            fn (mixed $item): string => $item instanceof DentalSpecialty ? $item->value : (string) $item,
+            $specialties,
+        );
+
+        return in_array($specialtyValue, $supportedValues, true);
     }
 
     public function canAccessPanel(Panel $panel): bool
