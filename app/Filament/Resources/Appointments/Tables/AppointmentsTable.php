@@ -18,6 +18,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AppointmentsTable
 {
@@ -35,8 +36,8 @@ class AppointmentsTable
                     ->state(fn (Appointment $record): string => $record->patient
                         ? "{$record->patient->first_name} {$record->patient->last_name}"
                         : '-')
-                    ->searchable(query: function ($query, string $search) {
-                        return $query->whereHas('patient', function ($patientQuery) use ($search): void {
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('patient', function (Builder $patientQuery) use ($search): void {
                             $patientQuery
                                 ->where('first_name', 'like', "%{$search}%")
                                 ->orWhere('last_name', 'like', "%{$search}%")
