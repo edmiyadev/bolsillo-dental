@@ -24,6 +24,7 @@ const createAppointmentCalendarComponent = ({ canCreate = false, createUrl = '' 
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
             locale: esLocale,
             initialView: 'timeGridWeek',
+            eventDisplay: 'block',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
