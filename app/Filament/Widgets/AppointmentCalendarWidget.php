@@ -8,61 +8,101 @@ use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\User;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 
-class AppointmentCalendarWidget extends Widget
+class AppointmentCalendarWidget extends Widget implements HasForms
 {
+    use InteractsWithForms;
+
     protected static bool $isDiscovered = false;
 
     protected string $view = 'filament.widgets.appointment-calendar-widget';
 
     protected int|string|array $columnSpan = 'full';
 
-    public ?int $branchId = null;
+    /**
+     * @var array<string, mixed>|null
+     */
+    public ?array $data = [];
 
-    public ?int $dentistId = null;
-
-    public ?string $status = null;
+    public function mount(): void
+    {
+        $this->form->fill([
+            'branch_id' => request()->query('branch_id'),
+        ]);
+    }
 
     public static function canView(): bool
     {
         return auth()->user()?->can('view_appointments') ?? false;
     }
 
-    /**
-     * @return array<int, string>
-     */
-    public function getBranchesProperty(): array
+    public function form(Schema $schema): Schema
     {
-        return Branch::query()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->all();
+        return $schema
+            ->statePath('data')
+            ->components([
+                Grid::make()
+                    ->columns(3)
+                    ->schema([
+                        Select::make('branch_id')
+                            ->label(__('Branch'))
+                            ->placeholder(__('Show All'))
+                            ->prefixIcon(Heroicon::OutlinedBuildingOffice2)
+                            ->options(fn (): array => Branch::query()
+                                ->where('is_active', true)
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->all())
+                            ->searchable()
+                            ->preload()
+                            ->live(),
+
+                        Select::make('dentist_id')
+                            ->label(__('Dentist'))
+                            ->placeholder(__('Show All'))
+                            ->prefixIcon(Heroicon::OutlinedUser)
+                            ->options(fn (): array => User::query()
+                                ->role(RoleEnum::Dentist->value)
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->all())
+                            ->searchable()
+                            ->preload()
+                            ->live(),
+
+                        Select::make('status')
+                            ->label(__('Status'))
+                            ->placeholder(__('Show All'))
+                            ->prefixIcon(Heroicon::OutlinedClock)
+                            ->options(AppointmentStatus::class)
+                            ->searchable()
+                            ->live(),
+                    ]),
+            ]);
     }
 
-    /**
-     * @return array<int, string>
-     */
-    public function getDentistsProperty(): array
+    public function updatedData(): void
     {
-        return User::query()
-            ->role(RoleEnum::Dentist->value)
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->all();
+        $this->dispatch('calendar-filters-updated');
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public function getStatusesProperty(): array
+    public function getCanCreateProperty(): bool
     {
-        return collect(AppointmentStatus::cases())
-            ->mapWithKeys(fn (AppointmentStatus $status): array => [$status->value => $status->getLabel()])
-            ->all();
+        return auth()->user()?->can('create_appointments') ?? false;
+    }
+
+    public function getCreateUrlProperty(): string
+    {
+        return AppointmentResource::getUrl('create');
     }
 
     /**
@@ -80,16 +120,6 @@ class AppointmentCalendarWidget extends Widget
             ->all();
     }
 
-    public function getCanCreateProperty(): bool
-    {
-        return auth()->user()?->can('create_appointments') ?? false;
-    }
-
-    public function getCreateUrlProperty(): string
-    {
-        return AppointmentResource::getUrl('create');
-    }
-
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -104,9 +134,9 @@ class AppointmentCalendarWidget extends Widget
             return [];
         }
 
-        $branchId ??= $this->branchId;
-        $dentistId ??= $this->dentistId;
-        $status ??= $this->status;
+        $branchId ??= ! empty($this->data['branch_id']) ? (int) $this->data['branch_id'] : null;
+        $dentistId ??= ! empty($this->data['dentist_id']) ? (int) $this->data['dentist_id'] : null;
+        $status ??= ! empty($this->data['status']) ? (string) $this->data['status'] : null;
         $canUpdate = auth()->user()?->can('update_appointments') ?? false;
 
         return Appointment::query()

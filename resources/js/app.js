@@ -7,9 +7,6 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 
 const createAppointmentCalendarComponent = ({ canCreate = false, createUrl = '' } = {}) => ({
     calendar: null,
-    branchId: '',
-    dentistId: '',
-    status: '',
     canCreate,
     createUrl,
 
@@ -37,13 +34,7 @@ const createAppointmentCalendarComponent = ({ canCreate = false, createUrl = '' 
             height: 'auto',
             events: (info, successCallback, failureCallback) => {
                 this.$wire
-                    .fetchEvents(
-                        info.startStr,
-                        info.endStr,
-                        this.branchId ? Number(this.branchId) : null,
-                        this.dentistId ? Number(this.dentistId) : null,
-                        this.status || null,
-                    )
+                    .fetchEvents(info.startStr, info.endStr)
                     .then(successCallback)
                     .catch(failureCallback);
             },
@@ -60,8 +51,12 @@ const createAppointmentCalendarComponent = ({ canCreate = false, createUrl = '' 
 
                 url.searchParams.set('starts_at', startsAt);
 
-                if (this.branchId) {
-                    url.searchParams.set('branch_id', this.branchId);
+                const branchId = typeof this.$wire.get === 'function'
+                    ? this.$wire.get('data.branch_id')
+                    : (this.$wire.data?.branch_id || null);
+
+                if (branchId) {
+                    url.searchParams.set('branch_id', branchId);
                 }
 
                 window.location.href = url.toString();
@@ -99,5 +94,8 @@ const registerAppointmentCalendar = () => {
     }
 };
 
-document.addEventListener('alpine:init', registerAppointmentCalendar);
-registerAppointmentCalendar();
+if (window.Alpine) {
+    registerAppointmentCalendar();
+} else {
+    document.addEventListener('alpine:init', registerAppointmentCalendar);
+}
