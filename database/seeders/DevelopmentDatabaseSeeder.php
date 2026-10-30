@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Actions\Services\CreateDefaultServicesForUserAction;
 use App\Actions\Tenants\CreateTenantAction;
 use App\Data\Tenants\CreateTenantData;
+use App\Enums\AppointmentStatus;
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
 use App\Enums\CubicleStatus;
@@ -12,6 +13,7 @@ use App\Enums\DayOfWeek;
 use App\Enums\DentalSpecialty;
 use App\Enums\IdentificationType;
 use App\Enums\RoleEnum;
+use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\Client;
 use App\Models\Clinic;
@@ -271,26 +273,40 @@ class DevelopmentDatabaseSeeder extends Seeder
                 'name' => 'Dra. María Gómez',
                 'email' => 'admin@sonrisa.com',
                 'role' => RoleEnum::Admin->value,
+                'specialties' => [DentalSpecialty::General->value],
             ],
             [
                 'name' => 'Dr. Carlos Ramírez',
                 'email' => 'dr.ramirez@sonrisa.com',
                 'role' => RoleEnum::Dentist->value,
+                'specialties' => [
+                    DentalSpecialty::General->value,
+                    DentalSpecialty::Aesthetics->value,
+                    DentalSpecialty::OralSurgery->value,
+                ],
             ],
             [
                 'name' => 'Dra. Laura Morales',
                 'email' => 'dra.morales@sonrisa.com',
                 'role' => RoleEnum::Dentist->value,
+                'specialties' => [
+                    DentalSpecialty::Orthodontics->value,
+                    DentalSpecialty::Implantology->value,
+                    DentalSpecialty::Endodontics->value,
+                    DentalSpecialty::General->value,
+                ],
             ],
             [
                 'name' => 'Carmen Santana',
                 'email' => 'recepcion@sonrisa.com',
                 'role' => RoleEnum::Receptionist->value,
+                'specialties' => null,
             ],
             [
                 'name' => 'Ana Martínez',
                 'email' => 'asistente@sonrisa.com',
                 'role' => RoleEnum::DentalAssistant->value,
+                'specialties' => null,
             ],
         ];
 
@@ -302,8 +318,10 @@ class DevelopmentDatabaseSeeder extends Seeder
                     'name' => $staff['name'],
                     'password' => Hash::make('password'),
                     'email_verified_at' => now(),
+                    'specialties' => $staff['specialties'],
                 ],
             );
+            $user->update(['specialties' => $staff['specialties']]);
             $user->syncRoles([$staff['role']]);
             $usersByEmail[$staff['email']] = $user;
         }
@@ -365,15 +383,15 @@ class DevelopmentDatabaseSeeder extends Seeder
         // 4. Servicios para cada Doctor
         $drRamirez = $usersByEmail['dr.ramirez@sonrisa.com'];
         $servicesRamirez = [
-            ['name' => 'Limpieza Dental Profunda (Profilaxis)', 'default_price' => 2500.00, 'default_commission' => 30.00, 'commission_type' => CommissionType::Percentage],
-            ['name' => 'Restauración Resina Simple', 'default_price' => 1800.00, 'default_commission' => 25.00, 'commission_type' => CommissionType::Percentage],
-            ['name' => 'Blanqueamiento Dental LED', 'default_price' => 8500.00, 'default_commission' => 35.00, 'commission_type' => CommissionType::Percentage],
-            ['name' => 'Extracción Dental Simple', 'default_price' => 2000.00, 'default_commission' => 600.00, 'commission_type' => CommissionType::Fixed],
+            ['name' => 'Limpieza Dental Profunda (Profilaxis)', 'default_price' => 2500.00, 'default_commission' => 30.00, 'commission_type' => CommissionType::Percentage, 'specialty' => DentalSpecialty::General, 'duration_minutes' => 30],
+            ['name' => 'Restauración Resina Simple', 'default_price' => 1800.00, 'default_commission' => 25.00, 'commission_type' => CommissionType::Percentage, 'specialty' => DentalSpecialty::General, 'duration_minutes' => 45],
+            ['name' => 'Blanqueamiento Dental LED', 'default_price' => 8500.00, 'default_commission' => 35.00, 'commission_type' => CommissionType::Percentage, 'specialty' => DentalSpecialty::Aesthetics, 'duration_minutes' => 60],
+            ['name' => 'Extracción Dental Simple', 'default_price' => 2000.00, 'default_commission' => 600.00, 'commission_type' => CommissionType::Fixed, 'specialty' => DentalSpecialty::OralSurgery, 'duration_minutes' => 45],
         ];
 
         $ramirezCreatedServices = [];
         foreach ($servicesRamirez as $serv) {
-            $ramirezCreatedServices[] = Service::withoutGlobalScopes()->firstOrCreate(
+            $ramirezCreatedServices[] = Service::withoutGlobalScopes()->updateOrCreate(
                 ['user_id' => $drRamirez->id, 'name' => $serv['name']],
                 $serv,
             );
@@ -381,15 +399,15 @@ class DevelopmentDatabaseSeeder extends Seeder
 
         $draMorales = $usersByEmail['dra.morales@sonrisa.com'];
         $servicesMorales = [
-            ['name' => 'Instalación Brackets Autoligados', 'default_price' => 28000.00, 'default_commission' => 40.00, 'commission_type' => CommissionType::Percentage],
-            ['name' => 'Control Mensual de Ortodoncia', 'default_price' => 2200.00, 'default_commission' => 50.00, 'commission_type' => CommissionType::Percentage],
-            ['name' => 'Implante Dental Titanio (Fase 1)', 'default_price' => 45000.00, 'default_commission' => 30.00, 'commission_type' => CommissionType::Percentage],
-            ['name' => 'Endodoncia Molar Unirradicular', 'default_price' => 12000.00, 'default_commission' => 4000.00, 'commission_type' => CommissionType::Fixed],
+            ['name' => 'Instalación Brackets Autoligados', 'default_price' => 28000.00, 'default_commission' => 40.00, 'commission_type' => CommissionType::Percentage, 'specialty' => DentalSpecialty::Orthodontics, 'duration_minutes' => 60],
+            ['name' => 'Control Mensual de Ortodoncia', 'default_price' => 2200.00, 'default_commission' => 50.00, 'commission_type' => CommissionType::Percentage, 'specialty' => DentalSpecialty::Orthodontics, 'duration_minutes' => 30],
+            ['name' => 'Implante Dental Titanio (Fase 1)', 'default_price' => 45000.00, 'default_commission' => 30.00, 'commission_type' => CommissionType::Percentage, 'specialty' => DentalSpecialty::Implantology, 'duration_minutes' => 90],
+            ['name' => 'Endodoncia Molar Unirradicular', 'default_price' => 12000.00, 'default_commission' => 4000.00, 'commission_type' => CommissionType::Fixed, 'specialty' => DentalSpecialty::Endodontics, 'duration_minutes' => 60],
         ];
 
         $moralesCreatedServices = [];
         foreach ($servicesMorales as $serv) {
-            $moralesCreatedServices[] = Service::withoutGlobalScopes()->firstOrCreate(
+            $moralesCreatedServices[] = Service::withoutGlobalScopes()->updateOrCreate(
                 ['user_id' => $draMorales->id, 'name' => $serv['name']],
                 $serv,
             );
@@ -410,11 +428,83 @@ class DevelopmentDatabaseSeeder extends Seeder
             ['first_name' => 'Valeria', 'last_name' => 'Castillo', 'document_type' => IdentificationType::IdentityCard, 'identification_number' => '00174625341', 'email' => 'valeria.castillo@email.com', 'phone' => '809-555-2077', 'address' => 'Paraíso, Santo Domingo'],
         ];
 
+        $createdPatients = [];
         foreach ($patientsData as $patient) {
-            Patient::query()->firstOrCreate(
+            $createdPatients[] = Patient::query()->firstOrCreate(
                 ['identification_number' => $patient['identification_number']],
                 $patient,
             );
+        }
+
+        // 5.1 Citas de Ejemplo (Agenda Clínica)
+        if (Appointment::query()->count() === 0 && count($createdPatients) >= 4) {
+            $mainCubicle1 = Cubicle::query()->where('branch_id', $mainBranch->id)->where('code', 'CUB-01')->first();
+            $mainCubicle2 = Cubicle::query()->where('branch_id', $mainBranch->id)->where('code', 'CUB-02')->first();
+            $piantiniCubicle1 = Cubicle::query()->where('branch_id', $piantiniBranch->id)->where('code', 'CUB-01')->first();
+
+            $nextMonday = Carbon::now()->next(Carbon::MONDAY);
+
+            if ($mainCubicle1) {
+                Appointment::query()->create([
+                    'branch_id' => $mainBranch->id,
+                    'patient_id' => $createdPatients[0]->id,
+                    'dentist_id' => $drRamirez->id,
+                    'cubicle_id' => $mainCubicle1->id,
+                    'service_id' => $ramirezCreatedServices[0]->id,
+                    'specialty' => DentalSpecialty::General,
+                    'is_custom_reason' => false,
+                    'starts_at' => $nextMonday->copy()->setTime(9, 0),
+                    'duration_minutes' => 30,
+                    'status' => AppointmentStatus::Confirmed,
+                    'observations' => 'Paciente solicita revisión periódica junto con profilaxis.',
+                ]);
+
+                Appointment::query()->create([
+                    'branch_id' => $mainBranch->id,
+                    'patient_id' => $createdPatients[1]->id,
+                    'dentist_id' => $drRamirez->id,
+                    'cubicle_id' => $mainCubicle1->id,
+                    'service_id' => null,
+                    'specialty' => DentalSpecialty::General,
+                    'is_custom_reason' => true,
+                    'custom_reason' => 'Evaluación por sensibilidad dental aguda',
+                    'starts_at' => $nextMonday->copy()->setTime(10, 0),
+                    'duration_minutes' => 30,
+                    'status' => AppointmentStatus::Scheduled,
+                    'observations' => 'Refiere molestia al frío en cuadrante inferior izquierdo.',
+                ]);
+            }
+
+            if ($mainCubicle2) {
+                Appointment::query()->create([
+                    'branch_id' => $mainBranch->id,
+                    'patient_id' => $createdPatients[2]->id,
+                    'dentist_id' => $drRamirez->id,
+                    'cubicle_id' => $mainCubicle2->id,
+                    'service_id' => $ramirezCreatedServices[2]->id,
+                    'specialty' => DentalSpecialty::Aesthetics,
+                    'is_custom_reason' => false,
+                    'starts_at' => $nextMonday->copy()->setTime(10, 30),
+                    'duration_minutes' => 60,
+                    'status' => AppointmentStatus::Scheduled,
+                ]);
+            }
+
+            if ($piantiniCubicle1) {
+                Appointment::query()->create([
+                    'branch_id' => $piantiniBranch->id,
+                    'patient_id' => $createdPatients[3]->id,
+                    'dentist_id' => $draMorales->id,
+                    'cubicle_id' => $piantiniCubicle1->id,
+                    'service_id' => null,
+                    'specialty' => DentalSpecialty::General,
+                    'is_custom_reason' => true,
+                    'custom_reason' => 'Consulta inicial de diagnóstico integral',
+                    'starts_at' => $nextMonday->copy()->setTime(14, 0),
+                    'duration_minutes' => 45,
+                    'status' => AppointmentStatus::Confirmed,
+                ]);
+            }
         }
 
         // 6. Registros de Comisiones Realistas (pendientes y pagadas en los últimos 30 días)
