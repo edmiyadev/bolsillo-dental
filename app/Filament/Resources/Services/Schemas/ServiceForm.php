@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Services\Schemas;
 
 use App\Enums\CommissionType;
+use App\Enums\DentalSpecialty;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
@@ -23,6 +24,19 @@ class ServiceForm
                             ->label(__('Name'))
                             ->required()
                             ->maxLength(255),
+                        Select::make('specialty')
+                            ->label(__('Specialty'))
+                            ->options(DentalSpecialty::class)
+                            ->default(DentalSpecialty::General)
+                            ->required(),
+                        TextInput::make('duration_minutes')
+                            ->label(__('Estimated duration'))
+                            ->numeric()
+                            ->minValue(5)
+                            ->maxValue(480)
+                            ->default(30)
+                            ->suffix(__('min'))
+                            ->required(),
                         TextInput::make('default_price')
                             ->label(__('Default price'))
                             ->required(fn (Get $get): bool => in_array($get('commission_type'), [CommissionType::Percentage, CommissionType::Percentage->value], true))
@@ -45,6 +59,5 @@ class ServiceForm
                             ->suffix(fn (Get $get): ?string => $get('commission_type') === CommissionType::Percentage || $get('commission_type') === CommissionType::Percentage->value ? '%' : null),
                     ]),
             ]);
-
     }
 }
