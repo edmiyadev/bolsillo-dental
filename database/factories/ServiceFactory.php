@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\CommissionType;
+use App\Enums\DentalSpecialty;
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -26,6 +27,8 @@ class ServiceFactory extends Factory
             'default_price' => fake()->randomFloat(2, 20, 500),
             'default_commission' => fake()->randomFloat(2, 5, 50),
             'commission_type' => fake()->randomElement(CommissionType::cases()),
+            'specialty' => DentalSpecialty::General,
+            'duration_minutes' => 30,
         ];
     }
 

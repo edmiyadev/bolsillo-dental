@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CommissionType;
+use App\Enums\DentalSpecialty;
 use App\Models\Concerns\BelongsToUser;
 use Database\Factories\ServiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'default_price', 'default_commission', 'commission_type'])]
+#[Fillable(['name', 'default_price', 'default_commission', 'commission_type', 'specialty', 'duration_minutes'])]
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */
@@ -36,6 +37,8 @@ class Service extends Model
             'default_price' => 'decimal:2',
             'default_commission' => 'decimal:2',
             'commission_type' => CommissionType::class,
+            'specialty' => DentalSpecialty::class,
+            'duration_minutes' => 'integer',
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CubicleStatus;
+use App\Enums\DayOfWeek;
 use App\Enums\DentalSpecialty;
 use App\Observers\CubicleObserver;
 use Database\Factories\CubicleFactory;
@@ -41,6 +42,37 @@ class Cubicle extends Model
         $supported = $this->specialty_types ?? [];
 
         return in_array($specialtyValue, $supported, true);
+    }
+
+    public function isAvailableForSpecialtyAt(DentalSpecialty|string $specialty, DayOfWeek $day, string $startTime, string $endTime): bool
+    {
+        if ($this->status !== CubicleStatus::Active) {
+            return false;
+        }
+
+        if (! $this->supportsSpecialty($specialty)) {
+            return false;
+        }
+
+        $specialtyValue = $specialty instanceof DentalSpecialty ? $specialty->value : $specialty;
+        $schedules = $this->specialty_schedules ?? [];
+
+        foreach ($schedules as $rule) {
+            if (($rule['day'] ?? null) !== $day->value) {
+                continue;
+            }
+
+            $ruleStart = (string) ($rule['start_time'] ?? '');
+            $ruleEnd = (string) ($rule['end_time'] ?? '');
+
+            if ($ruleStart < $endTime && $startTime < $ruleEnd) {
+                if (($rule['specialty'] ?? null) !== $specialtyValue) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
