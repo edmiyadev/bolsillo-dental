@@ -40,6 +40,9 @@ class PermissionSeeder extends Seeder
             Permission::findOrCreate('update_services', 'web'),
             Permission::findOrCreate('view_commission_records', 'web'),
             Permission::findOrCreate('create_commission_records', 'web'),
+            Permission::findOrCreate('view_appointments', 'web'),
+            Permission::findOrCreate('create_appointments', 'web'),
+            Permission::findOrCreate('update_appointments', 'web'),
         ]);
 
         $receptionistRole = Role::findOrCreate(RoleEnum::Receptionist->value, 'web');
@@ -49,6 +52,10 @@ class PermissionSeeder extends Seeder
             Permission::findOrCreate('update_patients', 'web'),
             Permission::findOrCreate('view_branches', 'web'),
             Permission::findOrCreate('view_cubicles', 'web'),
+            Permission::findOrCreate('view_appointments', 'web'),
+            Permission::findOrCreate('create_appointments', 'web'),
+            Permission::findOrCreate('update_appointments', 'web'),
+            Permission::findOrCreate('delete_appointments', 'web'),
         ]);
 
         $dentalAssistantRole = Role::findOrCreate(RoleEnum::DentalAssistant->value, 'web');
@@ -56,6 +63,7 @@ class PermissionSeeder extends Seeder
             Permission::findOrCreate('view_patients', 'web'),
             Permission::findOrCreate('view_services', 'web'),
             Permission::findOrCreate('view_cubicles', 'web'),
+            Permission::findOrCreate('view_appointments', 'web'),
         ]);
     }
 }
