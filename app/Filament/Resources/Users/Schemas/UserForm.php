@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Schemas;
 
 use App\Enums\DayOfWeek;
+use App\Enums\DentalSpecialty;
 use App\Enums\RoleEnum;
 use App\Models\Branch;
 use App\Rules\CollaboratorBranchSchedulesRule;
@@ -59,6 +60,12 @@ class UserForm
                                     )
                                     ->preload()
                                     ->multiple(),
+                                Select::make('specialties')
+                                    ->label(__('Specialties'))
+                                    ->options(DentalSpecialty::class)
+                                    ->multiple()
+                                    ->default([DentalSpecialty::General->value])
+                                    ->columnSpanFull(),
                             ]),
                     ]),
 
