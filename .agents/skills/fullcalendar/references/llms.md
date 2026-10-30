@@ -1,0 +1,395 @@
+# FullCalendar
+
+> FullCalendar is a JavaScript event calendar, with components for React, Vue, Angular and Preact, a web component, and a vanilla JS build. This index covers the documentation for FullCalendar v7, the current version. Every page linked here is Markdown.
+
+FullCalendar v7 is not compatible with code written for v6. Package names, import paths, option names and theming all changed, and most code examples on the web, along with most of what AI models learned, are for v6. Read the [upgrade guide](https://fullcalendar.io/docs/upgrading-from-v6.md) before writing or fixing FullCalendar code. In React, for example, v7 installs `@fullcalendar/react` and imports views from it (`@fullcalendar/react/daygrid`); the v6 plugin packages such as `@fullcalendar/daygrid` still install from npm, but don't work with v7.
+
+## Getting Started
+
+- [React Component](https://fullcalendar.io/docs/react.md): FullCalendar for React, versions 17 - 19, is written in React itself rather than wrapped around the vanilla JS calendar.
+- [Vue Component](https://fullcalendar.io/docs/vue.md): FullCalendar seamlessly integrates with Vue 3.
+- [Angular Component](https://fullcalendar.io/docs/angular.md): FullCalendar seamlessly integrates with Angular 16 - 22.
+- [Vanilla JavaScript](https://fullcalendar.io/docs/vanilla-js.md): Using FullCalendar without a framework.
+- [View-Specific Options](https://fullcalendar.io/docs/view-specific-options.md): You can specify options that apply only to specific calendar views.
+- [Get/Set Options Dynamically](https://fullcalendar.io/docs/dynamic-options.md): You can get/set calendar options after a calendar has already been initialized.
+- [Handlers](https://fullcalendar.io/docs/handlers.md): How to attach handlers to your calendar, which execute when other things happen.
+- [Content Injection](https://fullcalendar.io/docs/content-injection.md): Custom content can be injected into FullCalendar's DOM in various places.
+- [Calendar::render](https://fullcalendar.io/docs/Calendar-render.md): Initially render the calendar, or rerender it after initialization.
+- [Calendar::destroy](https://fullcalendar.io/docs/Calendar-destroy.md): Restores the container element to the state before FullCalendar was initialized.
+- [Calendar::batchRendering](https://fullcalendar.io/docs/Calendar-batchRendering.md): A way to group operations that cause rerenders.
+- [rerenderDelay](https://fullcalendar.io/docs/rerenderDelay.md): The amount of milliseconds to wait before rerendering anything on a calendar.
+- [Preact Component](https://fullcalendar.io/docs/preact.md): FullCalendar for Preact is written in Preact itself rather than wrapped around the vanilla JS calendar.
+- [Web Component](https://fullcalendar.io/docs/web-component.md): FullCalendar comes as a Web Component (aka "Custom Element").
+- [Salesforce Lightning Web Component (LWC)](https://fullcalendar.io/docs/salesforce-lwc.md): Using FullCalendar inside a Salesforce Lightning Web Component.
+
+## Tools & Plugins
+
+- [Agent Guide](https://fullcalendar.io/docs/agent-guide.md): How to point an AI coding agent at FullCalendar's documentation
+- [Plugin Index](https://fullcalendar.io/docs/plugin-index.md): Every FullCalendar package and plugin, with what each one offers.
+- [Premium Plugins](https://fullcalendar.io/docs/premium.md): FullCalendar Premium adds resource views, timelines and printer-friendly rendering.
+- [schedulerLicenseKey](https://fullcalendar.io/docs/schedulerLicenseKey.md): The schedulerLicenseKey setting is the license key you must enter to use premium features.
+- [V7 Migration](https://fullcalendar.io/docs/v7.md): Upgrade guides for FullCalendar v7.
+- [V7 Changelog](https://fullcalendar.io/docs/upgrading-from-v6.md): Upgrade from v6 to v7.
+- [V7 JavaScript API Migration Guide](https://fullcalendar.io/docs/upgrading-from-v6-js.md): This document will help you migrate from v6 of the API to v7.
+- [V7 Custom CSS Migration Guide](https://fullcalendar.io/docs/upgrading-from-v6-css.md): Move CSS that targets FullCalendar's built-in fc-* class names to v7's settings.
+
+## Overall Display
+
+- [Theme](https://fullcalendar.io/docs/theming.md): Change the look of the calendar.
+- [Stock Themes](https://fullcalendar.io/docs/stock-themes.md): The five themes that ship with FullCalendar, and how to install one in each framework.
+- [Color Palettes](https://fullcalendar.io/docs/color-palettes.md): Each of the 5 stock themes comes with its own "palettes", which define its color values.
+- [Shadcn](https://fullcalendar.io/docs/shadcn.md): Ready-made React components, installed from a Shadcn registry into your own codebase.
+- [MUI](https://fullcalendar.io/docs/mui.md): Ready-made React components that inherit your Material UI theme.
+- [Bootstrap 5](https://fullcalendar.io/docs/bootstrap5.md): FullCalendar can take its look from your Bootstrap 5 theme.
+- [Custom Themes](https://fullcalendar.io/docs/custom-themes.md): Build your own theme from class-name props, one for each element in the calendar.
+- [ClassName Inputs](https://fullcalendar.io/docs/classname-input.md): Add your own CSS class names to the calendar's elements.
+- [Render Hook Index](https://fullcalendar.io/docs/render-hook-index.md): A quick index of render-hook articles, and the hooks each one exposes.
+- [className](https://fullcalendar.io/docs/className.md): Provides a ClassName Input for the calendar's root element.
+- [borderless settings](https://fullcalendar.io/docs/borderless.md): Remove borders from the calendar's outer edge.
+- [Toolbar](https://fullcalendar.io/docs/toolbar.md): The area at the top and bottom of the calendar that contains buttons and other controls.
+- [CalendarController](https://fullcalendar.io/docs/CalendarController.md): Use the calendar's data outside the calendar itself, such as in a custom toolbar.
+- [headerToolbar](https://fullcalendar.io/docs/headerToolbar.md): Defines the buttons and title at the top of the calendar.
+- [footerToolbar](https://fullcalendar.io/docs/footerToolbar.md): Defines the controls at the bottom of the calendar.
+- [titleFormat](https://fullcalendar.io/docs/titleFormat.md): Determines the text that will be displayed in the headerToolbar's title.
+- [buttons](https://fullcalendar.io/docs/buttons.md): Defines custom buttons for the toolbars, and overrides for the standard ones.
+- [buttonDisplay](https://fullcalendar.io/docs/buttonDisplay.md): Controls whether toolbar buttons display an icon, text, or both.
+- [toolbarElements](https://fullcalendar.io/docs/toolbarElements.md): Defines an arbitrary custom html element for use in headerToolbar or footerToolbar.
+- [Toolbar Render Hooks](https://fullcalendar.io/docs/toolbar-render-hooks.md): Customize the toolbar elements with ClassName Input settings.
+- [Sizing](https://fullcalendar.io/docs/sizing.md): How to control the dimensions of the calendar.
+- [height](https://fullcalendar.io/docs/height.md): Sets the height of the entire calendar, including header and footer.
+- [contentHeight](https://fullcalendar.io/docs/contentHeight.md): Sets the height of the view area of the calendar.
+- [aspectRatio](https://fullcalendar.io/docs/aspectRatio.md): Sets the width-to-height aspect ratio of the calendar.
+- [expandRows](https://fullcalendar.io/docs/expandRows.md): If the rows of a given view don't take up the entire height, they will expand to fit.
+- [tableHeaderSticky](https://fullcalendar.io/docs/tableHeaderSticky.md): Whether to fix the date-headers at the top of the calendar to the viewport while scrolling.
+- [footerScrollbarSticky](https://fullcalendar.io/docs/footerScrollbarSticky.md): Whether to fix the view's horizontal scrollbar to the bottom of the viewport while scrolling.
+- [Virtual Rendering](https://fullcalendar.io/docs/virtual-rendering.md): Keep large calendars fast by rendering only what's visible in the scroll area.
+- [virtualization](https://fullcalendar.io/docs/virtualization.md): Whether to only render the rows and columns currently visible in the scroll viewport.
+- [Locale](https://fullcalendar.io/docs/localization.md): You can tailor the calendar for certain languages (aka "locales").
+- [locale](https://fullcalendar.io/docs/locale.md): The locale and locales options localize the calendar's text and date formats.
+- [Locale Text](https://fullcalendar.io/docs/locale-text.md): The labels and messages shown across the calendar's UI, from toolbar buttons to "+more" links.
+- [direction](https://fullcalendar.io/docs/direction.md): The direction that elements in the calendar are rendered.
+- [firstDay](https://fullcalendar.io/docs/firstDay.md): The day that each week begins.
+
+## Views
+
+- [Month View](https://fullcalendar.io/docs/month-view.md): The Month view is a specific type of DayGrid view called dayGridMonth.
+- [fixedWeekCount](https://fullcalendar.io/docs/fixedWeekCount.md): Determines the number of weeks displayed in a month view.
+- [showNonCurrentDates](https://fullcalendar.io/docs/showNonCurrentDates.md): In month view, whether dates in the previous or next month should be rendered at all.
+- [TimeGrid View](https://fullcalendar.io/docs/timegrid-view.md): A TimeGrid view displays one or more days side by side, against a vertical axis of time.
+- [eventMinHeight](https://fullcalendar.io/docs/eventMinHeight.md): In timeGrid view, the minimum height an event is allowed to be.
+- [eventShortHeight](https://fullcalendar.io/docs/eventShortHeight.md): In timeGrid view, the height threshold for when an event has a "short" style.
+- [slotEventOverlap](https://fullcalendar.io/docs/slotEventOverlap.md): Determines if timed events in TimeGrid view should visually overlap.
+- [slotMinHeight](https://fullcalendar.io/docs/slotMinHeight.md): The minimum height of each of the time-axis slots.
+- [allDaySlot](https://fullcalendar.io/docs/allDaySlot.md): Determines if the "all-day" slot is displayed at the top of the calendar.
+- [eventPrintLayout](https://fullcalendar.io/docs/eventPrintLayout.md): Controls how events are rendered in TimeGrid view when printing.
+- [Week Number Header Render Hooks](https://fullcalendar.io/docs/week-number-header-render-hooks.md): In TimeGrid view, week numbers appear in the header above the time axis.
+- [All-Day Header Render Hooks](https://fullcalendar.io/docs/all-day-header-render-hooks.md): Customize the cell in the header area of TimeGrid view that labels the all-day section.
+- [All-Day Divider Render Hooks](https://fullcalendar.io/docs/all-day-divider-render-hooks.md): Customize the divider line beneath the all-day section in TimeGrid view.
+- [Day-Lane Render Hooks](https://fullcalendar.io/docs/day-lane-render-hooks.md): In TimeGrid view, a "day lane" is the vertical column of time slots for a given day.
+- [List View](https://fullcalendar.io/docs/list-view.md): A list view displays events in a simple vertical list for a specific interval of time.
+- [listDayFormat](https://fullcalendar.io/docs/listDayFormat.md): A Date Formatter that affects the text on the left side of the day headings in list view.
+- [listDayAltFormat](https://fullcalendar.io/docs/listDayAltFormat.md): A Date Formatter that affects the text on the right side of the day headings in list view.
+- [List Day Render Hooks](https://fullcalendar.io/docs/list-day-render-hooks.md): Customize the container elements for each day's section in List view.
+- [List Day Header Render Hooks](https://fullcalendar.io/docs/list-day-header-render-hooks.md): In List view, a "day header" is the row that displays the date above a group of events.
+- [No-Events Render Hooks](https://fullcalendar.io/docs/no-events-render-hooks.md): In list view, the “No events to display” message.
+- [DayGrid View](https://fullcalendar.io/docs/daygrid-view.md): A DayGrid view displays one or more cells, each representing a day.
+- [dayCellFormat](https://fullcalendar.io/docs/dayCellFormat.md): In DayGrid view, controls the date text shown in each day cell.
+- [monthStartFormat](https://fullcalendar.io/docs/monthStartFormat.md): The date format for the first cell of each month, when a dayGrid view spans several months.
+- [Inline Week Number Render Hooks](https://fullcalendar.io/docs/inline-week-number-render-hooks.md): In DayGrid view, week numbers appear inline within the day cells.
+- [Multi-Month Stack](https://fullcalendar.io/docs/multimonth-stack.md): A single column of months, one above the other, that the user scrolls through.
+- [Multi-Month Grid](https://fullcalendar.io/docs/multimonth-grid.md): The Multi-Month view displays multiple individual months.
+- [multiMonthMaxColumns](https://fullcalendar.io/docs/multiMonthMaxColumns.md): The maximum columns of months that Multi-Month Grid will attempt to render.
+- [singleMonthMinWidth](https://fullcalendar.io/docs/singleMonthMinWidth.md): Multi-Month Grid will not allow each mini-month to be become smaller than this pixel value.
+- [singleMonthTitleFormat](https://fullcalendar.io/docs/singleMonthTitleFormat.md): In Multi-Month views, the format of the text above each month.
+- [Single Month Render Hooks](https://fullcalendar.io/docs/single-month-render-hooks.md): Customize the appearance of each individual month within Multi-Month view.
+- [Single Month Header Render Hooks](https://fullcalendar.io/docs/single-month-header-render-hooks.md): Customize the month headers in Multi-Month view.
+- [Timeline View](https://fullcalendar.io/docs/timeline-view.md): Timeline view has a customizable horizontal time axis, with resources as rows.
+- [resourceGroupField](https://fullcalendar.io/docs/resourceGroupField.md): Visually groups resources by certain criteria.
+- [resourceColumnsWidth](https://fullcalendar.io/docs/resourceColumnsWidth.md): Determines the width of the area that contains the list of resources.
+- [resourceColumns](https://fullcalendar.io/docs/resourceColumns.md): Turns the resource area from a plain list of titles into a grid of data.
+- [resourcesInitiallyExpanded](https://fullcalendar.io/docs/resourcesInitiallyExpanded.md): Whether child resources should be expanded when the view loads.
+- [slotMinWidth](https://fullcalendar.io/docs/slotMinWidth.md): The minimum width of each of the time-axis slots.
+- [eventMinWidth](https://fullcalendar.io/docs/eventMinWidth.md): In timeline view, the minimum width an event is allowed to be.
+- [printMaxRows](https://fullcalendar.io/docs/printMaxRows.md): The maximum number of rows to render when printing.
+- [Timeline without Resources](https://fullcalendar.io/docs/timeline-view-no-resources.md): Use Timeline view's horizontal time axis without displaying resource rows.
+- [Resource Column Header Render Hooks](https://fullcalendar.io/docs/resource-column-header-render-hooks.md): Customize the "resource column header", above the resource data in Resource Timeline view.
+- [Resource Column Divider Render Hooks](https://fullcalendar.io/docs/resource-column-divider-render-hooks.md): Customize the divider line between the resource datagrid area and the timeline area.
+- [Resource Header Row Render Hooks](https://fullcalendar.io/docs/resource-header-row-render-hooks.md): Customize the header rows of the resource datagrid area in Timeline view.
+- [Resource Row Render Hooks](https://fullcalendar.io/docs/resource-row-render-hooks.md): Customize the body rows of the resource datagrid area in Timeline view.
+- [Resource Cell Render Hooks](https://fullcalendar.io/docs/resource-cell-render-hooks.md): Customize the "resource cells" of Resource Timeline view.
+- [Resource Expander Render Hooks](https://fullcalendar.io/docs/resource-expander-render-hooks.md): Customize the indent and expander in front of each resource row.
+- [Resource Lane Render Hooks](https://fullcalendar.io/docs/resource-lane-render-hooks.md): A resource "lane" is an element in resource-timeline view.
+- [Resource Group Header Render Hooks](https://fullcalendar.io/docs/resource-group-header-render-hooks.md): Customize the resource group headers in Resource Timeline view.
+- [Resource Group Lane Render Hooks](https://fullcalendar.io/docs/resource-group-lane-render-hooks.md): Customize the resource group lanes in Resource Timeline view.
+- [Non-Resource Timeline Render Hooks](https://fullcalendar.io/docs/timeline-render-hooks.md): Customize elements specific to Timeline view without resources.
+- [Vertical Resource View](https://fullcalendar.io/docs/vertical-resource-view.md): Vertical resource view displays resources as columns in TimeGrid view and DayGrid view.
+- [datesAboveResources](https://fullcalendar.io/docs/datesAboveResources.md): Determines if vertical resource views put date headings above resource headings.
+- [Resource DayGrid View](https://fullcalendar.io/docs/resource-daygrid-view.md): A DayGrid view like dayGridDay can be given resource functionality.
+- [Custom Views](https://fullcalendar.io/docs/custom-views.md): Create your own views from FullCalendar's built-in ones, or from scratch with JavaScript.
+- [Custom Views via Settings](https://fullcalendar.io/docs/custom-view-with-settings.md): It is possible to customize an existing available view by tweaking settings.
+- [Custom Views via JS](https://fullcalendar.io/docs/custom-view-with-js.md): FullCalendar provides an API for building custom views from scratch in JavaScript.
+- [duration](https://fullcalendar.io/docs/duration.md): Sets the exact duration of a custom view.
+- [dayCount](https://fullcalendar.io/docs/dayCount.md): Sets the exact number of days displayed in a custom view, regardless of weekends or hiddenDays.
+- [visibleRange](https://fullcalendar.io/docs/visibleRange.md): Sets the exact date range that is visible in a view.
+- [View API](https://fullcalendar.io/docs/view-api.md): Settings, methods and handlers for working with and switching the current view.
+- [initialView](https://fullcalendar.io/docs/initialView.md): The initial view when the calendar loads.
+- [View Object](https://fullcalendar.io/docs/view-object.md): A View object contains information about a calendar view, such as title and date range.
+- [Calendar::view](https://fullcalendar.io/docs/Calendar-view.md): Access the View Object for the current view.
+- [Calendar::changeView](https://fullcalendar.io/docs/Calendar-changeView.md): Immediately switches to a different view.
+- [View Render Hooks](https://fullcalendar.io/docs/view-render-hooks.md): viewClass - a ClassName Input for the root view element.
+- [Table Render Hooks](https://fullcalendar.io/docs/table-render-hooks.md): Customize the table-structured layout used across views.
+- [Highlight Render Hooks](https://fullcalendar.io/docs/highlight-render-hooks.md): Customize the highlight element that appears when the user is selecting a date range.
+- [Filler Render Hooks](https://fullcalendar.io/docs/filler-render-hooks.md): Customize the filler elements that keep the calendar's layout aligned.
+
+## Date & Time
+
+- [Date Model](https://fullcalendar.io/docs/date-library.md): FullCalendar does not require a third-party date library.
+- [Date Parsing](https://fullcalendar.io/docs/date-parsing.md): FullCalendar accepts dates in several formats, wherever its API takes date input.
+- [Date Objects](https://fullcalendar.io/docs/date-object.md): FullCalendar's API exposes dates as native JavaScript Date objects.
+- [Duration Object](https://fullcalendar.io/docs/duration-object.md): A duration is a way to express an amount of time that has passed.
+- [Date Formatting](https://fullcalendar.io/docs/date-formatting.md): The term "date formatting" means taking a Date object and converting it into a string.
+- [temporal-polyfill](https://fullcalendar.io/docs/temporal-polyfill.md): The temporal-polyfill package is now a peer dependency of all the FullCalendar packages.
+- [formatDate](https://fullcalendar.io/docs/formatDate.md): A utility function that formats a date into a string.
+- [formatRange](https://fullcalendar.io/docs/formatRange.md): Formats two dates, a start and an end, into a string.
+- [Calendar::formatDate](https://fullcalendar.io/docs/Calendar-formatDate.md): A method that formats a date into a string.
+- [Calendar::formatIso](https://fullcalendar.io/docs/Calendar-formatIso.md): Formats a date into an ISO8601 string.
+- [Calendar::formatRange](https://fullcalendar.io/docs/Calendar-formatRange.md): Formats two dates, a start and an end, into a string.
+- [Moment Formatting Plugin](https://fullcalendar.io/docs/format-moment.md): Use Moment JS formatting strings in FullCalendar's date-formatting settings.
+- [Luxon Formatting Plugin](https://fullcalendar.io/docs/format-luxon3.md): Use Luxon formatting strings in FullCalendar's date-formatting settings.
+- [timeZone](https://fullcalendar.io/docs/timeZone.md): A time zone is a region of the world that serves as a context for displaying dates.
+- [Date & Time Display](https://fullcalendar.io/docs/date-display.md): Settings that control presence/absence of dates as well as their styling and text.
+- [weekends](https://fullcalendar.io/docs/weekends.md): Whether to include Saturday/Sunday columns in any of the calendar views.
+- [hiddenDays](https://fullcalendar.io/docs/hiddenDays.md): Exclude certain days-of-the-week from being displayed.
+- [dayHeaders](https://fullcalendar.io/docs/dayHeaders.md): Whether the day headers should appear.
+- [dayHeaderFormat](https://fullcalendar.io/docs/dayHeaderFormat.md): Determines the text that will be displayed on the calendar's column headings.
+- [dayMinWidth](https://fullcalendar.io/docs/dayMinWidth.md): A minimum width for day cells, past which the calendar scrolls horizontally.
+- [dayNarrowWidth](https://fullcalendar.io/docs/dayNarrowWidth.md): The pixel width below which day columns switch to "narrow" date text and layouts.
+- [slotDuration](https://fullcalendar.io/docs/slotDuration.md): The frequency for displaying time slots in TimeGrid and Timeline views.
+- [slotHeaderInterval](https://fullcalendar.io/docs/slotHeaderInterval.md): The frequency that the time slots should be labeled with text.
+- [slotHeaderFormat](https://fullcalendar.io/docs/slotHeaderFormat.md): Determines the text that will be displayed within a time slot.
+- [slotMinTime](https://fullcalendar.io/docs/slotMinTime.md): Determines the first time slot that will be displayed for each day.
+- [slotMaxTime](https://fullcalendar.io/docs/slotMaxTime.md): Determines the last time slot that will be displayed for each day.
+- [scrollTime](https://fullcalendar.io/docs/scrollTime.md): Determines how far forward the scroll pane is initially scrolled.
+- [scrollTimeReset](https://fullcalendar.io/docs/scrollTimeReset.md): Whether the view should scroll to scrollTime every time the date range changes.
+- [Day-Header Render Hooks](https://fullcalendar.io/docs/day-header-render-hooks.md): Customize the headers above the day cells in DayGrid and TimeGrid views.
+- [Day-Header Row Render Hooks](https://fullcalendar.io/docs/day-header-row-render-hooks.md): Customize the row that contains day header cells in DayGrid and TimeGrid views.
+- [Day-Header Divider Render Hooks](https://fullcalendar.io/docs/day-header-divider-render-hooks.md): Customize the divider line beneath the day header cells in DayGrid & TimeGrid views.
+- [Day-Row Render Hooks](https://fullcalendar.io/docs/day-row-render-hooks.md): Customize the horizontal day row in table-based date layouts.
+- [Day-Cell Render Hooks](https://fullcalendar.io/docs/day-cell-render-hooks.md): Customize the day cells in DayGrid view and in TimeGrid view's all-day section. dayCellClass and dayCellInnerClass also apply to the body of the event popover, where info.inPopover is true.
+- [Slot Header Render Hooks](https://fullcalendar.io/docs/slot-header-render-hooks.md): Customize the slot headers, where TimeGrid and Timeline views display their date/time text.
+- [Slot Header Row Render Hooks](https://fullcalendar.io/docs/slot-header-row-render-hooks.md): Customize the row that contains slot header cells in TimeGrid and Timeline views.
+- [Slot Header Divider Render Hooks](https://fullcalendar.io/docs/slot-header-divider-render-hooks.md): Customize the line between the time labels and the slot lanes.
+- [Slot Lane Render Hooks](https://fullcalendar.io/docs/slot-lane-render-hooks.md): Customize the slot lane elements in timegrid and timeline views.
+- [scrollToTime](https://fullcalendar.io/docs/scrollToTime.md): Programatically scroll the current view to the given time.
+- [datesSet](https://fullcalendar.io/docs/datesSet.md): Called after the calendar's date range is first set or changes, once the DOM has been updated.
+- [Date Navigation](https://fullcalendar.io/docs/date-navigation.md): Methods and settings that determine the view's current dates.
+- [initialDate](https://fullcalendar.io/docs/initialDate.md): The initial date displayed when the calendar first loads.
+- [dateIncrement](https://fullcalendar.io/docs/dateIncrement.md): How far into the future/past the calendar navigates when prev/next is executed.
+- [dateAlignment](https://fullcalendar.io/docs/dateAlignment.md): Determines the first visible day of a custom view.
+- [validRange](https://fullcalendar.io/docs/validRange.md): Limits which dates the user can navigate to and where events can go.
+- [Calendar::prev](https://fullcalendar.io/docs/Calendar-prev.md): Moves the calendar one step back (by a month or week for example).
+- [Calendar::next](https://fullcalendar.io/docs/Calendar-next.md): Moves the calendar one step forward (by a month or week for example).
+- [Calendar::prevYear](https://fullcalendar.io/docs/Calendar-prevYear.md): Moves the calendar back one year.
+- [Calendar::nextYear](https://fullcalendar.io/docs/Calendar-nextYear.md): Moves the calendar forward one year.
+- [Calendar::today](https://fullcalendar.io/docs/Calendar-today.md): Moves the calendar to the current date.
+- [Calendar::gotoDate](https://fullcalendar.io/docs/Calendar-gotoDate.md): Moves the calendar to an arbitrary date.
+- [Calendar::incrementDate](https://fullcalendar.io/docs/Calendar-incrementDate.md): Moves the calendar forward/backward an arbitrary amount of time.
+- [Calendar::getDate](https://fullcalendar.io/docs/Calendar-getDate.md): Returns a Date for the current date of the calendar.
+- [Date Nav Links](https://fullcalendar.io/docs/date-nav-links.md): Turns various datetime text into clickable links that the user can use for navigation.
+- [navLinks](https://fullcalendar.io/docs/navLinks.md): Determines if day names and week names are clickable.
+- [navLinkClass](https://fullcalendar.io/docs/navLinkClass.md): A class name string for each navLink element.
+- [navLinkDayClick](https://fullcalendar.io/docs/navLinkDayClick.md): Determines what happens upon a day heading nav-link click.
+- [navLinkWeekClick](https://fullcalendar.io/docs/navLinkWeekClick.md): Determines what happens upon a week-number nav-link click.
+- [Week Numbers](https://fullcalendar.io/docs/week-numbers.md): Display week numbers in various parts of your calendar views.
+- [weekNumbers](https://fullcalendar.io/docs/weekNumbers.md): Determines if week numbers should be displayed on the calendar.
+- [weekNumberCalculation](https://fullcalendar.io/docs/weekNumberCalculation.md): The method for calculating week numbers that are displayed with the weekNumbers setting.
+- [weekTextLong](https://fullcalendar.io/docs/weekTextLong.md): Like weekTextShort but only used when the date-formatting week setting is set to 'long'.
+- [weekTextShort](https://fullcalendar.io/docs/weekTextShort.md): The short heading text for week numbers.
+- [weekNumberFormat](https://fullcalendar.io/docs/weekNumberFormat.md): Controls the week number text.
+- [Date Clicking & Selecting](https://fullcalendar.io/docs/date-clicking-selecting.md): Detect when the user clicks on dates or times.
+- [selectable](https://fullcalendar.io/docs/selectable.md): Allows a user to highlight multiple days or timeslots by clicking and dragging.
+- [selectMirror](https://fullcalendar.io/docs/selectMirror.md): Whether to draw a "placeholder" event while the user is dragging.
+- [unselectAuto](https://fullcalendar.io/docs/unselectAuto.md): Whether clicking elsewhere on the page will cause the current selection to be cleared.
+- [unselectCancel](https://fullcalendar.io/docs/unselectCancel.md): A way to specify elements that will ignore the unselectAuto option.
+- [selectOverlap](https://fullcalendar.io/docs/selectOverlap.md): Determines whether the user is allowed to select periods of time that are occupied by events.
+- [selectConstraint](https://fullcalendar.io/docs/selectConstraint.md): Limits user selection to certain windows of time.
+- [selectAllow](https://fullcalendar.io/docs/selectAllow.md): Exact programmatic control over where the user can select.
+- [selectMinDistance](https://fullcalendar.io/docs/selectMinDistance.md): The minimum distance the user's mouse must travel after a mousedown, before a selection is allowed.
+- [dateClick](https://fullcalendar.io/docs/dateClick.md): Triggered when the user clicks on a date or a time.
+- [select](https://fullcalendar.io/docs/select-callback.md): Triggered when a date/time selection is made.
+- [unselect](https://fullcalendar.io/docs/unselect-callback.md): Triggered when the current selection is cleared.
+- [Calendar::select](https://fullcalendar.io/docs/Calendar-select.md): A method for programmatically selecting a period of time.
+- [Calendar::unselect](https://fullcalendar.io/docs/Calendar-unselect.md): A method for programmatically clearing the current selection.
+- [Now Indicator](https://fullcalendar.io/docs/now-indicator.md): Mark the exact current time in TimeGrid view and Timeline view.
+- [nowIndicator](https://fullcalendar.io/docs/nowIndicator.md): Whether or not to display a marker indicating the current time.
+- [nowIndicatorSnap](https://fullcalendar.io/docs/nowIndicatorSnap.md): Whether the now indicator jumps to the start of each time unit instead of tracking the exact time.
+- [now](https://fullcalendar.io/docs/now.md): Overrides the calendar's current date, which decides the highlighted "today" and the now indicator.
+- [Now-Indicator Header Render Hooks](https://fullcalendar.io/docs/now-indicator-header-render-hooks.md): Customize the now-indicator's "arrow" in the time axis.
+- [Now-Indicator Line Render Hooks](https://fullcalendar.io/docs/now-indicator-line-render-hooks.md): Customize the now-indicator's "line" element.
+- [Now-Indicator Dot Render Hooks](https://fullcalendar.io/docs/now-indicator-dot-render-hooks.md): Customize the now-indicator's "dot", which sits alongside its line in the time axis.
+- [Business Hours](https://fullcalendar.io/docs/business-hours.md): Emphasize a view's "business hours" (aka "working hours").
+- [businessHours](https://fullcalendar.io/docs/businessHours.md): Emphasizes certain time slots on the calendar.
+- [businessHours-per-resource](https://fullcalendar.io/docs/businessHours-per-resource.md): Give individual resources their own business hours.
+- [Business Hours Render Hooks](https://fullcalendar.io/docs/business-hours-render-hooks.md): Customize the elements that shade non-business hours.
+
+## Events
+
+- [Event Model](https://fullcalendar.io/docs/event-model.md): How events are parsed, represented and changed, including recurring events.
+- [Event Parsing](https://fullcalendar.io/docs/event-parsing.md): Every property you can set on the plain event objects you give the calendar.
+- [Event Object](https://fullcalendar.io/docs/event-object.md): A JavaScript object that FullCalendar uses to store information about a calendar event.
+- [Recurring Events](https://fullcalendar.io/docs/recurring-events.md): A recurring event is an event that happens more than once, on a repeating schedule.
+- [RRule Plugin](https://fullcalendar.io/docs/rrule-plugin.md): The RRule plugin is a connector to the rrule js library.
+- [eventDataTransform](https://fullcalendar.io/docs/eventDataTransform.md): A hook for transforming custom data into a standard Event object.
+- [defaultAllDay](https://fullcalendar.io/docs/defaultAllDay.md): Determines the default value for each Event Object's allDay property when it is unspecified.
+- [defaultAllDayEventDuration](https://fullcalendar.io/docs/defaultAllDayEventDuration.md): A fallback duration for all-day Event Objects without a specified end value.
+- [defaultTimedEventDuration](https://fullcalendar.io/docs/defaultTimedEventDuration.md): A fallback duration for timed Event Objects without a specified end value.
+- [forceEventDuration](https://fullcalendar.io/docs/forceEventDuration.md): A flag to force assignment of an event's end if it is unspecified.
+- [Calendar::getEvents](https://fullcalendar.io/docs/Calendar-getEvents.md): Retrieves events that FullCalendar has in memory.
+- [Calendar::getEventById](https://fullcalendar.io/docs/Calendar-getEventById.md): Returns a single event with the matching id.
+- [Calendar::addEvent](https://fullcalendar.io/docs/Calendar-addEvent.md): Adds a new event to the calendar.
+- [Event::setProp](https://fullcalendar.io/docs/Event-setProp.md): Modifies any of the non-date-related properties of an Event Object.
+- [Event::setExtendedProp](https://fullcalendar.io/docs/Event-setExtendedProp.md): Modifies a single property in an Event Object's extendedProps hash.
+- [Event::setStart](https://fullcalendar.io/docs/Event-setStart.md): Sets an event's start date.
+- [Event::setEnd](https://fullcalendar.io/docs/Event-setEnd.md): Sets an event's end date.
+- [Event::setDates](https://fullcalendar.io/docs/Event-setDates.md): Sets an event's start date, end date, and allDay properties at the same time.
+- [Event::setAllDay](https://fullcalendar.io/docs/Event-setAllDay.md): Sets whether an event is considered all-day.
+- [Event::moveStart](https://fullcalendar.io/docs/Event-moveStart.md): Will move an event's start date by a specific period of time.
+- [Event::moveEnd](https://fullcalendar.io/docs/Event-moveEnd.md): Will move an event's end date by a specific period of time.
+- [Event::moveDates](https://fullcalendar.io/docs/Event-moveDates.md): Will move an event's start and end dates by a specific period of time.
+- [Event::formatRange](https://fullcalendar.io/docs/Event-formatRange.md): Formats an event's dates into a string.
+- [Event::remove](https://fullcalendar.io/docs/Event-remove.md): Removes an event from the calendar.
+- [Event::getResources](https://fullcalendar.io/docs/Event-getResources.md): Gets the Resources associated with the given event.
+- [Event::setResources](https://fullcalendar.io/docs/Event-setResources.md): Sets the Resources associated with the given event.
+- [Event::toPlainObject](https://fullcalendar.io/docs/Event-toPlainObject.md): Serializes an Event API Object to a plain object that would be fit for JSON.stringify.
+- [eventAdd](https://fullcalendar.io/docs/eventAdd.md): Called after an event has been added to the calendar.
+- [eventChange](https://fullcalendar.io/docs/eventChange.md): Called after an event has been modified in some way.
+- [eventRemove](https://fullcalendar.io/docs/eventRemove.md): Called after an event has been removed from the calendar.
+- [eventsSet](https://fullcalendar.io/docs/eventsSet.md): Called after event data is initialized OR changed in any way.
+- [Event Sources](https://fullcalendar.io/docs/event-source.md): Where the calendar gets its events: arrays, JSON feeds, functions, Google Calendar and iCalendar.
+- [events (as an array)](https://fullcalendar.io/docs/events-array.md): An array of Event Objects that will be displayed on the calendar.
+- [events (as a json feed)](https://fullcalendar.io/docs/events-json-feed.md): A URL of a JSON feed that the calendar will fetch Event Objects from.
+- [events (as a function)](https://fullcalendar.io/docs/events-function.md): A custom function for programmatically generating Events.
+- [events from Google Calendar](https://fullcalendar.io/docs/google-calendar.md): FullCalendar can display events from a public Google Calendar.
+- [events from an iCalendar feed](https://fullcalendar.io/docs/icalendar.md): FullCalendar can display events from a public iCalendar feed.
+- [Event Source Object](https://fullcalendar.io/docs/event-source-object.md): An "event source" is anything that provides FullCalendar with data about events.
+- [eventSources](https://fullcalendar.io/docs/eventSources.md): A way to specify multiple event sources.
+- [eventSourceSuccess](https://fullcalendar.io/docs/eventSourceSuccess.md): A function that gets called when fetching succeeds.
+- [eventSourceFailure](https://fullcalendar.io/docs/eventSourceFailure.md): Called when any of the event sources fails.
+- [initialEvents](https://fullcalendar.io/docs/initialEvents.md): An initial array of events, which the calendar won't update if the value later changes.
+- [startParam](https://fullcalendar.io/docs/startParam.md): A parameter of this name will be sent to each JSON event feed.
+- [endParam](https://fullcalendar.io/docs/endParam.md): A parameter of this name will be sent to each JSON event feed.
+- [timeZoneParam](https://fullcalendar.io/docs/timeZoneParam.md): A parameter of this name will be sent to each JSON event feed.
+- [lazyFetching](https://fullcalendar.io/docs/lazyFetching.md): Determines when event fetching should occur.
+- [loading](https://fullcalendar.io/docs/loading.md): Triggered when event or resource fetching starts/stops.
+- [Calendar::getEventSources](https://fullcalendar.io/docs/Calendar-getEventSources.md): Retrieves all Event Source Objects.
+- [Calendar::getEventSourceById](https://fullcalendar.io/docs/Calendar-getEventSourceById.md): Retrieves a specific Event Source Object.
+- [Calendar::addEventSource](https://fullcalendar.io/docs/Calendar-addEventSource.md): Dynamically adds an event source.
+- [Calendar::refetchEvents](https://fullcalendar.io/docs/Calendar-refetchEvents.md): Refetches events from all sources and rerenders them on the screen.
+- [EventSource::refetch](https://fullcalendar.io/docs/EventSource-refetch.md): Causes this event source to fetch its event data again.
+- [EventSource::remove](https://fullcalendar.io/docs/EventSource-remove.md): Removes all events associated with this source and prevents it from being fetched again.
+- [Event Display](https://fullcalendar.io/docs/event-display.md): How to control the appearance of events on your calendar.
+- [eventColor](https://fullcalendar.io/docs/eventColor.md): Sets the color for all foreground events on the calendar.
+- [eventContrastColor](https://fullcalendar.io/docs/eventContrastColor.md): Sets the contrast color for all events on the calendar.
+- [eventDisplay](https://fullcalendar.io/docs/eventDisplay.md): Controls which preset rendering style events use.
+- [eventTimeFormat](https://fullcalendar.io/docs/eventTimeFormat.md): Determines the time-text that will be displayed on each event.
+- [displayEventTime](https://fullcalendar.io/docs/displayEventTime.md): Whether or not to display the text for an event's date/time.
+- [displayEventEnd](https://fullcalendar.io/docs/displayEventEnd.md): Whether or not to display an event's end time.
+- [nextDayThreshold](https://fullcalendar.io/docs/nextDayThreshold.md): How far an event must run into the next day before it renders on that day.
+- [eventOrder](https://fullcalendar.io/docs/eventOrder.md): Determines the ordering events within the same day.
+- [eventOrderStrict](https://fullcalendar.io/docs/eventOrderStrict.md): Ensures the eventOrder setting is strictly followed.
+- [eventSlicing](https://fullcalendar.io/docs/eventSlicing.md): Controls whether DayGrid can visually split a multi-day event around a "+more" link.
+- [progressiveEventRendering](https://fullcalendar.io/docs/progressiveEventRendering.md): When to render multiple asynchronous event sources in an individual or batched manner.
+- [backgroundEventColor](https://fullcalendar.io/docs/backgroundEventColor.md): Sets the color for all background events on the calendar.
+- [Event Render Hooks](https://fullcalendar.io/docs/event-render-hooks.md): Customize the rendering of foreground events (NOT background events).
+- [Block Event Render Hooks](https://fullcalendar.io/docs/block-event-render-hooks.md): Customize rectangular color-filled events — essentially all non-list events.
+- [Row Event Render Hooks](https://fullcalendar.io/docs/row-event-render-hooks.md): Customize events that render as horizontal bars.
+- [Column Event Render Hooks](https://fullcalendar.io/docs/column-event-render-hooks.md): Customize rectangular color-filled events that render vertically — timed events in TimeGrid view.
+- [List Item Event Render Hooks](https://fullcalendar.io/docs/list-item-event-render-hooks.md): Customize bullet-point style events — timed events in DayGrid view and events in List view.
+- [Background Event Render Hooks](https://fullcalendar.io/docs/background-event-render-hooks.md): Customize the rendering of Background Events.
+- [Event Clicking & Hovering](https://fullcalendar.io/docs/event-clicking-hovering.md): Handlers to know when an event has been clicked or hovered over.
+- [eventClick](https://fullcalendar.io/docs/eventClick.md): Triggered when the user clicks an event.
+- [eventMouseEnter](https://fullcalendar.io/docs/eventMouseEnter.md): Triggered when the user mouses over an event.
+- [eventMouseLeave](https://fullcalendar.io/docs/eventMouseLeave.md): Triggered when the user mouses out of an event.
+- [Event Dragging & Resizing](https://fullcalendar.io/docs/event-dragging-resizing.md): How to enable and control where the user can drag-n-drop and resize events.
+- [External Event Dragging](https://fullcalendar.io/docs/external-dragging.md): It's possible to take elements that live outside of a calendar and make them drag-and-droppable.
+- [Dragging Between Calendars](https://fullcalendar.io/docs/other-calendar-dragging.md): Let the user drag events between two or more separate calendars.
+- [Third-Party Dragging Libraries](https://fullcalendar.io/docs/third-party-dragging.md): Use a third-party library for your external element drag-n-drop, instead of FullCalendar's own.
+- [editable](https://fullcalendar.io/docs/editable.md): Determines whether the events on the calendar can be modified.
+- [eventStartEditable](https://fullcalendar.io/docs/eventStartEditable.md): Allow events' start times to be editable through dragging.
+- [eventResizableFromStart](https://fullcalendar.io/docs/eventResizableFromStart.md): Whether the user can resize an event from its starting edge.
+- [eventDurationEditable](https://fullcalendar.io/docs/eventDurationEditable.md): Allow events' durations to be editable through resizing.
+- [eventResourceEditable](https://fullcalendar.io/docs/eventResourceEditable.md): Determines whether the user can drag events between resources.
+- [droppable](https://fullcalendar.io/docs/droppable.md): Determines if external elements or events from other calendars can be dropped in.
+- [eventDragMinDistance](https://fullcalendar.io/docs/eventDragMinDistance.md): How many pixels the user's mouse/touch must move before an event drag activates.
+- [dragRevertDuration](https://fullcalendar.io/docs/dragRevertDuration.md): Time it takes for an event to revert to its original position after an unsuccessful drag.
+- [dragScroll](https://fullcalendar.io/docs/dragScroll.md): Whether to automatically scoll the scroll-containers during event drag-and-drop and date selecting.
+- [snapDuration](https://fullcalendar.io/docs/snapDuration.md): The time interval at which a dragged event will snap to the time axis.
+- [allDayMaintainDuration](https://fullcalendar.io/docs/allDayMaintainDuration.md): Determines how an event's duration changes when it's dragged between timed and all-day sections.
+- [eventOverlap](https://fullcalendar.io/docs/eventOverlap.md): Determines if events being dragged and resized are allowed to overlap each other.
+- [eventConstraint](https://fullcalendar.io/docs/eventConstraint.md): Limits event dragging and resizing to certain windows of time.
+- [eventAllow](https://fullcalendar.io/docs/eventAllow.md): Exact programmatic control over where an event can be dropped.
+- [dropAccept](https://fullcalendar.io/docs/dropAccept.md): Provides a way to filter which external elements can be dropped onto the calendar.
+- [eventDragStart](https://fullcalendar.io/docs/eventDragStart.md): Triggered when event dragging begins.
+- [eventDragStop](https://fullcalendar.io/docs/eventDragStop.md): Triggered when event dragging stops.
+- [eventDrop](https://fullcalendar.io/docs/eventDrop.md): Triggered when dragging stops and the event has moved to a different day/time.
+- [drop](https://fullcalendar.io/docs/drop.md): Called when an external element or another calendar's event is dropped onto the calendar.
+- [eventReceive](https://fullcalendar.io/docs/eventReceive.md): Called when an external draggable element with associated event data was dropped onto the calendar.
+- [eventLeave](https://fullcalendar.io/docs/eventLeave.md): Triggered when on a calendar when one if its events is about to be dropped onto another calendar.
+- [eventResizeStart](https://fullcalendar.io/docs/eventResizeStart.md): Triggered when event resizing begins.
+- [eventResizeStop](https://fullcalendar.io/docs/eventResizeStop.md): Triggered when event resizing stops.
+- [eventResize](https://fullcalendar.io/docs/eventResize.md): Triggered when resizing stops and the event has changed in duration.
+- [Event Popover](https://fullcalendar.io/docs/event-popover.md): When a day has more events than fit, show the rest in a popover behind a "more" link.
+- [dayMaxEventRows](https://fullcalendar.io/docs/dayMaxEventRows.md): In dayGrid view, the max number of stacked event levels within a given day.
+- [dayMaxEvents](https://fullcalendar.io/docs/dayMaxEvents.md): In, dayGrid view, the max number of events within a given day, not counting the +more link.
+- [eventMaxStack](https://fullcalendar.io/docs/eventMaxStack.md): For timeline view, the maximum number of events that stack top-to-bottom.
+- [moreLinkClick](https://fullcalendar.io/docs/moreLinkClick.md): Determines what happens when the user clicks a "more" link.
+- [popoverFormat](https://fullcalendar.io/docs/popoverFormat.md): Determines the date format of title of the popover created by the moreLinkClick option.
+- [More-Link Render Hooks](https://fullcalendar.io/docs/more-link-render-hooks.md): These hooks apply to more-links across views.
+- [Column More-Link Render Hooks](https://fullcalendar.io/docs/column-more-link-render-hooks.md): Column more-links appear in TimeGrid view when too many timed events overlap within a day column.
+- [Row More-Link Render Hooks](https://fullcalendar.io/docs/row-more-link-render-hooks.md): Customize the more-links in row-based layouts, such as DayGrid and Timeline rows.
+- [Popover Render Hooks](https://fullcalendar.io/docs/popover-render-hooks.md): Customize the popover that opens when the user clicks a more-link, and its close button.
+- [Background Events](https://fullcalendar.io/docs/background-events.md): Show an event as a highlight in the background of the calendar.
+
+## Resources
+
+- [Resource Data](https://fullcalendar.io/docs/resource-data.md): How to get resources onto your calendar and how to manipulate resource data thereafter.
+- [resources (as an array)](https://fullcalendar.io/docs/resources-array.md): Tells the calendar to display resources from an array input.
+- [resources (as a JSON feed)](https://fullcalendar.io/docs/resources-json-feed.md): Tells the calendar to fetch the resource list from a remote script.
+- [resources (as a function)](https://fullcalendar.io/docs/resources-function.md): A custom function for programmatically generating raw Resources objects.
+- [Resource Parsing](https://fullcalendar.io/docs/resource-parsing.md): All of the techniques for specifying resources accept an array of raw objects.
+- [Resource Object](https://fullcalendar.io/docs/resource-object.md): The parsed form of a resource, with properties to read and methods to change it.
+- [Associating Events with Resources](https://fullcalendar.io/docs/resources-and-events.md): How to specify which resources your events are assigned to.
+- [refetchResourcesOnNavigate](https://fullcalendar.io/docs/refetchResourcesOnNavigate.md): Whether to refetch and rerender resources when the user changes the date or view.
+- [initialResources](https://fullcalendar.io/docs/initialResources.md): An initial array of resources, which the calendar won't update if the value later changes.
+- [Calendar::refetchResources](https://fullcalendar.io/docs/Calendar-refetchResources.md): Causes the resource data to be fetched and freshly rerendered.
+- [Calendar::getTopLevelResources](https://fullcalendar.io/docs/Calendar-getTopLevelResources.md): A method that retrieves only top-level Resources.
+- [Calendar::getResources](https://fullcalendar.io/docs/Calendar-getResources.md): A method that retrieves all Resources, including children, as a single flat list.
+- [Calendar::getResourceById](https://fullcalendar.io/docs/Calendar-getResourceById.md): A method that retrieves a specific Resource Object in memory.
+- [Calendar::addResource](https://fullcalendar.io/docs/Calendar-addResource.md): Adds a new resource to the calendar after the initial resources have been displayed.
+- [Resource::getParent](https://fullcalendar.io/docs/Resource-getParent.md): Returns the parent Resource of a child resource.
+- [Resource::getChildren](https://fullcalendar.io/docs/Resource-getChildren.md): Returns a list of a resource's child resources.
+- [Resource::getEvents](https://fullcalendar.io/docs/Resource-getEvents.md): Retrieves a list of Event Objects that are associated with the given resource.
+- [Resource::setProp](https://fullcalendar.io/docs/Resource-setProp.md): Modifies any of the properties of a Resource Object.
+- [Resource::setExtendedProp](https://fullcalendar.io/docs/Resource-setExtendedProp.md): Modifies a single property in an Resource Object's extendedProps hash.
+- [Resource::remove](https://fullcalendar.io/docs/Resource-remove.md): Programmatically removes a resource from the calendar.
+- [Resource::toPlainObject](https://fullcalendar.io/docs/Resource-toPlainObject.md): Serializes a Resource API Object to a plain object that would be fit for JSON.stringify.
+- [resourceAdd](https://fullcalendar.io/docs/resourceAdd.md): Called after a resource has been added to the calendar.
+- [resourceChange](https://fullcalendar.io/docs/resourceChange.md): Called after a resource has been modified in some way.
+- [resourceRemove](https://fullcalendar.io/docs/resourceRemove.md): Called after a resource has been removed from the calendar.
+- [resourcesSet](https://fullcalendar.io/docs/resourcesSet.md): Called after resource data is initialized OR changed in any way.
+- [Resource Display](https://fullcalendar.io/docs/resource-display.md): Control the visual aspects of your resources, such as ordering and text.
+- [resourceOrder](https://fullcalendar.io/docs/resourceOrder.md): Determines the ordering of the resource list.
+- [filterResourcesWithEvents](https://fullcalendar.io/docs/filterResourcesWithEvents.md): When this setting is activated, only resources that have associated events will be displayed.
+- [Resource Day Header Render Hooks](https://fullcalendar.io/docs/resource-day-header-render-hooks.md): Customize the column-header cells that display resource names in vertical resource views.
+
+## Accessibility
+
+- [Accessibility](https://fullcalendar.io/docs/accessibility.md): FullCalendar works with keyboards and screen readers, using WAI-ARIA techniques.
+- [eventInteractive](https://fullcalendar.io/docs/eventInteractive.md): Setting to true will cause all events to be focusable/tabbable.
+- [headingLevel](https://fullcalendar.io/docs/headingLevel.md): Controls the heading level of the calendar's toolbar title.
+- [Hints](https://fullcalendar.io/docs/hints.md): Customize the accessible labels on the calendar's interactive elements.
+- [Touch Support](https://fullcalendar.io/docs/touch.md): FullCalendar supports touch, with smooth scrolling and long-press to select, drag and resize.
+- [longPressDelay](https://fullcalendar.io/docs/longPressDelay.md): How long a touch user must hold down before they can drag an event or select a date.
+- [eventLongPressDelay](https://fullcalendar.io/docs/eventLongPressDelay.md): For touch devices, the amount of time the user must hold down before an event becomes draggable.
+- [selectLongPressDelay](https://fullcalendar.io/docs/selectLongPressDelay.md): For touch devices, the amount of time the user must hold down before a date becomes selectable.
+- [Printer-Friendly Rendering](https://fullcalendar.io/docs/print.md): Make the calendar print cleanly on paper.

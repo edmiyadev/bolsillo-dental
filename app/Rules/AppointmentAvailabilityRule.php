@@ -15,6 +15,7 @@ use Closure;
 use Illuminate\Contracts\Validation\DataAwareRule;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Support\Carbon;
+use Illuminate\Translation\PotentiallyTranslatedString;
 use Throwable;
 
 class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
@@ -39,7 +40,7 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
     /**
      * Run the validation rule.
      *
-     * @param  Closure(string, ?string=): \Illuminate\Translation\PotentiallyTranslatedString  $fail
+     * @param  Closure(string, ?string=): PotentiallyTranslatedString  $fail
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
@@ -47,7 +48,19 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
             ? array_merge($this->data, $this->data['data'])
             : $this->data;
 
-        $rawStartsAt = $value ?? ($state['starts_at'] ?? null);
+        if (! empty($this->data['mountedActions']) && is_array($this->data['mountedActions'])) {
+            foreach ($this->data['mountedActions'] as $mountedAction) {
+                if (isset($mountedAction['data']) && is_array($mountedAction['data'])) {
+                    $state = array_merge($state, $mountedAction['data']);
+                }
+            }
+        }
+
+        $existingAppointment = $this->ignoreAppointmentId
+            ? Appointment::query()->find($this->ignoreAppointmentId)
+            : null;
+
+        $rawStartsAt = $value ?? ($state['starts_at'] ?? $existingAppointment?->starts_at?->toDateTimeString());
 
         if (blank($rawStartsAt)) {
             return;
@@ -61,7 +74,7 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
             return;
         }
 
-        $duration = (int) ($state['duration_minutes'] ?? 0);
+        $duration = (int) ($state['duration_minutes'] ?? ($existingAppointment?->duration_minutes ?? 0));
 
         if ($duration <= 0) {
             $fail(__('The duration must be greater than zero.'));
@@ -81,7 +94,7 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
         $startTime = $startsAt->format('H:i');
         $endTime = $endsAt->format('H:i');
 
-        $specialty = $state['specialty'] ?? DentalSpecialty::General->value;
+        $specialty = $state['specialty'] ?? ($existingAppointment?->specialty?->value ?? DentalSpecialty::General->value);
         $specialtyValue = $specialty instanceof DentalSpecialty ? $specialty->value : (string) $specialty;
 
         $activeStatuses = collect(AppointmentStatus::cases())
@@ -90,7 +103,7 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
             ->values()
             ->all();
 
-        $branchId = $state['branch_id'] ?? null;
+        $branchId = $state['branch_id'] ?? $existingAppointment?->branch_id;
 
         if (blank($branchId)) {
             return;
@@ -113,7 +126,7 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
             return;
         }
 
-        $dentistId = $state['dentist_id'] ?? null;
+        $dentistId = $state['dentist_id'] ?? $existingAppointment?->dentist_id;
 
         if (filled($dentistId)) {
             $dentist = User::query()->find($dentistId);
@@ -155,7 +168,7 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
             }
         }
 
-        $cubicleId = $state['cubicle_id'] ?? null;
+        $cubicleId = $state['cubicle_id'] ?? $existingAppointment?->cubicle_id;
 
         if (filled($cubicleId)) {
             $cubicle = Cubicle::query()

@@ -35,6 +35,11 @@ beforeEach(function (): void {
 
     $this->dentist = User::factory()->create(['name' => 'Dr. Ramírez']);
     $this->dentist->assignRole(RoleEnum::Dentist->value);
+    $this->dentist->branchSchedules()->create([
+        'branch_id' => $this->branch->id,
+        'schedule' => DayOfWeek::defaultSchedule(),
+        'is_active' => true,
+    ]);
 
     $this->cubicle = Cubicle::factory()->create([
         'branch_id' => $this->branch->id,
@@ -166,4 +171,106 @@ it('returns an empty array when an unauthorized user attempts to fetch calendar 
 
     expect(AppointmentCalendarWidget::canView())->toBeFalse()
         ->and($widget->fetchEvents('2026-11-01T00:00:00', '2026-11-07T23:59:59'))->toBe([]);
+});
+
+it('can filter appointments using the dropdown filter form', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::Receptionist->value);
+    $this->actingAs($user);
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->assertActionVisible('filter')
+        ->fillForm([
+            'branch_id' => $this->branch->id,
+            'dentist_id' => $this->dentist->id,
+            'status' => AppointmentStatus::Confirmed->value,
+        ], 'filtersForm')
+        ->call('applyFilters')
+        ->assertDispatched('calendar-filters-updated')
+        ->assertSet('filters.branch_id', $this->branch->id)
+        ->assertSet('filters.dentist_id', $this->dentist->id)
+        ->assertSet('filters.status', AppointmentStatus::Confirmed->value)
+        ->call('resetFiltersForm')
+        ->assertDispatched('calendar-filters-updated')
+        ->assertSet('filters', []);
+});
+
+it('can create an appointment via the create action modal', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::Receptionist->value);
+    $this->actingAs($user);
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->assertActionVisible('createAppointment')
+        ->callAction('createAppointment', data: [
+            'branch_id' => $this->branch->id,
+            'patient_id' => $this->patient->id,
+            'dentist_id' => $this->dentist->id,
+            'is_custom_reason' => true,
+            'custom_reason' => 'Consulta Inicial',
+            'specialty' => DentalSpecialty::General->value,
+            'duration_minutes' => 30,
+            'cubicle_id' => $this->cubicle->id,
+            'starts_at' => '2026-11-03 10:00:00',
+            'status' => AppointmentStatus::Scheduled->value,
+        ])
+        ->assertHasNoActionErrors()
+        ->assertDispatched('calendar-filters-updated');
+
+    expect(Appointment::where('custom_reason', 'Consulta Inicial')->exists())->toBeTrue();
+});
+
+it('can edit an appointment via the edit action modal', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::Receptionist->value);
+    $this->actingAs($user);
+
+    $appointment = Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'is_custom_reason' => true,
+        'custom_reason' => 'Revisión Original',
+        'specialty' => DentalSpecialty::General,
+        'starts_at' => '2026-11-03 10:00:00',
+        'duration_minutes' => 30,
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->assertActionVisible('editAppointment')
+        ->callAction('editAppointment', data: [
+            'observations' => 'Observaciones actualizadas desde el calendario',
+            'status' => AppointmentStatus::Confirmed->value,
+        ], arguments: ['record' => $appointment->id])
+        ->assertHasNoActionErrors()
+        ->assertDispatched('calendar-filters-updated');
+
+    expect($appointment->refresh()->status)->toBe(AppointmentStatus::Confirmed)
+        ->and($appointment->observations)->toBe('Observaciones actualizadas desde el calendario');
+});
+
+it('can view an appointment via the view action modal', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::Receptionist->value);
+    $this->actingAs($user);
+
+    $appointment = Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'is_custom_reason' => true,
+        'custom_reason' => 'Consulta para ver',
+        'specialty' => DentalSpecialty::General,
+        'starts_at' => '2026-11-03 10:00:00',
+        'duration_minutes' => 30,
+        'status' => AppointmentStatus::Confirmed,
+    ]);
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->assertActionVisible('viewAppointment')
+        ->mountAction('viewAppointment', arguments: ['record' => $appointment->id])
+        ->assertActionMounted('viewAppointment');
 });

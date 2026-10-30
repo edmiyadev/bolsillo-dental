@@ -7,27 +7,54 @@
         <div
             x-data="appointmentCalendar({
                 canCreate: @js($this->canCreate),
-                createUrl: @js($this->createUrl),
+                canUpdate: @js($this->canUpdate),
             })"
             @calendar-filters-updated.window="refreshEvents()"
         >
-            <div  style="margin-bottom: 2.25rem;">
-                {{ $this->form }}
+            <div class="appointment-calendar-toolbar">
+                <div class="appointment-calendar-legend">
+                    @foreach ($this->statusLegend as $item)
+                        <div class="appointment-calendar-legend-item">
+                            <span
+                                class="appointment-calendar-legend-dot"
+                                style="background-color: {{ $item['color'] }};"
+                            ></span>
+                            <span>{{ $item['label'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="appointment-calendar-actions">
+                    <x-filament::dropdown
+                        :menu="false"
+                        placement="bottom-start"
+                        shift
+                        width="sm"
+                        class="appointment-calendar-dropdown-filter"
+                    >
+                        <x-slot name="trigger">
+                            {{ $this->getFiltersTriggerAction() }}
+                        </x-slot>
+
+                        <div class="appointment-calendar-filter-content">
+                            <h3 class="appointment-calendar-filter-title">
+                                {{ __('filament-tables::table.filters.heading') }}
+                            </h3>
+
+                            {{ $this->filtersForm }}
+
+                            <div class="appointment-calendar-filter-content-actions-ctn">
+                                {{ $this->getFiltersApplyAction() }}
+                                {{ $this->getFiltersResetAction() }}
+                            </div>
+                        </div>
+                    </x-filament::dropdown>
+                </div>
             </div>
 
-            <div class="appointment-calendar-legend">
-                @foreach ($this->statusLegend as $item)
-                    <div class="appointment-calendar-legend-item">
-                        <span
-                            class="appointment-calendar-legend-dot"
-                            style="background-color: {{ $item['color'] }};"
-                        ></span>
-                        <span>{{ $item['label'] }}</span>
-                    </div>
-                @endforeach
-            </div>
-
-            <div wire:ignore x-ref="calendar" style="min-height: 680px;"></div>
+            <div wire:ignore x-ref="calendar" class="appointment-calendar-view"></div>
         </div>
     </x-filament::section>
+
+    <x-filament-actions::modals />
 </x-filament-widgets::widget>

@@ -1,24 +1,29 @@
-.fc {
-    --fc-border-color: rgb(229 231 235);
-    --fc-page-bg-color: transparent;
-    --fc-neutral-bg-color: rgb(249 250 251);
-    --fc-list-event-hover-bg-color: rgb(243 244 246);
-    --fc-today-bg-color: rgba(14, 165, 233, 0.08);
-    --fc-button-bg-color: rgb(2, 132, 199);
-    --fc-button-border-color: rgb(2, 132, 199);
-    --fc-button-hover-bg-color: rgb(3, 105, 161);
-    --fc-button-hover-border-color: rgb(3, 105, 161);
-    --fc-button-active-bg-color: rgb(7, 89, 133);
-    --fc-button-active-border-color: rgb(7, 89, 133);
-    --fc-event-text-color: #ffffff;
+/* FullCalendar v7 Theme Overrides (Monarch + Filament Cyan Palette) */
+:root {
+    --fc-monarch-primary: #0891b2;
+    --fc-monarch-primary-foreground: #ffffff;
+    --fc-monarch-primary-over: #0e7490;
+    --fc-monarch-primary-down: #155e75;
+    --fc-monarch-highlight: rgba(8, 145, 178, 0.08);
 }
 
-.dark .fc {
-    --fc-border-color: rgba(255, 255, 255, 0.1);
-    --fc-page-bg-color: transparent;
-    --fc-neutral-bg-color: rgba(255, 255, 255, 0.03);
-    --fc-list-event-hover-bg-color: rgba(255, 255, 255, 0.06);
-    --fc-today-bg-color: rgba(56, 189, 248, 0.12);
+/* Filament Dark Mode Synchronization */
+.dark .fc,
+.fc[data-color-scheme="dark"] {
+    --fc-monarch-primary: #22d3ee;
+    --fc-monarch-primary-foreground: #083344;
+    --fc-monarch-primary-over: #67e8f9;
+    --fc-monarch-primary-down: #a5f3fc;
+    --fc-monarch-highlight: rgba(34, 211, 238, 0.12);
+    --fc-monarch-background: transparent;
+    --fc-monarch-border: rgba(255, 255, 255, 0.1);
+    --fc-monarch-strong-border: rgba(255, 255, 255, 0.16);
+    --fc-monarch-faint: rgba(255, 255, 255, 0.03);
+    --fc-monarch-muted: rgba(255, 255, 255, 0.06);
+}
+
+.fc {
+    font-family: inherit;
 }
 
 .fc .fc-toolbar-title {
@@ -33,6 +38,56 @@
     padding: 0.125rem 0.25rem;
 }
 
+/* Calendar Toolbar, Filter and Container Layout */
+.appointment-calendar-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.appointment-calendar-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Calendar Dropdown Filter Popover (Table / ChartWidget style) */
+.appointment-calendar-filter-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.appointment-calendar-filter-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgb(17, 24, 39);
+}
+
+.dark .appointment-calendar-filter-title {
+    color: rgb(243, 244, 246);
+}
+
+.appointment-calendar-filter-content-actions-ctn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgb(243, 244, 246);
+}
+
+.dark .appointment-calendar-filter-content-actions-ctn {
+    border-top-color: rgb(31, 41, 55);
+}
+
+.appointment-calendar-view {
+    min-height: 680px;
+}
+
 /* Calendar Status Legend */
 .appointment-calendar-legend {
     display: flex;
@@ -40,8 +95,6 @@
     align-items: center;
     gap: 1.25rem;
     font-size: 0.8125rem;
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
     color: rgb(55, 65, 81);
 }
 

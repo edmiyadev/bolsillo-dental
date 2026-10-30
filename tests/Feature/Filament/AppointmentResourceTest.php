@@ -77,7 +77,7 @@ it('can create an appointment with a predefined service and auto-fills duration 
             'observations' => 'Paciente con brackets autoligados',
         ])
         ->assertFormSet([
-            'specialty' => DentalSpecialty::Orthodontics->value,
+            'specialty' => DentalSpecialty::Orthodontics,
             'duration_minutes' => 45,
         ])
         ->call('create')
