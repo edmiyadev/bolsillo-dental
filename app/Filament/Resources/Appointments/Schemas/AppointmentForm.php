@@ -54,6 +54,11 @@ class AppointmentForm
                             ->searchable()
                             ->preload()
                             ->live()
+                            ->afterStateUpdated(function (Set $set): void {
+                                $set('dentist_id', null);
+                                $set('cubicle_id', null);
+                                $set('service_id', null);
+                            })
                             ->required(),
                         Select::make('patient_id')
                             ->label(__('Patient'))
@@ -91,6 +96,9 @@ class AppointmentForm
                             ->searchable()
                             ->preload()
                             ->live()
+                            ->afterStateUpdated(function (Set $set): void {
+                                $set('service_id', null);
+                            })
                             ->required(),
                         Toggle::make('is_custom_reason')
                             ->label(__('Other reason (not a predefined service)'))

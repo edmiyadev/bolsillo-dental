@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Appointments;
 
+use App\Filament\Resources\Appointments\Pages\CalendarAppointments;
 use App\Filament\Resources\Appointments\Pages\CreateAppointment;
 use App\Filament\Resources\Appointments\Pages\EditAppointment;
 use App\Filament\Resources\Appointments\Pages\ListAppointments;
@@ -42,6 +43,7 @@ class AppointmentResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
+            ->with(['patient', 'dentist', 'branch', 'cubicle', 'service'])
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
@@ -82,6 +84,7 @@ class AppointmentResource extends Resource
         return [
             'index' => ListAppointments::route('/'),
             'create' => CreateAppointment::route('/create'),
+            'calendar' => CalendarAppointments::route('/calendar'),
             'view' => ViewAppointment::route('/{record}'),
             'edit' => EditAppointment::route('/{record}/edit'),
         ];

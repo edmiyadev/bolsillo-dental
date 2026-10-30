@@ -1,10 +1,12 @@
 <?php
 
+use App\Enums\AppointmentStatus;
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
 use App\Enums\IdentificationType;
 use App\Filament\Central\Resources\Clients\ClientResource;
 use App\Filament\Central\Resources\Tenants\TenantResource;
+use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Filament\Resources\CommissionRecords\CommissionRecordResource;
 use App\Filament\Resources\Patients\PatientResource;
 use App\Filament\Resources\Services\ServiceResource;
@@ -62,4 +64,19 @@ it('translates common UI labels and notifications to spanish', function () {
         ->and(__('Mark as paid'))->toBe('Marcar como pagado')
         ->and(__('Commission record marked as paid'))->toBe('Registro de comisión marcado como pagado')
         ->and(__(':count commission records marked as paid', ['count' => 3]))->toBe('3 registros de comisión marcados como pagados');
+});
+
+it('translates AppointmentStatus enum cases and AppointmentResource labels to spanish', function () {
+    expect(AppointmentStatus::Scheduled->getLabel())->toBe('Programada')
+        ->and(AppointmentStatus::Confirmed->getLabel())->toBe('Confirmada')
+        ->and(AppointmentStatus::InProgress->getLabel())->toBe('En curso')
+        ->and(AppointmentStatus::Completed->getLabel())->toBe('Completada')
+        ->and(AppointmentStatus::Cancelled->getLabel())->toBe('Cancelado')
+        ->and(AppointmentStatus::NoShow->getLabel())->toBe('No asistió')
+        ->and(AppointmentResource::getModelLabel())->toBe('Cita')
+        ->and(AppointmentResource::getPluralModelLabel())->toBe('Citas')
+        ->and(AppointmentResource::getNavigationLabel())->toBe('Citas')
+        ->and(__('Appointments Calendar'))->toBe('Calendario de citas')
+        ->and(__('Calendar view'))->toBe('Vista de calendario')
+        ->and(__('List view'))->toBe('Vista de lista');
 });

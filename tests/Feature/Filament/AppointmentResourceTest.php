@@ -7,7 +7,6 @@ use App\Enums\DentalSpecialty;
 use App\Enums\RoleEnum;
 use App\Filament\Resources\Appointments\Pages\CreateAppointment;
 use App\Filament\Resources\Appointments\Pages\EditAppointment;
-use App\Filament\Resources\Appointments\Pages\ListAppointments;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\Clinic;
@@ -72,12 +71,14 @@ it('can create an appointment with a predefined service and auto-fills duration 
             'dentist_id' => $this->dentist->id,
             'is_custom_reason' => false,
             'service_id' => $this->service->id,
-            'specialty' => DentalSpecialty::Orthodontics->value,
-            'duration_minutes' => 45,
             'cubicle_id' => $this->cubicle->id,
             'starts_at' => '2026-11-02 10:00:00',
             'status' => AppointmentStatus::Scheduled->value,
             'observations' => 'Paciente con brackets autoligados',
+        ])
+        ->assertFormSet([
+            'specialty' => DentalSpecialty::Orthodontics->value,
+            'duration_minutes' => 45,
         ])
         ->call('create')
         ->assertNotified()
@@ -147,4 +148,35 @@ it('prevents creating an overlapping appointment on the form', function (): void
         ])
         ->call('create')
         ->assertHasFormErrors(['starts_at']);
+});
+
+it('can edit an existing appointment without self-overlap validation errors', function (): void {
+    $appointment = Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'service_id' => $this->service->id,
+        'is_custom_reason' => false,
+        'specialty' => DentalSpecialty::Orthodontics,
+        'starts_at' => '2026-11-02 10:00:00',
+        'duration_minutes' => 45,
+        'status' => AppointmentStatus::Scheduled,
+        'observations' => 'Observación inicial',
+    ]);
+
+    Livewire::test(EditAppointment::class, ['record' => $appointment->getRouteKey()])
+        ->fillForm([
+            'status' => AppointmentStatus::Confirmed->value,
+            'observations' => 'Paciente confirmó asistencia por teléfono',
+        ])
+        ->call('save')
+        ->assertNotified()
+        ->assertHasNoFormErrors();
+
+    assertDatabaseHas(Appointment::class, [
+        'id' => $appointment->id,
+        'status' => AppointmentStatus::Confirmed->value,
+        'observations' => 'Paciente confirmó asistencia por teléfono',
+    ]);
 });
