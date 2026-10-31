@@ -94,9 +94,8 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     public function getFiltersTriggerAction(): Action
     {
         return Action::make('filter')
-            ->label(__('filament-tables::table.actions.filter.label'))
             ->hiddenLabel()
-            ->icon(Heroicon::OutlinedFunnel)
+            ->icon(Heroicon::Funnel)
             ->color('gray')
             ->badge(fn (): ?int => ($count = count(array_filter($this->filters ?? []))) > 0 ? $count : 0)
             ->livewireClickHandlerEnabled(false);
@@ -161,7 +160,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     {
         return CreateAction::make('createAppointment')
             ->model(Appointment::class)
-            ->modalHeading(__("Create Appointment"))
+            ->modelLabel(AppointmentResource::getModelLabel())
             ->schema(fn (Schema $schema): Schema => AppointmentForm::configure($schema))
             ->modalWidth(Width::FiveExtraLarge)
             ->fillForm(function (Action $action): array {
@@ -190,7 +189,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     {
         return EditAction::make('editAppointment')
             ->model(Appointment::class)
-            ->modalHeading(__("Edit Appointment"))
+            ->modelLabel(AppointmentResource::getModelLabel())
             ->record(fn (Action $action): ?Appointment => filled($id = $action->getArguments()['record'] ?? null)
                 ? Appointment::with(['patient', 'dentist', 'cubicle', 'branch', 'service'])->find($id)
                 : null)
@@ -282,6 +281,8 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
             ->map(function (Appointment $appointment) use ($canUpdate): array {
                 $patientName = trim("{$appointment->patient?->first_name} {$appointment->patient?->last_name}");
                 $reason = $appointment->reasonLabel();
+                $statusColorName = $appointment->status?->getColor() ?? 'primary';
+                $statusColor = $this->resolveStatusColor($appointment->status);
 
                 return [
                     'id' => (string) $appointment->id,
@@ -291,7 +292,13 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
                     'url' => $canUpdate
                         ? AppointmentResource::getUrl('edit', ['record' => $appointment->id])
                         : AppointmentResource::getUrl('view', ['record' => $appointment->id]),
-                    'color' => $this->resolveStatusColor($appointment->status),
+                    'color' => $statusColor,
+                    'backgroundColor' => $statusColor,
+                    'borderColor' => $statusColor,
+                    'classNames' => [
+                        'appointment-event',
+                        "appointment-status-{$statusColorName}",
+                    ],
                     'extendedProps' => [
                         'patient' => $patientName,
                         'dentist' => (string) ($appointment->dentist?->name ?? ''),
@@ -299,6 +306,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
                         'branch' => (string) ($appointment->branch?->name ?? ''),
                         'reason' => $reason,
                         'status' => $appointment->status?->getLabel() ?? '',
+                        'statusColor' => $statusColorName,
                     ],
                 ];
             })
@@ -308,14 +316,18 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
 
     protected function resolveStatusColor(?AppointmentStatus $status): string
     {
-        return match ($status) {
-            AppointmentStatus::Scheduled => '#0284c7',
-            AppointmentStatus::Confirmed => '#0891b2',
-            AppointmentStatus::InProgress => '#d97706',
-            AppointmentStatus::Completed => '#16a34a',
-            AppointmentStatus::Cancelled => '#dc2626',
-            AppointmentStatus::NoShow => '#6b7280',
-            default => '#0284c7',
+        $color = $status?->getColor() ?? 'primary';
+
+        return match ($color) {
+            'info' => 'var(--filament-color-info, var(--info-600, #0284c7))',
+            'primary' => 'var(--filament-color-primary, var(--primary-600, #0891b2))',
+            'warning' => 'var(--filament-color-warning, var(--warning-600, #d97706))',
+            'success' => 'var(--filament-color-success, var(--success-600, #16a34a))',
+            'danger' => 'var(--filament-color-danger, var(--danger-600, #dc2626))',
+            'gray' => 'var(--filament-color-gray, var(--gray-500, #6b7280))',
+            default => str_starts_with($color, '#') || str_starts_with($color, 'rgb') || str_starts_with($color, 'var(')
+                ? $color
+                : "var(--filament-color-{$color}, var(--{$color}-600, var(--primary-600, #0891b2)))",
         };
     }
 }

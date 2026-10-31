@@ -19,7 +19,7 @@ class ListAppointments extends ListRecords
                 ->label(__('Calendar view'))
                 ->icon(Heroicon::OutlinedCalendarDays)
                 ->color('gray')
-                ->url(AppointmentResource::getUrl('calendar')),
+                ->url(AppointmentResource::getUrl('index')),
             CreateAction::make(),
         ];
     }

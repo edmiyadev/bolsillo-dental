@@ -61,11 +61,12 @@ it('renders the calendar page via action from list page and includes the custom 
 
     Livewire::test(ListAppointments::class)
         ->assertActionVisible('calendar')
-        ->assertActionHasUrl('calendar', AppointmentResource::getUrl('calendar'));
+        ->assertActionHasUrl('calendar', AppointmentResource::getUrl('index'));
 
     Livewire::test(CalendarAppointments::class)
         ->assertOk()
         ->assertActionVisible('list')
+        ->assertActionHasUrl('list', AppointmentResource::getUrl('list'))
         ->assertSeeLivewire(AppointmentCalendarWidget::class);
 });
 

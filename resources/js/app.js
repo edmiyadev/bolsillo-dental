@@ -8,7 +8,6 @@ import esLocale from 'fullcalendar/locales/es';
 
 import 'fullcalendar/skeleton.css';
 import 'fullcalendar/themes/monarch/theme.css';
-import 'fullcalendar/themes/monarch/palettes/blue.css';
 
 const getDocumentColorScheme = () => (
     document.documentElement.classList.contains('dark') ? 'dark' : 'light'
