@@ -426,5 +426,11 @@
     "The selected dentist is not on shift at this branch during the requested time.": "El odontólogo seleccionado no está de turno en esta sucursal durante el horario solicitado.",
     "The selected dentist already has an overlapping appointment in this time slot.": "El odontólogo seleccionado ya tiene una cita solapada en este horario.",
     "The selected cubicle is not available for the required specialty during this time slot.": "El cubículo seleccionado no está disponible para la especialidad requerida durante este horario.",
-    "The selected cubicle is already occupied during this time slot.": "El cubículo seleccionado ya está ocupado durante este horario."
+    "The selected cubicle is already occupied during this time slot.": "El cubículo seleccionado ya está ocupado durante este horario.",
+    "Cannot schedule appointments in the past.": "No se pueden programar citas en el pasado.",
+    "Cannot create appointments in the past.": "No se pueden crear citas en el pasado.",
+    "Appointment rescheduled successfully.": "Cita reprogramada exitosamente.",
+    "You are not authorized to update appointments.": "No tienes autorización para actualizar citas.",
+    "Appointment not found.": "Cita no encontrada.",
+    "Invalid date and time.": "Fecha y hora inválidas."
 }

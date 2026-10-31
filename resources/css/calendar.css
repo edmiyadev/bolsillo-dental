@@ -96,6 +96,17 @@
     color: #ffffff !important;
 }
 
+.fc .fc-event.fc-event-draggable,
+.fc .fc-event[draggable="true"] {
+    cursor: grab;
+}
+
+.fc .fc-event.fc-event-dragging {
+    cursor: grabbing;
+    opacity: 0.85;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
 /* Event status styling applied directly to event elements */
 .fc .fc-event.appointment-status-primary {
     --fc-event-color: var(--filament-color-primary) !important;

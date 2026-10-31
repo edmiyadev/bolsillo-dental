@@ -11,6 +11,7 @@ use App\Filament\Resources\Appointments\Schemas\AppointmentInfolist;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\User;
+use App\Rules\AppointmentAvailabilityRule;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -20,12 +21,15 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
 {
@@ -241,6 +245,89 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
                 ],
             ])
             ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function updateAppointmentDate(int $id, string $startsAt): bool
+    {
+        if (! (auth()->user()?->can('update_appointments') ?? false)) {
+            Notification::make()
+                ->danger()
+                ->title(__('You are not authorized to update appointments.'))
+                ->send();
+
+            return false;
+        }
+
+        $appointment = Appointment::query()->find($id);
+
+        if (! $appointment) {
+            Notification::make()
+                ->danger()
+                ->title(__('Appointment not found.'))
+                ->send();
+
+            return false;
+        }
+
+        try {
+            $newStartsAt = Carbon::parse($startsAt);
+        } catch (Throwable) {
+            Notification::make()
+                ->danger()
+                ->title(__('Invalid date and time.'))
+                ->send();
+
+            return false;
+        }
+
+        if ($newStartsAt->isPast()) {
+            Notification::make()
+                ->danger()
+                ->title(__('Cannot schedule appointments in the past.'))
+                ->send();
+
+            return false;
+        }
+
+        $validator = Validator::make([
+            'starts_at' => $newStartsAt->format('Y-m-d H:i:s'),
+            'branch_id' => $appointment->branch_id,
+            'dentist_id' => $appointment->dentist_id,
+            'cubicle_id' => $appointment->cubicle_id,
+            'duration_minutes' => $appointment->duration_minutes,
+            'specialty' => $appointment->specialty?->value ?? (string) $appointment->specialty,
+        ], [
+            'starts_at' => [
+                'required',
+                'date',
+                'after_or_equal:now',
+                new AppointmentAvailabilityRule($appointment->id),
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            Notification::make()
+                ->danger()
+                ->title($validator->errors()->first('starts_at'))
+                ->send();
+
+            return false;
+        }
+
+        $appointment->starts_at = $newStartsAt;
+        $appointment->save();
+
+        Notification::make()
+            ->success()
+            ->title(__('Appointment rescheduled successfully.'))
+            ->send();
+
+        $this->dispatch('calendar-filters-updated');
+
+        return true;
     }
 
     /**

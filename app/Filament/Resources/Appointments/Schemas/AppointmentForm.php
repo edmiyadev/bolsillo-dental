@@ -23,6 +23,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class AppointmentForm
 {
@@ -201,6 +202,7 @@ class AppointmentForm
                         DateTimePicker::make('starts_at')
                             ->label(__('Date and time'))
                             ->seconds(false)
+                            ->minDate(fn ()  => now())
                             ->default(fn (): mixed => request()->query('starts_at'))
                             ->required()
                             ->rule(fn (?Model $record): AppointmentAvailabilityRule => new AppointmentAvailabilityRule($record?->getKey())),

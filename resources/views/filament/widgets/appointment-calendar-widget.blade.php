@@ -8,6 +8,7 @@
             x-data="appointmentCalendar({
                 canCreate: @js($this->canCreate),
                 canUpdate: @js($this->canUpdate),
+                pastDateError: @js(__('Cannot schedule appointments in the past.')),
             })"
             @calendar-filters-updated.window="refreshEvents()"
         >
