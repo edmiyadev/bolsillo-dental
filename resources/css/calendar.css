@@ -144,6 +144,72 @@
     border-color: var(--filament-color-gray) !important;
 }
 
+/* Event hover: darken background color instead of stripping or resetting it */
+.fc .fc-event:hover,
+.fc .fc-event.fc-monarch-Frw:hover,
+.fc a.fc-event:hover,
+.fc .fc-timegrid-event:hover,
+.fc .fc-daygrid-event:hover,
+.fc .fc-list-event:hover {
+    filter: brightness(0.82) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Neutralize Monarch theme white-wash color-mix hover */
+@supports (color: color-mix(in lab, red, red)) {
+    .fc .fc-event:hover,
+    .fc .fc-event.fc-monarch-Frw:hover,
+    .fc a.fc-event:hover {
+        background-color: color-mix(in srgb, var(--fc-event-color, var(--filament-color-primary)) 80%, #000000) !important;
+        border-color: color-mix(in srgb, var(--fc-event-color, var(--filament-color-primary)) 80%, #000000) !important;
+    }
+}
+
+.fc .fc-event.appointment-status-primary:hover,
+.fc a.fc-event.appointment-status-primary:hover {
+    background-color: color-mix(in srgb, var(--filament-color-primary) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-primary) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-info:hover,
+.fc a.fc-event.appointment-status-info:hover {
+    background-color: color-mix(in srgb, var(--filament-color-info) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-info) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-warning:hover,
+.fc a.fc-event.appointment-status-warning:hover {
+    background-color: color-mix(in srgb, var(--filament-color-warning) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-warning) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-success:hover,
+.fc a.fc-event.appointment-status-success:hover {
+    background-color: color-mix(in srgb, var(--filament-color-success) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-success) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-danger:hover,
+.fc a.fc-event.appointment-status-danger:hover {
+    background-color: color-mix(in srgb, var(--filament-color-danger) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-danger) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-gray:hover,
+.fc a.fc-event.appointment-status-gray:hover {
+    background-color: color-mix(in srgb, var(--filament-color-gray) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-gray) 80%, #000000) !important;
+}
+
+/* Ensure inner text and containers stay solid white on hover */
+.fc .fc-event:hover .fc-event-main,
+.fc .fc-event:hover .fc-event-title,
+.fc .fc-event:hover .fc-event-time,
+.fc .fc-event:hover span,
+.fc .fc-event:hover div {
+    color: #ffffff !important;
+}
+
 /* Calendar Toolbar, Filter and Container Layout */
 .appointment-calendar-toolbar {
     display: flex;
@@ -221,4 +287,132 @@
     border-radius: 9999px;
     flex-shrink: 0;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Reschedule Confirmation Modal Details */
+.reschedule-modal-content {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.reschedule-modal-patient-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.875rem;
+    margin-bottom: 1.5rem !important;
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+}
+
+.dark .reschedule-modal-patient-row {
+    border-bottom-color: var(--gray-800, #1f2937);
+}
+
+.reschedule-modal-patient-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-500, #6b7280);
+}
+
+.dark .reschedule-modal-patient-label {
+    color: var(--gray-400, #9ca3af);
+}
+
+.reschedule-modal-patient-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900, #111827);
+}
+
+.dark .reschedule-modal-patient-name {
+    color: #ffffff;
+}
+
+.reschedule-modal-card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    background-color: var(--gray-50, #f9fafb);
+    padding: 1.125rem;
+}
+
+.dark .reschedule-modal-card {
+    border-color: var(--gray-800, #1f2937);
+    background-color: var(--gray-950, #030712);
+}
+
+.reschedule-modal-date-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+    color: var(--gray-500, #6b7280);
+}
+
+.reschedule-modal-date-label-new {
+    color: var(--primary-600, #0891b2);
+}
+
+.dark .reschedule-modal-date-label-new {
+    color: var(--primary-400, #22d3ee);
+}
+
+.reschedule-modal-date-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.reschedule-modal-date-value-new {
+    font-weight: 700;
+    color: var(--primary-700, #0e7490);
+}
+
+.dark .reschedule-modal-date-value-new {
+    color: var(--primary-300, #67e8f9);
+}
+
+.reschedule-modal-icon {
+    display: inline-block;
+    width: 1rem !important;
+    height: 1rem !important;
+    min-width: 1rem !important;
+    min-height: 1rem !important;
+    max-width: 1rem !important;
+    max-height: 1rem !important;
+    flex-shrink: 0;
+}
+
+.reschedule-modal-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    color: var(--primary-600, #0891b2);
+}
+
+.dark .reschedule-modal-divider {
+    color: var(--primary-400, #22d3ee);
+}
+
+.reschedule-modal-divider-line {
+    height: 1px;
+    flex: 1;
+    background-color: var(--gray-200, #e5e7eb);
+}
+
+.dark .reschedule-modal-divider-line {
+    background-color: var(--gray-800, #1f2937);
+}
+
+.reschedule-modal-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 1.5rem !important;
+    padding-top: 0.5rem;
+    width: 100%;
 }
