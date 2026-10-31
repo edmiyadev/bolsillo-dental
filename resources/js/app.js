@@ -39,6 +39,21 @@ const createAppointmentCalendarComponent = ({ canCreate = false, canUpdate = fal
             },
             slotMinTime: '07:00:00',
             slotMaxTime: '20:00:00',
+            slotHeaderFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            },
+            slotLabelFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            },
+            eventTimeFormat: {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+            },
             allDaySlot: false,
             nowIndicator: true,
             height: 'auto',
