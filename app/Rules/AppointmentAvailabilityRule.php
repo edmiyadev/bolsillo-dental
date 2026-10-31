@@ -9,6 +9,7 @@ use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\BranchUser;
 use App\Models\Cubicle;
+use App\Models\Service;
 use App\Models\User;
 use App\ValueObjects\WeeklySchedule;
 use Closure;
@@ -94,7 +95,15 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
         $startTime = $startsAt->format('H:i');
         $endTime = $endsAt->format('H:i');
 
-        $specialty = $state['specialty'] ?? ($existingAppointment?->specialty?->value ?? DentalSpecialty::General->value);
+        $serviceId = $state['service_id'] ?? $existingAppointment?->service_id;
+        $specialty = $state['specialty'] ?? null;
+
+        if (blank($specialty) && filled($serviceId) && $serviceId !== 'other') {
+            $service = Service::withoutGlobalScopes()->find($serviceId);
+            $specialty = $service?->specialty;
+        }
+
+        $specialty = $specialty ?? ($existingAppointment?->service?->specialty ?? DentalSpecialty::General);
         $specialtyValue = $specialty instanceof DentalSpecialty ? $specialty->value : (string) $specialty;
 
         $activeStatuses = collect(AppointmentStatus::cases())

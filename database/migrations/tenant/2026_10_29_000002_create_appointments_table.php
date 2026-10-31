@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('dentist_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('cubicle_id')->constrained('cubicles')->cascadeOnDelete();
             $table->foreignId('service_id')->nullable()->constrained('services')->nullOnDelete();
-            $table->string('specialty')->default('general');
             $table->boolean('is_custom_reason')->default(false);
             $table->string('custom_reason')->nullable();
             $table->dateTime('starts_at');

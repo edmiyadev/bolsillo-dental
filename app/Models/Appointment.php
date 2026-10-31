@@ -18,7 +18,6 @@ use Illuminate\Support\Carbon;
     'dentist_id',
     'cubicle_id',
     'service_id',
-    'specialty',
     'is_custom_reason',
     'custom_reason',
     'starts_at',
@@ -38,6 +37,14 @@ class Appointment extends Model
             if ($appointment->starts_at) {
                 $duration = max(1, (int) ($appointment->duration_minutes ?: 30));
                 $appointment->ends_at = Carbon::parse($appointment->starts_at)->copy()->addMinutes($duration);
+            }
+
+            if ($appointment->is_custom_reason || $appointment->service_id === 'other') {
+                $appointment->is_custom_reason = true;
+                $appointment->service_id = null;
+            } else {
+                $appointment->is_custom_reason = false;
+                $appointment->custom_reason = null;
             }
         });
     }
@@ -89,6 +96,11 @@ class Appointment extends Model
             : (string) ($this->service?->name ?? $this->custom_reason ?? '');
     }
 
+    public function getSpecialtyAttribute(): DentalSpecialty
+    {
+        return $this->service?->specialty ?? DentalSpecialty::General;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -97,7 +109,6 @@ class Appointment extends Model
     protected function casts(): array
     {
         return [
-            'specialty' => DentalSpecialty::class,
             'is_custom_reason' => 'boolean',
             'starts_at' => 'datetime',
             'duration_minutes' => 'integer',
