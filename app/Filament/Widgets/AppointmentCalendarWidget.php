@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Enums\AppointmentStatus;
 use App\Enums\RoleEnum;
 use App\Filament\Resources\Appointments\AppointmentResource;
+use App\Filament\Resources\Appointments\Schemas\AppointmentFiltersForm;
 use App\Filament\Resources\Appointments\Schemas\AppointmentForm;
 use App\Filament\Resources\Appointments\Schemas\AppointmentInfolist;
 use App\Models\Appointment;
@@ -76,38 +77,8 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     {
         return $schema
             ->statePath('deferredFilters')
-            ->components([
-                Select::make('branch_id')
-                    ->label(__('Branch'))
-                    ->placeholder(__('Show All'))
-                    ->prefixIcon(Heroicon::OutlinedBuildingOffice2)
-                    ->options(fn (): array => Branch::query()
-                        ->where('is_active', true)
-                        ->orderBy('name')
-                        ->pluck('name', 'id')
-                        ->all())
-                    ->searchable()
-                    ->preload(),
-
-                Select::make('dentist_id')
-                    ->label(__('Dentist'))
-                    ->placeholder(__('Show All'))
-                    ->prefixIcon(Heroicon::OutlinedUser)
-                    ->options(fn (): array => User::query()
-                        ->role(RoleEnum::Dentist->value)
-                        ->orderBy('name')
-                        ->pluck('name', 'id')
-                        ->all())
-                    ->searchable()
-                    ->preload(),
-
-                Select::make('status')
-                    ->label(__('Status'))
-                    ->placeholder(__('Show All'))
-                    ->prefixIcon(Heroicon::OutlinedClock)
-                    ->options(AppointmentStatus::class)
-                    ->searchable(),
-            ]);
+            ->inlineLabel()
+            ->components(AppointmentFiltersForm::make());
     }
 
     /**
@@ -190,6 +161,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     {
         return CreateAction::make('createAppointment')
             ->model(Appointment::class)
+            ->modalHeading(__("Create Appointment"))
             ->schema(fn (Schema $schema): Schema => AppointmentForm::configure($schema))
             ->modalWidth(Width::FiveExtraLarge)
             ->fillForm(function (Action $action): array {
@@ -218,6 +190,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     {
         return EditAction::make('editAppointment')
             ->model(Appointment::class)
+            ->modalHeading(__("Edit Appointment"))
             ->record(fn (Action $action): ?Appointment => filled($id = $action->getArguments()['record'] ?? null)
                 ? Appointment::with(['patient', 'dentist', 'cubicle', 'branch', 'service'])->find($id)
                 : null)

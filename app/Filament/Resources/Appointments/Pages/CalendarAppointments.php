@@ -46,12 +46,4 @@ class CalendarAppointments extends Page
             AppointmentCalendarWidget::class,
         ];
     }
-
-    /**
-     * @return int|array<string, ?int>
-     */
-    public function getHeaderWidgetsColumns(): int|array
-    {
-        return 1;
-    }
 }
