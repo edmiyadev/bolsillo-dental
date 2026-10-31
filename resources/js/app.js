@@ -23,6 +23,18 @@ const createAppointmentCalendarComponent = ({
     canCreate,
     canUpdate,
     pastDateError,
+    rescheduleDialog: {
+        isOpen: false,
+        appointmentId: null,
+        patientName: '',
+        dentistName: '',
+        oldDateFormatted: '',
+        newDateFormatted: '',
+        startsAt: null,
+        isSubmitting: false,
+        confirmed: false,
+        revertFn: null,
+    },
 
     showNotification(title, status = 'danger') {
         if (typeof window.FilamentNotification !== 'undefined') {
@@ -35,6 +47,52 @@ const createAppointmentCalendarComponent = ({
             notif.send();
         } else {
             console.warn(title);
+        }
+    },
+
+    confirmReschedule() {
+        if (this.rescheduleDialog.isSubmitting) {
+            return;
+        }
+
+        this.rescheduleDialog.isSubmitting = true;
+        this.rescheduleDialog.confirmed = true;
+
+        this.$wire
+            .updateAppointmentDate(this.rescheduleDialog.appointmentId, this.rescheduleDialog.startsAt)
+            .then((success) => {
+                if (!success && typeof this.rescheduleDialog.revertFn === 'function') {
+                    this.rescheduleDialog.revertFn();
+                }
+            })
+            .catch(() => {
+                if (typeof this.rescheduleDialog.revertFn === 'function') {
+                    this.rescheduleDialog.revertFn();
+                }
+            })
+            .finally(() => {
+                this.rescheduleDialog.isSubmitting = false;
+                this.$dispatch('close-modal', { id: 'confirm-reschedule-appointment' });
+                this.rescheduleDialog.revertFn = null;
+            });
+    },
+
+    cancelReschedule() {
+        if (typeof this.rescheduleDialog.revertFn === 'function') {
+            this.rescheduleDialog.revertFn();
+            this.rescheduleDialog.revertFn = null;
+        }
+        this.$dispatch('close-modal', { id: 'confirm-reschedule-appointment' });
+    },
+
+    handleModalClosed(event) {
+        if (event.detail?.id === 'confirm-reschedule-appointment') {
+            if (!this.rescheduleDialog.confirmed && typeof this.rescheduleDialog.revertFn === 'function') {
+                this.rescheduleDialog.revertFn();
+                this.rescheduleDialog.revertFn = null;
+            }
+            this.rescheduleDialog.isOpen = false;
+            this.rescheduleDialog.confirmed = false;
         }
     },
 
@@ -149,16 +207,37 @@ const createAppointmentCalendarComponent = ({
                 const pad = (n) => String(n).padStart(2, '0');
                 const startsAt = `${newStart.getFullYear()}-${pad(newStart.getMonth() + 1)}-${pad(newStart.getDate())} ${pad(newStart.getHours())}:${pad(newStart.getMinutes())}:${pad(newStart.getSeconds())}`;
 
-                this.$wire
-                    .updateAppointmentDate(Number(info.event.id), startsAt)
-                    .then((success) => {
-                        if (!success) {
-                            info.revert();
-                        }
-                    })
-                    .catch(() => {
-                        info.revert();
-                    });
+                const oldStart = info.oldEvent.start;
+
+                const formatDateTime = (date) => {
+                    if (!date) return '';
+                    const dayOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+                    let datePart = date.toLocaleDateString('es-ES', dayOptions);
+                    datePart = datePart.charAt(0).toUpperCase() + datePart.slice(1);
+
+                    const h = date.getHours();
+                    const m = pad(date.getMinutes());
+                    const hour12 = h % 12 || 12;
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    const timePart = `${hour12}:${m} ${ampm}`;
+
+                    return `${datePart}, ${timePart}`;
+                };
+
+                this.rescheduleDialog = {
+                    isOpen: true,
+                    appointmentId: Number(info.event.id),
+                    patientName: info.event.extendedProps?.patient || info.event.title || '',
+                    dentistName: info.event.extendedProps?.dentist || '',
+                    oldDateFormatted: formatDateTime(oldStart),
+                    newDateFormatted: formatDateTime(newStart),
+                    startsAt: startsAt,
+                    isSubmitting: false,
+                    confirmed: false,
+                    revertFn: info.revert,
+                };
+
+                this.$dispatch('open-modal', { id: 'confirm-reschedule-appointment' });
             },
             eventClick: (info) => {
                 info.jsEvent.preventDefault();

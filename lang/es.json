@@ -432,5 +432,11 @@
     "Appointment rescheduled successfully.": "Cita reprogramada exitosamente.",
     "You are not authorized to update appointments.": "No tienes autorización para actualizar citas.",
     "Appointment not found.": "Cita no encontrada.",
-    "Invalid date and time.": "Fecha y hora inválidas."
+    "Invalid date and time.": "Fecha y hora inválidas.",
+    "Confirm appointment reschedule": "Confirmar cambio de horario de cita",
+    "Are you sure you want to reschedule this appointment?": "¿Está seguro de que desea cambiar el horario de esta cita?",
+    "Current date and time": "Fecha y hora actual",
+    "New date and time": "Nueva fecha y hora",
+    "Confirm change": "Confirmar cambio",
+    "Updating...": "Actualizando..."
 }
