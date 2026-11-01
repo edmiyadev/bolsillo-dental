@@ -2,6 +2,10 @@
 
 namespace App\Filament\Widgets;
 
+use App\Actions\Appointments\CreateAppointmentAction;
+use App\Actions\Appointments\UpdateAppointmentAction;
+use App\Data\Appointments\CreateAppointmentData;
+use App\Data\Appointments\UpdateAppointmentData;
 use App\Enums\AppointmentStatus;
 use App\Enums\RoleEnum;
 use App\Filament\Resources\Appointments\AppointmentResource;
@@ -27,6 +31,7 @@ use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Throwable;
@@ -186,6 +191,9 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
             ->after(function (): void {
                 $this->dispatch('calendar-filters-updated');
             })
+            ->using(fn (array $data): Model => app(CreateAppointmentAction::class)->handle(
+                CreateAppointmentData::fromArray($data)
+            ))
             ->authorize(fn (): bool => auth()->user()?->can('create_appointments') ?? false);
     }
 
@@ -202,6 +210,10 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
             ->after(function (): void {
                 $this->dispatch('calendar-filters-updated');
             })
+            ->using(fn (Appointment $record, array $data): Model => app(UpdateAppointmentAction::class)->handle(
+                $record,
+                UpdateAppointmentData::fromArray($data, $record)
+            ))
             ->authorize(fn (): bool => auth()->user()?->can('update_appointments') ?? false);
     }
 
@@ -317,8 +329,10 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
             return false;
         }
 
-        $appointment->starts_at = $newStartsAt;
-        $appointment->save();
+        app(UpdateAppointmentAction::class)->handle(
+            $appointment,
+            UpdateAppointmentData::fromArray(['starts_at' => $newStartsAt], $appointment),
+        );
 
         Notification::make()
             ->success()

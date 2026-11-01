@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Carbon;
 
 #[Fillable([
     'branch_id',
@@ -30,24 +29,6 @@ class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
     use HasFactory, SoftDeletes;
-
-    protected static function booted(): void
-    {
-        static::saving(function (Appointment $appointment): void {
-            if ($appointment->starts_at) {
-                $duration = max(1, (int) ($appointment->duration_minutes ?: 30));
-                $appointment->ends_at = Carbon::parse($appointment->starts_at)->copy()->addMinutes($duration);
-            }
-
-            if ($appointment->is_custom_reason || $appointment->service_id === 'other') {
-                $appointment->is_custom_reason = true;
-                $appointment->service_id = null;
-            } else {
-                $appointment->is_custom_reason = false;
-                $appointment->custom_reason = null;
-            }
-        });
-    }
 
     /**
      * @return BelongsTo<Branch, $this>

@@ -2,8 +2,11 @@
 
 namespace App\Filament\Resources\Appointments\Pages;
 
+use App\Actions\Appointments\CreateAppointmentAction;
+use App\Data\Appointments\CreateAppointmentData;
 use App\Filament\Resources\Appointments\AppointmentResource;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateAppointment extends CreateRecord
 {
@@ -11,16 +14,12 @@ class CreateAppointment extends CreateRecord
 
     /**
      * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
      */
-    protected function mutateFormDataBeforeCreate(array $data): array
+    protected function handleRecordCreation(array $data): Model
     {
-        if (! empty($data['is_custom_reason'])) {
-            $data['service_id'] = null;
-        } else {
-            $data['custom_reason'] = null;
-        }
-
-        return $data;
+        return app(CreateAppointmentAction::class)->handle(
+            CreateAppointmentData::fromArray($data)
+        );
     }
 }
+

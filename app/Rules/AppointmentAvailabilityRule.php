@@ -3,6 +3,7 @@
 namespace App\Rules;
 
 use App\Enums\AppointmentStatus;
+use App\Enums\CubicleStatus;
 use App\Enums\DayOfWeek;
 use App\Enums\DentalSpecialty;
 use App\Models\Appointment;
@@ -199,6 +200,37 @@ class AppointmentAvailabilityRule implements DataAwareRule, ValidationRule
                 ->exists();
 
             if ($cubicleOverlap) {
+                $fail(__('The selected cubicle is already occupied during this time slot.'));
+
+                return;
+            }
+        } else {
+            $branchCubicles = Cubicle::query()
+                ->where('branch_id', $branch->id)
+                ->where('status', CubicleStatus::Active)
+                ->get();
+
+            $matchingCubicles = $branchCubicles->filter(
+                fn (Cubicle $cubicle): bool => $cubicle->isAvailableForSpecialtyAt($specialtyValue, $dayOfWeek, $startTime, $endTime)
+            );
+
+            if ($matchingCubicles->isEmpty()) {
+                $fail(__('The selected cubicle is not available for the required specialty during this time slot.'));
+
+                return;
+            }
+
+            $hasFreeCubicle = $matchingCubicles->contains(function (Cubicle $cubicle) use ($activeStatuses, $startsAt, $endsAt): bool {
+                return Appointment::query()
+                    ->where('cubicle_id', $cubicle->id)
+                    ->whereIn('status', $activeStatuses)
+                    ->where('starts_at', '<', $endsAt)
+                    ->where('ends_at', '>', $startsAt)
+                    ->when($this->ignoreAppointmentId, fn ($query) => $query->whereKeyNot($this->ignoreAppointmentId))
+                    ->doesntExist();
+            });
+
+            if (! $hasFreeCubicle) {
                 $fail(__('The selected cubicle is already occupied during this time slot.'));
 
                 return;
