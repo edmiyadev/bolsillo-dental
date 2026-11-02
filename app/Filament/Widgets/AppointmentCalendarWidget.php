@@ -2,6 +2,10 @@
 
 namespace App\Filament\Widgets;
 
+use App\Actions\Appointments\CreateAppointmentAction;
+use App\Actions\Appointments\UpdateAppointmentAction;
+use App\Data\Appointments\CreateAppointmentData;
+use App\Data\Appointments\UpdateAppointmentData;
 use App\Enums\AppointmentStatus;
 use App\Enums\RoleEnum;
 use App\Filament\Resources\Appointments\AppointmentResource;
@@ -11,6 +15,7 @@ use App\Filament\Resources\Appointments\Schemas\AppointmentInfolist;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\User;
+use App\Rules\AppointmentAvailabilityRule;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -20,12 +25,16 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Validator;
+use Throwable;
 
 class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
 {
@@ -94,9 +103,8 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     public function getFiltersTriggerAction(): Action
     {
         return Action::make('filter')
-            ->label(__('filament-tables::table.actions.filter.label'))
             ->hiddenLabel()
-            ->icon(Heroicon::OutlinedFunnel)
+            ->icon(Heroicon::Funnel)
             ->color('gray')
             ->badge(fn (): ?int => ($count = count(array_filter($this->filters ?? []))) > 0 ? $count : 0)
             ->livewireClickHandlerEnabled(false);
@@ -161,7 +169,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     {
         return CreateAction::make('createAppointment')
             ->model(Appointment::class)
-            ->modalHeading(__("Create Appointment"))
+            ->modelLabel(AppointmentResource::getModelLabel())
             ->schema(fn (Schema $schema): Schema => AppointmentForm::configure($schema))
             ->modalWidth(Width::FiveExtraLarge)
             ->fillForm(function (Action $action): array {
@@ -183,6 +191,9 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
             ->after(function (): void {
                 $this->dispatch('calendar-filters-updated');
             })
+            ->using(fn (array $data): Model => app(CreateAppointmentAction::class)->handle(
+                CreateAppointmentData::fromArray($data)
+            ))
             ->authorize(fn (): bool => auth()->user()?->can('create_appointments') ?? false);
     }
 
@@ -190,7 +201,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     {
         return EditAction::make('editAppointment')
             ->model(Appointment::class)
-            ->modalHeading(__("Edit Appointment"))
+            ->modelLabel(AppointmentResource::getModelLabel())
             ->record(fn (Action $action): ?Appointment => filled($id = $action->getArguments()['record'] ?? null)
                 ? Appointment::with(['patient', 'dentist', 'cubicle', 'branch', 'service'])->find($id)
                 : null)
@@ -199,6 +210,10 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
             ->after(function (): void {
                 $this->dispatch('calendar-filters-updated');
             })
+            ->using(fn (Appointment $record, array $data): Model => app(UpdateAppointmentAction::class)->handle(
+                $record,
+                UpdateAppointmentData::fromArray($data, $record)
+            ))
             ->authorize(fn (): bool => auth()->user()?->can('update_appointments') ?? false);
     }
 
@@ -247,6 +262,91 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
     /**
      * @return array<int, array<string, mixed>>
      */
+    public function updateAppointmentDate(int $id, string $startsAt): bool
+    {
+        if (! (auth()->user()?->can('update_appointments') ?? false)) {
+            Notification::make()
+                ->danger()
+                ->title(__('You are not authorized to update appointments.'))
+                ->send();
+
+            return false;
+        }
+
+        $appointment = Appointment::query()->find($id);
+
+        if (! $appointment) {
+            Notification::make()
+                ->danger()
+                ->title(__('Appointment not found.'))
+                ->send();
+
+            return false;
+        }
+
+        try {
+            $newStartsAt = Carbon::parse($startsAt);
+        } catch (Throwable) {
+            Notification::make()
+                ->danger()
+                ->title(__('Invalid date and time.'))
+                ->send();
+
+            return false;
+        }
+
+        if ($newStartsAt->isPast()) {
+            Notification::make()
+                ->danger()
+                ->title(__('Cannot schedule appointments in the past.'))
+                ->send();
+
+            return false;
+        }
+
+        $validator = Validator::make([
+            'starts_at' => $newStartsAt->format('Y-m-d H:i:s'),
+            'branch_id' => $appointment->branch_id,
+            'dentist_id' => $appointment->dentist_id,
+            'cubicle_id' => $appointment->cubicle_id,
+            'duration_minutes' => $appointment->duration_minutes,
+            'specialty' => $appointment->specialty?->value ?? (string) $appointment->specialty,
+        ], [
+            'starts_at' => [
+                'required',
+                'date',
+                'after_or_equal:now',
+                new AppointmentAvailabilityRule($appointment->id),
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            Notification::make()
+                ->danger()
+                ->title($validator->errors()->first('starts_at'))
+                ->send();
+
+            return false;
+        }
+
+        app(UpdateAppointmentAction::class)->handle(
+            $appointment,
+            UpdateAppointmentData::fromArray(['starts_at' => $newStartsAt], $appointment),
+        );
+
+        Notification::make()
+            ->success()
+            ->title(__('Appointment rescheduled successfully.'))
+            ->send();
+
+        $this->dispatch('calendar-filters-updated');
+
+        return true;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function fetchEvents(
         string $start,
         string $end,
@@ -282,6 +382,8 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
             ->map(function (Appointment $appointment) use ($canUpdate): array {
                 $patientName = trim("{$appointment->patient?->first_name} {$appointment->patient?->last_name}");
                 $reason = $appointment->reasonLabel();
+                $statusColorName = $appointment->status?->getColor() ?? 'primary';
+                $statusColor = $this->resolveStatusColor($appointment->status);
 
                 return [
                     'id' => (string) $appointment->id,
@@ -291,7 +393,13 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
                     'url' => $canUpdate
                         ? AppointmentResource::getUrl('edit', ['record' => $appointment->id])
                         : AppointmentResource::getUrl('view', ['record' => $appointment->id]),
-                    'color' => $this->resolveStatusColor($appointment->status),
+                    'color' => $statusColor,
+                    'backgroundColor' => $statusColor,
+                    'borderColor' => $statusColor,
+                    'classNames' => [
+                        'appointment-event',
+                        "appointment-status-{$statusColorName}",
+                    ],
                     'extendedProps' => [
                         'patient' => $patientName,
                         'dentist' => (string) ($appointment->dentist?->name ?? ''),
@@ -299,6 +407,7 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
                         'branch' => (string) ($appointment->branch?->name ?? ''),
                         'reason' => $reason,
                         'status' => $appointment->status?->getLabel() ?? '',
+                        'statusColor' => $statusColorName,
                     ],
                 ];
             })
@@ -308,14 +417,18 @@ class AppointmentCalendarWidget extends Widget implements HasActions, HasForms
 
     protected function resolveStatusColor(?AppointmentStatus $status): string
     {
-        return match ($status) {
-            AppointmentStatus::Scheduled => '#0284c7',
-            AppointmentStatus::Confirmed => '#0891b2',
-            AppointmentStatus::InProgress => '#d97706',
-            AppointmentStatus::Completed => '#16a34a',
-            AppointmentStatus::Cancelled => '#dc2626',
-            AppointmentStatus::NoShow => '#6b7280',
-            default => '#0284c7',
+        $color = $status?->getColor() ?? 'primary';
+
+        return match ($color) {
+            'info' => 'var(--filament-color-info, var(--info-600, #0284c7))',
+            'primary' => 'var(--filament-color-primary, var(--primary-600, #0891b2))',
+            'warning' => 'var(--filament-color-warning, var(--warning-600, #d97706))',
+            'success' => 'var(--filament-color-success, var(--success-600, #16a34a))',
+            'danger' => 'var(--filament-color-danger, var(--danger-600, #dc2626))',
+            'gray' => 'var(--filament-color-gray, var(--gray-500, #6b7280))',
+            default => str_starts_with($color, '#') || str_starts_with($color, 'rgb') || str_starts_with($color, 'var(')
+                ? $color
+                : "var(--filament-color-{$color}, var(--{$color}-600, var(--primary-600, #0891b2)))",
         };
     }
 }

@@ -61,11 +61,12 @@ it('renders the calendar page via action from list page and includes the custom 
 
     Livewire::test(ListAppointments::class)
         ->assertActionVisible('calendar')
-        ->assertActionHasUrl('calendar', AppointmentResource::getUrl('calendar'));
+        ->assertActionHasUrl('calendar', AppointmentResource::getUrl('index'));
 
     Livewire::test(CalendarAppointments::class)
         ->assertOk()
         ->assertActionVisible('list')
+        ->assertActionHasUrl('list', AppointmentResource::getUrl('list'))
         ->assertSeeLivewire(AppointmentCalendarWidget::class);
 });
 
@@ -273,4 +274,105 @@ it('can view an appointment via the view action modal', function (): void {
         ->assertActionVisible('viewAppointment')
         ->mountAction('viewAppointment', arguments: ['record' => $appointment->id])
         ->assertActionMounted('viewAppointment');
+});
+
+it('cannot create an appointment in the past via create action modal', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::Receptionist->value);
+    $this->actingAs($user);
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->assertActionVisible('createAppointment')
+        ->callAction('createAppointment', data: [
+            'branch_id' => $this->branch->id,
+            'patient_id' => $this->patient->id,
+            'dentist_id' => $this->dentist->id,
+            'is_custom_reason' => true,
+            'custom_reason' => 'Consulta Pasada',
+            'specialty' => DentalSpecialty::General->value,
+            'duration_minutes' => 30,
+            'cubicle_id' => $this->cubicle->id,
+            'starts_at' => now()->subDay()->format('Y-m-d H:i:s'),
+            'status' => AppointmentStatus::Scheduled->value,
+        ])
+        ->assertHasActionErrors(['starts_at']);
+
+    expect(Appointment::where('custom_reason', 'Consulta Pasada')->exists())->toBeFalse();
+});
+
+it('can reschedule an appointment to a future date by dragging', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::Receptionist->value);
+    $this->actingAs($user);
+
+    $appointment = Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'specialty' => DentalSpecialty::General,
+        'starts_at' => '2026-11-03 10:00:00',
+        'duration_minutes' => 30,
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    $newStartsAt = '2026-11-03 11:00:00';
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->call('updateAppointmentDate', $appointment->id, $newStartsAt)
+        ->assertDispatched('calendar-filters-updated')
+        ->assertNotified();
+
+    expect($appointment->refresh()->starts_at->format('Y-m-d H:i:s'))->toBe($newStartsAt)
+        ->and($appointment->ends_at->format('Y-m-d H:i:s'))->toBe('2026-11-03 11:30:00');
+});
+
+it('cannot reschedule an appointment to the past', function (): void {
+    $user = User::factory()->create();
+    $user->assignRole(RoleEnum::Receptionist->value);
+    $this->actingAs($user);
+
+    $originalStartsAt = '2026-11-03 10:00:00';
+    $appointment = Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'specialty' => DentalSpecialty::General,
+        'starts_at' => $originalStartsAt,
+        'duration_minutes' => 30,
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    $pastStartsAt = now()->subDay()->format('Y-m-d H:i:s');
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->call('updateAppointmentDate', $appointment->id, $pastStartsAt)
+        ->assertNotified();
+
+    expect($appointment->refresh()->starts_at->format('Y-m-d H:i:s'))->toBe($originalStartsAt);
+});
+
+it('cannot reschedule an appointment without update permissions', function (): void {
+    $user = User::factory()->create();
+    // User without receptionist or dentist permissions
+    $this->actingAs($user);
+
+    $originalStartsAt = '2026-11-03 10:00:00';
+    $appointment = Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'specialty' => DentalSpecialty::General,
+        'starts_at' => $originalStartsAt,
+        'duration_minutes' => 30,
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    Livewire::test(AppointmentCalendarWidget::class)
+        ->call('updateAppointmentDate', $appointment->id, '2026-11-03 11:00:00')
+        ->assertNotified();
+
+    expect($appointment->refresh()->starts_at->format('Y-m-d H:i:s'))->toBe($originalStartsAt);
 });

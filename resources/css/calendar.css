@@ -1,25 +1,81 @@
-/* FullCalendar v7 Theme Overrides (Monarch + Filament Cyan Palette) */
-:root {
-    --fc-monarch-primary: #0891b2;
+/* FullCalendar v7 Monarch Theme - Synchronized with Filament Theme */
+:root,
+.fc,
+.fc[data-color-scheme="light"] {
+    /* Primary brand colors from Filament */
+    --fc-monarch-primary: var(--primary-600, #0891b2);
     --fc-monarch-primary-foreground: #ffffff;
-    --fc-monarch-primary-over: #0e7490;
-    --fc-monarch-primary-down: #155e75;
-    --fc-monarch-highlight: rgba(8, 145, 178, 0.08);
+    --fc-monarch-primary-over: var(--primary-700, #0e7490);
+    --fc-monarch-primary-down: var(--primary-800, #155e75);
+    --fc-monarch-highlight: color-mix(in srgb, var(--primary-500, #06b6d4) 12%, transparent);
+    --fc-monarch-now: var(--primary-600, #0891b2);
+    --fc-monarch-outline: var(--primary-500, #06b6d4);
+
+    /* Secondary and Selected controls */
+    --fc-monarch-secondary: var(--gray-100, #f3f4f6);
+    --fc-monarch-secondary-foreground: var(--gray-800, #1f2937);
+    --fc-monarch-secondary-over: var(--gray-200, #e5e7eb);
+    --fc-monarch-secondary-down: var(--gray-300, #d1d5db);
+    --fc-monarch-selected: var(--primary-600, #0891b2);
+    --fc-monarch-selected-foreground: #ffffff;
+    --fc-monarch-selected-over: var(--primary-700, #0e7490);
+    --fc-monarch-selected-down: var(--primary-800, #155e75);
+
+    /* Neutral borders and surfaces */
+    --fc-monarch-background: transparent;
+    --fc-monarch-foreground: var(--gray-900, #111827);
+    --fc-monarch-border: var(--gray-200, #e5e7eb);
+    --fc-monarch-strong-border: var(--gray-300, #d1d5db);
+    --fc-monarch-faint: rgba(0, 0, 0, 0.02);
+    --fc-monarch-muted: rgba(0, 0, 0, 0.05);
+
+    /* Semantic Status Palette (aligned with Filament badges and enums) */
+    --filament-color-primary: var(--primary-600, #0891b2);
+    --filament-color-info: var(--info-600, #0284c7);
+    --filament-color-warning: var(--warning-600, #d97706);
+    --filament-color-success: var(--success-600, #16a34a);
+    --filament-color-danger: var(--danger-600, #dc2626);
+    --filament-color-gray: var(--gray-500, #6b7280);
 }
 
 /* Filament Dark Mode Synchronization */
 .dark .fc,
-.fc[data-color-scheme="dark"] {
-    --fc-monarch-primary: #22d3ee;
-    --fc-monarch-primary-foreground: #083344;
-    --fc-monarch-primary-over: #67e8f9;
-    --fc-monarch-primary-down: #a5f3fc;
-    --fc-monarch-highlight: rgba(34, 211, 238, 0.12);
+.fc[data-color-scheme="dark"],
+[data-color-scheme="dark"] {
+    /* Primary brand colors in dark mode */
+    --fc-monarch-primary: var(--primary-500, #22d3ee);
+    --fc-monarch-primary-foreground: var(--primary-950, #083344);
+    --fc-monarch-primary-over: var(--primary-400, #67e8f9);
+    --fc-monarch-primary-down: var(--primary-300, #a5f3fc);
+    --fc-monarch-highlight: color-mix(in srgb, var(--primary-400, #22d3ee) 15%, transparent);
+    --fc-monarch-now: var(--primary-400, #22d3ee);
+    --fc-monarch-outline: var(--primary-400, #22d3ee);
+
+    /* Secondary and Selected controls in dark mode */
+    --fc-monarch-secondary: var(--gray-800, #1f2937);
+    --fc-monarch-secondary-foreground: var(--gray-100, #f3f4f6);
+    --fc-monarch-secondary-over: var(--gray-700, #374151);
+    --fc-monarch-secondary-down: var(--gray-600, #4b5563);
+    --fc-monarch-selected: var(--primary-500, #22d3ee);
+    --fc-monarch-selected-foreground: var(--primary-950, #083344);
+    --fc-monarch-selected-over: var(--primary-400, #67e8f9);
+    --fc-monarch-selected-down: var(--primary-300, #a5f3fc);
+
+    /* Neutral borders and surfaces in dark mode */
     --fc-monarch-background: transparent;
-    --fc-monarch-border: rgba(255, 255, 255, 0.1);
-    --fc-monarch-strong-border: rgba(255, 255, 255, 0.16);
+    --fc-monarch-foreground: var(--gray-100, #f3f4f6);
+    --fc-monarch-border: var(--gray-800, rgba(255, 255, 255, 0.1));
+    --fc-monarch-strong-border: var(--gray-700, rgba(255, 255, 255, 0.16));
     --fc-monarch-faint: rgba(255, 255, 255, 0.03);
     --fc-monarch-muted: rgba(255, 255, 255, 0.06);
+
+    /* Semantic Status Palette in Dark Mode */
+    --filament-color-primary: var(--primary-500, #22d3ee);
+    --filament-color-info: var(--info-500, #38bdf8);
+    --filament-color-warning: var(--warning-500, #f59e0b);
+    --filament-color-success: var(--success-500, #22c55e);
+    --filament-color-danger: var(--danger-500, #ef4444);
+    --filament-color-gray: var(--gray-400, #9ca3af);
 }
 
 .fc {
@@ -36,6 +92,122 @@
     cursor: pointer;
     border-radius: 0.375rem;
     padding: 0.125rem 0.25rem;
+    --fc-event-contrast-color: #ffffff;
+    color: #ffffff !important;
+}
+
+.fc .fc-event.fc-event-draggable,
+.fc .fc-event[draggable="true"] {
+    cursor: grab;
+}
+
+.fc .fc-event.fc-event-dragging {
+    cursor: grabbing;
+    opacity: 0.85;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+/* Event status styling applied directly to event elements */
+.fc .fc-event.appointment-status-primary {
+    --fc-event-color: var(--filament-color-primary) !important;
+    background-color: var(--filament-color-primary) !important;
+    border-color: var(--filament-color-primary) !important;
+}
+
+.fc .fc-event.appointment-status-info {
+    --fc-event-color: var(--filament-color-info) !important;
+    background-color: var(--filament-color-info) !important;
+    border-color: var(--filament-color-info) !important;
+}
+
+.fc .fc-event.appointment-status-warning {
+    --fc-event-color: var(--filament-color-warning) !important;
+    background-color: var(--filament-color-warning) !important;
+    border-color: var(--filament-color-warning) !important;
+}
+
+.fc .fc-event.appointment-status-success {
+    --fc-event-color: var(--filament-color-success) !important;
+    background-color: var(--filament-color-success) !important;
+    border-color: var(--filament-color-success) !important;
+}
+
+.fc .fc-event.appointment-status-danger {
+    --fc-event-color: var(--filament-color-danger) !important;
+    background-color: var(--filament-color-danger) !important;
+    border-color: var(--filament-color-danger) !important;
+}
+
+.fc .fc-event.appointment-status-gray {
+    --fc-event-color: var(--filament-color-gray) !important;
+    background-color: var(--filament-color-gray) !important;
+    border-color: var(--filament-color-gray) !important;
+}
+
+/* Event hover: darken background color instead of stripping or resetting it */
+.fc .fc-event:hover,
+.fc .fc-event.fc-monarch-Frw:hover,
+.fc a.fc-event:hover,
+.fc .fc-timegrid-event:hover,
+.fc .fc-daygrid-event:hover,
+.fc .fc-list-event:hover {
+    filter: brightness(0.82) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Neutralize Monarch theme white-wash color-mix hover */
+@supports (color: color-mix(in lab, red, red)) {
+    .fc .fc-event:hover,
+    .fc .fc-event.fc-monarch-Frw:hover,
+    .fc a.fc-event:hover {
+        background-color: color-mix(in srgb, var(--fc-event-color, var(--filament-color-primary)) 80%, #000000) !important;
+        border-color: color-mix(in srgb, var(--fc-event-color, var(--filament-color-primary)) 80%, #000000) !important;
+    }
+}
+
+.fc .fc-event.appointment-status-primary:hover,
+.fc a.fc-event.appointment-status-primary:hover {
+    background-color: color-mix(in srgb, var(--filament-color-primary) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-primary) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-info:hover,
+.fc a.fc-event.appointment-status-info:hover {
+    background-color: color-mix(in srgb, var(--filament-color-info) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-info) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-warning:hover,
+.fc a.fc-event.appointment-status-warning:hover {
+    background-color: color-mix(in srgb, var(--filament-color-warning) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-warning) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-success:hover,
+.fc a.fc-event.appointment-status-success:hover {
+    background-color: color-mix(in srgb, var(--filament-color-success) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-success) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-danger:hover,
+.fc a.fc-event.appointment-status-danger:hover {
+    background-color: color-mix(in srgb, var(--filament-color-danger) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-danger) 80%, #000000) !important;
+}
+
+.fc .fc-event.appointment-status-gray:hover,
+.fc a.fc-event.appointment-status-gray:hover {
+    background-color: color-mix(in srgb, var(--filament-color-gray) 80%, #000000) !important;
+    border-color: color-mix(in srgb, var(--filament-color-gray) 80%, #000000) !important;
+}
+
+/* Ensure inner text and containers stay solid white on hover */
+.fc .fc-event:hover .fc-event-main,
+.fc .fc-event:hover .fc-event-title,
+.fc .fc-event:hover .fc-event-time,
+.fc .fc-event:hover span,
+.fc .fc-event:hover div {
+    color: #ffffff !important;
 }
 
 /* Calendar Toolbar, Filter and Container Layout */
@@ -115,4 +287,132 @@
     border-radius: 9999px;
     flex-shrink: 0;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Reschedule Confirmation Modal Details */
+.reschedule-modal-content {
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.reschedule-modal-patient-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.875rem;
+    margin-bottom: 1.5rem !important;
+    border-bottom: 1px solid var(--gray-200, #e5e7eb);
+}
+
+.dark .reschedule-modal-patient-row {
+    border-bottom-color: var(--gray-800, #1f2937);
+}
+
+.reschedule-modal-patient-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--gray-500, #6b7280);
+}
+
+.dark .reschedule-modal-patient-label {
+    color: var(--gray-400, #9ca3af);
+}
+
+.reschedule-modal-patient-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-900, #111827);
+}
+
+.dark .reschedule-modal-patient-name {
+    color: #ffffff;
+}
+
+.reschedule-modal-card {
+    border-radius: 0.75rem;
+    border: 1px solid var(--gray-200, #e5e7eb);
+    background-color: var(--gray-50, #f9fafb);
+    padding: 1.125rem;
+}
+
+.dark .reschedule-modal-card {
+    border-color: var(--gray-800, #1f2937);
+    background-color: var(--gray-950, #030712);
+}
+
+.reschedule-modal-date-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+    color: var(--gray-500, #6b7280);
+}
+
+.reschedule-modal-date-label-new {
+    color: var(--primary-600, #0891b2);
+}
+
+.dark .reschedule-modal-date-label-new {
+    color: var(--primary-400, #22d3ee);
+}
+
+.reschedule-modal-date-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.reschedule-modal-date-value-new {
+    font-weight: 700;
+    color: var(--primary-700, #0e7490);
+}
+
+.dark .reschedule-modal-date-value-new {
+    color: var(--primary-300, #67e8f9);
+}
+
+.reschedule-modal-icon {
+    display: inline-block;
+    width: 1rem !important;
+    height: 1rem !important;
+    min-width: 1rem !important;
+    min-height: 1rem !important;
+    max-width: 1rem !important;
+    max-height: 1rem !important;
+    flex-shrink: 0;
+}
+
+.reschedule-modal-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    color: var(--primary-600, #0891b2);
+}
+
+.dark .reschedule-modal-divider {
+    color: var(--primary-400, #22d3ee);
+}
+
+.reschedule-modal-divider-line {
+    height: 1px;
+    flex: 1;
+    background-color: var(--gray-200, #e5e7eb);
+}
+
+.dark .reschedule-modal-divider-line {
+    background-color: var(--gray-800, #1f2937);
+}
+
+.reschedule-modal-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 1.5rem !important;
+    padding-top: 0.5rem;
+    width: 100%;
 }

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Enums\AppointmentStatus;
-use App\Enums\DentalSpecialty;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\Cubicle;
@@ -37,7 +36,6 @@ class AppointmentFactory extends Factory
             'service_id' => fn (array $attributes): int => Service::factory()->create([
                 'user_id' => $attributes['dentist_id'],
             ])->id,
-            'specialty' => DentalSpecialty::General,
             'is_custom_reason' => false,
             'custom_reason' => null,
             'starts_at' => Carbon::parse('2026-11-02 09:00:00'),

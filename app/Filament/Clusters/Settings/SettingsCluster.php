@@ -12,7 +12,7 @@ class SettingsCluster extends Cluster
 {
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
 
-    protected static ?int $navigationSort = 90;
+    protected static ?int $navigationSort = 1;
 
     public static function canAccess(): bool
     {

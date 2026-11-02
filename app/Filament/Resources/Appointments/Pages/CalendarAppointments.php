@@ -28,7 +28,7 @@ class CalendarAppointments extends Page
                 ->label(__('List view'))
                 ->icon(Heroicon::OutlinedQueueList)
                 ->color('gray')
-                ->url(AppointmentResource::getUrl('index')),
+                ->url(AppointmentResource::getUrl('list')),
             Action::make('create')
                 ->label(__('New appointment'))
                 ->icon(Heroicon::OutlinedPlus)

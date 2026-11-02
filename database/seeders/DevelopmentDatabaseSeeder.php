@@ -2,8 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Appointments\CreateAppointmentAction;
+use App\Actions\Appointments\UpdateAppointmentAction;
 use App\Actions\Services\CreateDefaultServicesForUserAction;
 use App\Actions\Tenants\CreateTenantAction;
+use App\Data\Appointments\CreateAppointmentData;
 use App\Data\Tenants\CreateTenantData;
 use App\Enums\AppointmentStatus;
 use App\Enums\CommissionStatus;
@@ -445,65 +448,63 @@ class DevelopmentDatabaseSeeder extends Seeder
             $nextMonday = Carbon::now()->next(Carbon::MONDAY);
 
             if ($mainCubicle1) {
-                Appointment::query()->create([
-                    'branch_id' => $mainBranch->id,
-                    'patient_id' => $createdPatients[0]->id,
-                    'dentist_id' => $drRamirez->id,
-                    'cubicle_id' => $mainCubicle1->id,
-                    'service_id' => $ramirezCreatedServices[0]->id,
-                    'specialty' => DentalSpecialty::General,
-                    'is_custom_reason' => false,
-                    'starts_at' => $nextMonday->copy()->setTime(9, 0),
-                    'duration_minutes' => 30,
-                    'status' => AppointmentStatus::Confirmed,
-                    'observations' => 'Paciente solicita revisión periódica junto con profilaxis.',
-                ]);
+                $apt1 = app(CreateAppointmentAction::class)->handle(
+                    CreateAppointmentData::fromArray([
+                        'branch_id' => $mainBranch->id,
+                        'patient_id' => $createdPatients[0]->id,
+                        'dentist_id' => $drRamirez->id,
+                        'cubicle_id' => $mainCubicle1->id,
+                        'service_id' => $ramirezCreatedServices[0]->id,
+                        'starts_at' => $nextMonday->copy()->setTime(9, 0),
+                        'duration_minutes' => 30,
+                        'observations' => 'Paciente solicita revisión periódica junto con profilaxis.',
+                    ])
+                );
+                app(UpdateAppointmentAction::class)->handle($apt1, ['status' => AppointmentStatus::Confirmed]);
 
-                Appointment::query()->create([
-                    'branch_id' => $mainBranch->id,
-                    'patient_id' => $createdPatients[1]->id,
-                    'dentist_id' => $drRamirez->id,
-                    'cubicle_id' => $mainCubicle1->id,
-                    'service_id' => null,
-                    'specialty' => DentalSpecialty::General,
-                    'is_custom_reason' => true,
-                    'custom_reason' => 'Evaluación por sensibilidad dental aguda',
-                    'starts_at' => $nextMonday->copy()->setTime(10, 0),
-                    'duration_minutes' => 30,
-                    'status' => AppointmentStatus::Scheduled,
-                    'observations' => 'Refiere molestia al frío en cuadrante inferior izquierdo.',
-                ]);
+                app(CreateAppointmentAction::class)->handle(
+                    CreateAppointmentData::fromArray([
+                        'branch_id' => $mainBranch->id,
+                        'patient_id' => $createdPatients[1]->id,
+                        'dentist_id' => $drRamirez->id,
+                        'cubicle_id' => $mainCubicle1->id,
+                        'service_id' => null,
+                        'custom_reason' => 'Evaluación por sensibilidad dental aguda',
+                        'starts_at' => $nextMonday->copy()->setTime(10, 0),
+                        'duration_minutes' => 30,
+                        'observations' => 'Refiere molestia al frío en cuadrante inferior izquierdo.',
+                    ])
+                );
             }
 
             if ($mainCubicle2) {
-                Appointment::query()->create([
-                    'branch_id' => $mainBranch->id,
-                    'patient_id' => $createdPatients[2]->id,
-                    'dentist_id' => $drRamirez->id,
-                    'cubicle_id' => $mainCubicle2->id,
-                    'service_id' => $ramirezCreatedServices[2]->id,
-                    'specialty' => DentalSpecialty::Aesthetics,
-                    'is_custom_reason' => false,
-                    'starts_at' => $nextMonday->copy()->setTime(10, 30),
-                    'duration_minutes' => 60,
-                    'status' => AppointmentStatus::Scheduled,
-                ]);
+                app(CreateAppointmentAction::class)->handle(
+                    CreateAppointmentData::fromArray([
+                        'branch_id' => $mainBranch->id,
+                        'patient_id' => $createdPatients[2]->id,
+                        'dentist_id' => $drRamirez->id,
+                        'cubicle_id' => $mainCubicle2->id,
+                        'service_id' => $ramirezCreatedServices[2]->id,
+                        'starts_at' => $nextMonday->copy()->setTime(10, 30),
+                        'duration_minutes' => 60,
+                    ])
+                );
             }
 
             if ($piantiniCubicle1) {
-                Appointment::query()->create([
-                    'branch_id' => $piantiniBranch->id,
-                    'patient_id' => $createdPatients[3]->id,
-                    'dentist_id' => $draMorales->id,
-                    'cubicle_id' => $piantiniCubicle1->id,
-                    'service_id' => null,
-                    'specialty' => DentalSpecialty::General,
-                    'is_custom_reason' => true,
-                    'custom_reason' => 'Consulta inicial de diagnóstico integral',
-                    'starts_at' => $nextMonday->copy()->setTime(14, 0),
-                    'duration_minutes' => 45,
-                    'status' => AppointmentStatus::Confirmed,
-                ]);
+                $apt4 = app(CreateAppointmentAction::class)->handle(
+                    CreateAppointmentData::fromArray([
+                        'branch_id' => $piantiniBranch->id,
+                        'patient_id' => $createdPatients[3]->id,
+                        'dentist_id' => $draMorales->id,
+                        'cubicle_id' => $piantiniCubicle1->id,
+                        'service_id' => null,
+                        'custom_reason' => 'Consulta inicial de diagnóstico integral',
+                        'starts_at' => $nextMonday->copy()->setTime(14, 0),
+                        'duration_minutes' => 45,
+                    ])
+                );
+                app(UpdateAppointmentAction::class)->handle($apt4, ['status' => AppointmentStatus::Confirmed]);
             }
         }
 

@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Carbon;
 
 #[Fillable([
     'branch_id',
@@ -18,7 +17,6 @@ use Illuminate\Support\Carbon;
     'dentist_id',
     'cubicle_id',
     'service_id',
-    'specialty',
     'is_custom_reason',
     'custom_reason',
     'starts_at',
@@ -31,16 +29,6 @@ class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
     use HasFactory, SoftDeletes;
-
-    protected static function booted(): void
-    {
-        static::saving(function (Appointment $appointment): void {
-            if ($appointment->starts_at) {
-                $duration = max(1, (int) ($appointment->duration_minutes ?: 30));
-                $appointment->ends_at = Carbon::parse($appointment->starts_at)->copy()->addMinutes($duration);
-            }
-        });
-    }
 
     /**
      * @return BelongsTo<Branch, $this>
@@ -89,6 +77,11 @@ class Appointment extends Model
             : (string) ($this->service?->name ?? $this->custom_reason ?? '');
     }
 
+    public function getSpecialtyAttribute(): DentalSpecialty
+    {
+        return $this->service?->specialty ?? DentalSpecialty::General;
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -97,7 +90,6 @@ class Appointment extends Model
     protected function casts(): array
     {
         return [
-            'specialty' => DentalSpecialty::class,
             'is_custom_reason' => 'boolean',
             'starts_at' => 'datetime',
             'duration_minutes' => 'integer',

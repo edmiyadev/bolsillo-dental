@@ -63,21 +63,17 @@ beforeEach(function (): void {
     $this->actingAs($receptionist);
 });
 
-it('can create an appointment with a predefined service and auto-fills duration and specialty', function (): void {
+it('can create an appointment with a predefined service and auto-fills duration', function (): void {
     Livewire::test(CreateAppointment::class)
         ->fillForm([
             'branch_id' => $this->branch->id,
             'patient_id' => $this->patient->id,
             'dentist_id' => $this->dentist->id,
-            'is_custom_reason' => false,
             'service_id' => $this->service->id,
-            'cubicle_id' => $this->cubicle->id,
             'starts_at' => '2026-11-02 10:00:00',
-            'status' => AppointmentStatus::Scheduled->value,
             'observations' => 'Paciente con brackets autoligados',
         ])
         ->assertFormSet([
-            'specialty' => DentalSpecialty::Orthodontics,
             'duration_minutes' => 45,
         ])
         ->call('create')
@@ -90,7 +86,6 @@ it('can create an appointment with a predefined service and auto-fills duration 
         'patient_id' => $this->patient->id,
         'dentist_id' => $this->dentist->id,
         'service_id' => $this->service->id,
-        'specialty' => DentalSpecialty::Orthodontics->value,
         'duration_minutes' => 45,
         'status' => AppointmentStatus::Scheduled->value,
     ]);
@@ -102,13 +97,10 @@ it('can create an appointment with custom reason ("Otros") without a predefined 
             'branch_id' => $this->branch->id,
             'patient_id' => $this->patient->id,
             'dentist_id' => $this->dentist->id,
-            'is_custom_reason' => true,
+            'service_id' => 'other',
             'custom_reason' => 'Dolor agudo en molar inferior derecho',
-            'specialty' => DentalSpecialty::General->value,
             'duration_minutes' => 30,
-            'cubicle_id' => $this->cubicle->id,
             'starts_at' => '2026-11-02 11:00:00',
-            'status' => AppointmentStatus::Confirmed->value,
         ])
         ->call('create')
         ->assertNotified()
@@ -118,6 +110,32 @@ it('can create an appointment with custom reason ("Otros") without a predefined 
         'is_custom_reason' => true,
         'service_id' => null,
         'custom_reason' => 'Dolor agudo en molar inferior derecho',
+        'status' => AppointmentStatus::Scheduled->value,
+    ]);
+});
+
+it('sets is_custom_reason to true and service_id to null when selecting "other" service option', function (): void {
+    Livewire::test(CreateAppointment::class)
+        ->fillForm([
+            'branch_id' => $this->branch->id,
+            'patient_id' => $this->patient->id,
+            'dentist_id' => $this->dentist->id,
+            'service_id' => 'other',
+            'custom_reason' => 'Extracción de emergencia',
+            'duration_minutes' => 30,
+            'starts_at' => '2026-11-02 12:00:00',
+        ])
+        ->call('create')
+        ->assertNotified()
+        ->assertHasNoFormErrors();
+
+    assertDatabaseHas(Appointment::class, [
+        'is_custom_reason' => true,
+        'service_id' => null,
+        'custom_reason' => 'Extracción de emergencia',
+        'status' => AppointmentStatus::Scheduled->value,
+    ]);
+});
     ]);
 });
 
@@ -127,7 +145,6 @@ it('prevents creating an overlapping appointment on the form', function (): void
         'patient_id' => $this->patient->id,
         'dentist_id' => $this->dentist->id,
         'cubicle_id' => $this->cubicle->id,
-        'specialty' => DentalSpecialty::General,
         'starts_at' => '2026-11-02 10:00:00',
         'duration_minutes' => 60,
         'status' => AppointmentStatus::Scheduled,
@@ -138,13 +155,10 @@ it('prevents creating an overlapping appointment on the form', function (): void
             'branch_id' => $this->branch->id,
             'patient_id' => $this->patient->id,
             'dentist_id' => $this->dentist->id,
-            'is_custom_reason' => true,
+            'service_id' => 'other',
             'custom_reason' => 'Consulta de urgencia',
-            'specialty' => DentalSpecialty::General->value,
             'duration_minutes' => 30,
-            'cubicle_id' => $this->cubicle->id,
             'starts_at' => '2026-11-02 10:15:00',
-            'status' => AppointmentStatus::Scheduled->value,
         ])
         ->call('create')
         ->assertHasFormErrors(['starts_at']);
@@ -158,7 +172,6 @@ it('can edit an existing appointment without self-overlap validation errors', fu
         'cubicle_id' => $this->cubicle->id,
         'service_id' => $this->service->id,
         'is_custom_reason' => false,
-        'specialty' => DentalSpecialty::Orthodontics,
         'starts_at' => '2026-11-02 10:00:00',
         'duration_minutes' => 45,
         'status' => AppointmentStatus::Scheduled,
@@ -179,4 +192,147 @@ it('can edit an existing appointment without self-overlap validation errors', fu
         'status' => AppointmentStatus::Confirmed->value,
         'observations' => 'Paciente confirmó asistencia por teléfono',
     ]);
+});
+
+it('clears dentist_id if selected dentist does not support the newly chosen service specialty', function (): void {
+    $generalDentist = User::factory()->create([
+        'name' => 'Dr. General Solo',
+        'specialties' => [DentalSpecialty::General->value],
+    ]);
+    $generalDentist->assignRole(RoleEnum::Dentist->value);
+    $generalDentist->branchSchedules()->create([
+        'branch_id' => $this->branch->id,
+        'schedule' => DayOfWeek::defaultSchedule(),
+        'is_active' => true,
+    ]);
+
+    Livewire::test(CreateAppointment::class)
+        ->fillForm([
+            'branch_id' => $this->branch->id,
+            'dentist_id' => $generalDentist->id,
+        ])
+        ->set('data.service_id', $this->service->id)
+        ->assertFormSet([
+            'dentist_id' => null,
+        ]);
+});
+
+it('rejects saving appointment if dentist does not support the required service specialty', function (): void {
+    $generalDentist = User::factory()->create([
+        'name' => 'Dr. General Incompatible',
+        'specialties' => [DentalSpecialty::General->value],
+    ]);
+    $generalDentist->assignRole(RoleEnum::Dentist->value);
+    $generalDentist->branchSchedules()->create([
+        'branch_id' => $this->branch->id,
+        'schedule' => DayOfWeek::defaultSchedule(),
+        'is_active' => true,
+    ]);
+
+    Livewire::test(CreateAppointment::class)
+        ->fillForm([
+            'branch_id' => $this->branch->id,
+            'patient_id' => $this->patient->id,
+            'service_id' => $this->service->id,
+            'dentist_id' => $generalDentist->id,
+            'starts_at' => '2026-11-02 14:00:00',
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['dentist_id']);
+});
+
+it('allows saving appointment when dentist supports the required service specialty', function (): void {
+    Livewire::test(CreateAppointment::class)
+        ->fillForm([
+            'branch_id' => $this->branch->id,
+            'patient_id' => $this->patient->id,
+            'service_id' => $this->service->id,
+            'dentist_id' => $this->dentist->id,
+            'starts_at' => '2026-11-02 15:00:00',
+        ])
+        ->call('create')
+        ->assertNotified()
+        ->assertHasNoFormErrors();
+
+    assertDatabaseHas(Appointment::class, [
+        'dentist_id' => $this->dentist->id,
+        'service_id' => $this->service->id,
+        'status' => AppointmentStatus::Scheduled->value,
+    ]);
+});
+
+it('automatically assigns an available cubicle when creating an appointment without cubicle_id', function (): void {
+    Livewire::test(CreateAppointment::class)
+        ->fillForm([
+            'branch_id' => $this->branch->id,
+            'patient_id' => $this->patient->id,
+            'service_id' => $this->service->id,
+            'dentist_id' => $this->dentist->id,
+            'starts_at' => '2026-11-02 16:00:00',
+        ])
+        ->call('create')
+        ->assertNotified()
+        ->assertHasNoFormErrors();
+
+    assertDatabaseHas(Appointment::class, [
+        'branch_id' => $this->branch->id,
+        'dentist_id' => $this->dentist->id,
+        'service_id' => $this->service->id,
+        'cubicle_id' => $this->cubicle->id,
+        'status' => AppointmentStatus::Scheduled->value,
+    ]);
+});
+
+it('fails validation on starts_at when no cubicle is available for the specialty in the requested time slot', function (): void {
+    // Occupy the only cubicle in this branch for that time slot
+    Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'service_id' => $this->service->id,
+        'starts_at' => '2026-11-02 17:00:00',
+        'duration_minutes' => 45,
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    // Create another dentist for the same branch who is available
+    $secondDentist = User::factory()->create([
+        'name' => 'Dra. Segunda Especialista',
+        'specialties' => [DentalSpecialty::General->value, DentalSpecialty::Orthodontics->value],
+    ]);
+    $secondDentist->assignRole(RoleEnum::Dentist->value);
+    $secondDentist->branchSchedules()->create([
+        'branch_id' => $this->branch->id,
+        'schedule' => DayOfWeek::defaultSchedule(),
+        'is_active' => true,
+    ]);
+
+    Livewire::test(CreateAppointment::class)
+        ->fillForm([
+            'branch_id' => $this->branch->id,
+            'patient_id' => $this->patient->id,
+            'service_id' => $this->service->id,
+            'dentist_id' => $secondDentist->id,
+            'starts_at' => '2026-11-02 17:15:00',
+        ])
+        ->call('create')
+        ->assertHasFormErrors(['starts_at']);
+});
+
+it('hides status field on creation and shows it on edit', function (): void {
+    Livewire::test(CreateAppointment::class)
+        ->assertFormFieldIsHidden('status');
+
+    $appointment = Appointment::factory()->create([
+        'branch_id' => $this->branch->id,
+        'patient_id' => $this->patient->id,
+        'dentist_id' => $this->dentist->id,
+        'cubicle_id' => $this->cubicle->id,
+        'service_id' => $this->service->id,
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    Livewire::test(EditAppointment::class, ['record' => $appointment->getRouteKey()])
+        ->assertFormFieldIsVisible('status');
 });
