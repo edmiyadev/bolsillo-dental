@@ -4,17 +4,19 @@ namespace App\Filament\Resources\Patients\Schemas;
 
 use App\Enums\Gender;
 use App\Enums\IdentificationType;
+use App\Models\PatientMedicalHistory;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class PatientForm
@@ -94,21 +96,20 @@ class PatientForm
                                 Group::make()
                                     ->relationship('medicalHistory')
                                     ->schema([
-                                        Section::make()
+                                        Section::make(__('Critical alerts'))
+                                            ->description(__('High-risk medical conditions and allergies requiring immediate attention.'))
+                                            ->icon('heroicon-o-exclamation-triangle')
+                                            ->schema(static::buildQuestionComponents('critical_alerts', PatientMedicalHistory::criticalAlertQuestions())),
+                                        Section::make(__('Anamnesis'))
+                                            ->description(__('General medical background, habits, and systemic health questionnaire.'))
+                                            ->icon('heroicon-o-clipboard-document-list')
+                                            ->schema(static::buildQuestionComponents('anamnesis_data', PatientMedicalHistory::anamnesisQuestions())),
+                                        Section::make(__('General observations'))
+                                            ->icon('heroicon-o-document-text')
                                             ->schema([
-                                                TagsInput::make('critical_alerts')
-                                                    ->label(__('Critical alerts'))
-                                                    ->placeholder(__('Add allergy or medical condition...'))
-                                                    ->helperText(__('E.g.: Penicillin allergy, Hypertension, Diabetic'))
-                                                    ->columnSpanFull(),
-                                                KeyValue::make('anamnesis_data')
-                                                    ->label(__('Anamnesis data'))
-                                                    ->keyLabel(__('Condition / Question'))
-                                                    ->valueLabel(__('Detail'))
-                                                    ->reorderable()
-                                                    ->columnSpanFull(),
                                                 Textarea::make('general_observations')
                                                     ->label(__('General observations'))
+                                                    ->placeholder(__('Additional clinical notes, patient warnings or relevant observations...'))
                                                     ->rows(4)
                                                     ->columnSpanFull(),
                                             ]),
@@ -116,5 +117,36 @@ class PatientForm
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * Build predefined question toggle and conditional detail components.
+     *
+     * @param  string  $parentField
+     * @param  array<string, array{label: string, short_label: string, placeholder: string}>  $catalog
+     * @return array<\Filament\Schemas\Components\Component>
+     */
+    protected static function buildQuestionComponents(string $parentField, array $catalog): array
+    {
+        $components = [];
+
+        foreach ($catalog as $key => $config) {
+            $components[] = Grid::make(['default' => 1, 'sm' => 12])
+                ->schema([
+                    Toggle::make("{$parentField}.{$key}.value")
+                        ->label($config['label'])
+                        ->live()
+                        ->default(false)
+                        ->columnSpan(['default' => 1, 'sm' => 7]),
+                    TextInput::make("{$parentField}.{$key}.detail")
+                        ->label(__('Detail / Specification'))
+                        ->placeholder($config['placeholder'])
+                        ->visible(fn (Get $get): bool => (bool) $get("{$parentField}.{$key}.value"))
+                        ->maxLength(255)
+                        ->columnSpan(['default' => 1, 'sm' => 5]),
+                ]);
+        }
+
+        return $components;
     }
 }

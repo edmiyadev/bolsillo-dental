@@ -458,5 +458,12 @@
     "Detail": "Detalle",
     "Add allergy or medical condition...": "Agregar alergia o condición médica...",
     "No critical alerts registered": "No hay alertas críticas registradas",
-    "No anamnesis data registered": "No hay datos de anamnesis registrados"
+    "No anamnesis data registered": "No hay datos de anamnesis registrados",
+    "High-risk medical conditions and allergies requiring immediate attention.": "Condiciones médicas de alto riesgo y alergias que requieren atención inmediata.",
+    "General medical background, habits, and systemic health questionnaire.": "Antecedentes médicos generales, hábitos y cuestionario de salud sistémica.",
+    "Anamnesis": "Anamnesis",
+    "Detail / Specification": "Detalle / Especificación",
+    "Additional clinical notes, patient warnings or relevant observations...": "Notas clínicas adicionales, advertencias o detalles relevantes sobre el paciente...",
+    "No active critical alerts": "Sin alertas críticas registradas",
+    "No positive anamnesis entries": "Sin antecedentes patológicos registrados"
 }

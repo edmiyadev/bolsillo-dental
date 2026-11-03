@@ -59,8 +59,15 @@ it('can create a patient with demographics and medical history', function () {
             'health_insurance' => 'Humano Seguros',
             'address' => 'Santo Domingo, DN',
             'medicalHistory' => [
-                'critical_alerts' => ['Alergia a la Penicilina', 'Hipertenso'],
-                'anamnesis_data' => ['diabetes' => 'No', 'sangre' => 'O+'],
+                'critical_alerts' => [
+                    'allergies' => ['value' => true, 'detail' => 'Penicilina y AINES'],
+                    'hypertension' => ['value' => true, 'detail' => 'Controlada con Enalapril'],
+                    'diabetes' => ['value' => false],
+                ],
+                'anamnesis_data' => [
+                    'under_medical_treatment' => ['value' => true, 'detail' => 'Control cardiológico semestral'],
+                    'tobacco_use' => ['value' => false],
+                ],
                 'general_observations' => 'Paciente presenta sensibilidad dental leve.',
             ],
         ])
@@ -93,8 +100,10 @@ it('can create a patient with demographics and medical history', function () {
         'general_observations' => 'Paciente presenta sensibilidad dental leve.',
     ]);
 
-    expect($patient->medicalHistory->critical_alerts)->toBe(['Alergia a la Penicilina', 'Hipertenso'])
-        ->and($patient->medicalHistory->anamnesis_data)->toMatchArray(['diabetes' => 'No', 'sangre' => 'O+']);
+    expect($patient->medicalHistory->critical_alerts['allergies'])->toMatchArray(['value' => true, 'detail' => 'Penicilina y AINES'])
+        ->and($patient->medicalHistory->critical_alerts['hypertension'])->toMatchArray(['value' => true, 'detail' => 'Controlada con Enalapril'])
+        ->and($patient->medicalHistory->anamnesis_data['under_medical_treatment'])->toMatchArray(['value' => true, 'detail' => 'Control cardiológico semestral'])
+        ->and($patient->medicalHistory->activeCriticalAlerts())->toHaveCount(2);
 });
 
 it('validates unique identification number when creating and editing a patient', function () {
@@ -131,7 +140,9 @@ it('validates unique identification number when creating and editing a patient',
 
 it('can edit a patient and update their medical history', function () {
     $patient = Patient::factory()->withMedicalHistory([
-        'critical_alerts' => ['Asmático'],
+        'critical_alerts' => [
+            'allergies' => ['value' => true, 'detail' => 'Penicilina'],
+        ],
         'general_observations' => 'Observación inicial',
     ])->create([
         'first_name' => 'Carlos',
@@ -143,7 +154,10 @@ it('can edit a patient and update their medical history', function () {
             'first_name' => 'Carlos Alberto',
             'health_insurance' => 'Senasa',
             'medicalHistory' => [
-                'critical_alerts' => ['Asmático', 'Alergia a látex'],
+                'critical_alerts' => [
+                    'allergies' => ['value' => true, 'detail' => 'Penicilina y látex'],
+                    'hypertension' => ['value' => true, 'detail' => 'Sospecha inicial'],
+                ],
                 'general_observations' => 'Observación actualizada',
             ],
         ])
@@ -157,7 +171,8 @@ it('can edit a patient and update their medical history', function () {
         'health_insurance' => 'Senasa',
     ]);
 
-    expect($patient->fresh()->medicalHistory->critical_alerts)->toBe(['Asmático', 'Alergia a látex'])
+    expect($patient->fresh()->medicalHistory->critical_alerts['allergies'])->toMatchArray(['value' => true, 'detail' => 'Penicilina y látex'])
+        ->and($patient->fresh()->medicalHistory->critical_alerts['hypertension'])->toMatchArray(['value' => true, 'detail' => 'Sospecha inicial'])
         ->and($patient->fresh()->medicalHistory->general_observations)->toBe('Observación actualizada');
 });
 
