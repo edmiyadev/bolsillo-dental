@@ -12,6 +12,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -23,6 +24,9 @@ class PatientsTable
     {
         return $table
             ->columns([
+                ImageColumn::make('photo_url')
+                    ->label(__('Photo'))
+                    ->circular(),
                 TextColumn::make('first_name')
                     ->label(__('First name'))
                     ->searchable()
