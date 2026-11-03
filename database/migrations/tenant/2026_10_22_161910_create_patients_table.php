@@ -19,6 +19,12 @@ return new class extends Migration
             $table->string('identification_number')->unique();
             $table->string('email')->nullable();
             $table->string('phone');
+            $table->string('residential_phone')->nullable();
+            $table->string('work_phone')->nullable();
+            $table->string('health_insurance')->nullable();
+            $table->date('birth_date')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('photo_url')->nullable();
             $table->text('address')->nullable();
             $table->timestamps();
             $table->softDeletes();
