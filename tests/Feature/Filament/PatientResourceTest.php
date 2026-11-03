@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\Gender;
 use App\Enums\IdentificationType;
 use App\Enums\RoleEnum;
 use App\Filament\Resources\Patients\Pages\CreatePatient;
@@ -7,6 +8,7 @@ use App\Filament\Resources\Patients\Pages\EditPatient;
 use App\Filament\Resources\Patients\Pages\ListPatients;
 use App\Filament\Resources\Patients\Pages\ViewPatient;
 use App\Models\Patient;
+use App\Models\PatientMedicalHistory;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
@@ -41,16 +43,26 @@ it('can list and search patients', function () {
         ->assertCanNotSeeTableRecords($patients->skip(1));
 });
 
-it('can create a patient', function () {
+it('can create a patient with demographics and medical history', function () {
     Livewire::test(CreatePatient::class)
         ->fillForm([
             'first_name' => 'Juan',
             'last_name' => 'Pérez',
             'document_type' => IdentificationType::IdentityCard,
             'identification_number' => '00112345678',
+            'gender' => Gender::Male,
+            'birth_date' => '1990-05-15',
             'email' => 'juan@example.com',
             'phone' => '8095551234',
+            'residential_phone' => '8095554321',
+            'work_phone' => '8095559876',
+            'health_insurance' => 'Humano Seguros',
             'address' => 'Santo Domingo, DN',
+            'medicalHistory' => [
+                'critical_alerts' => ['Alergia a la Penicilina', 'Hipertenso'],
+                'anamnesis_data' => ['diabetes' => 'No', 'sangre' => 'O+'],
+                'general_observations' => 'Paciente presenta sensibilidad dental leve.',
+            ],
         ])
         ->call('create')
         ->assertNotified()
@@ -62,10 +74,27 @@ it('can create a patient', function () {
         'last_name' => 'Pérez',
         'document_type' => IdentificationType::IdentityCard->value,
         'identification_number' => '00112345678',
+        'gender' => Gender::Male->value,
         'email' => 'juan@example.com',
         'phone' => '8095551234',
+        'residential_phone' => '8095554321',
+        'work_phone' => '8095559876',
+        'health_insurance' => 'Humano Seguros',
         'address' => 'Santo Domingo, DN',
     ]);
+
+    $patient = Patient::where('identification_number', '00112345678')->firstOrFail();
+
+    expect($patient->birth_date->format('Y-m-d'))->toBe('1990-05-15')
+        ->and($patient->gender)->toBe(Gender::Male);
+
+    assertDatabaseHas(PatientMedicalHistory::class, [
+        'patient_id' => $patient->id,
+        'general_observations' => 'Paciente presenta sensibilidad dental leve.',
+    ]);
+
+    expect($patient->medicalHistory->critical_alerts)->toBe(['Alergia a la Penicilina', 'Hipertenso'])
+        ->and($patient->medicalHistory->anamnesis_data)->toMatchArray(['diabetes' => 'No', 'sangre' => 'O+']);
 });
 
 it('validates unique identification number when creating and editing a patient', function () {
@@ -100,13 +129,53 @@ it('validates unique identification number when creating and editing a patient',
     ]);
 });
 
-it('can view a patient', function () {
-    $patient = Patient::factory()->create();
+it('can edit a patient and update their medical history', function () {
+    $patient = Patient::factory()->withMedicalHistory([
+        'critical_alerts' => ['Asmático'],
+        'general_observations' => 'Observación inicial',
+    ])->create([
+        'first_name' => 'Carlos',
+        'health_insurance' => 'ARS Palic',
+    ]);
+
+    Livewire::test(EditPatient::class, ['record' => $patient->id])
+        ->fillForm([
+            'first_name' => 'Carlos Alberto',
+            'health_insurance' => 'Senasa',
+            'medicalHistory' => [
+                'critical_alerts' => ['Asmático', 'Alergia a látex'],
+                'general_observations' => 'Observación actualizada',
+            ],
+        ])
+        ->call('save')
+        ->assertHasNoFormErrors()
+        ->assertNotified();
+
+    assertDatabaseHas(Patient::class, [
+        'id' => $patient->id,
+        'first_name' => 'Carlos Alberto',
+        'health_insurance' => 'Senasa',
+    ]);
+
+    expect($patient->fresh()->medicalHistory->critical_alerts)->toBe(['Asmático', 'Alergia a látex'])
+        ->and($patient->fresh()->medicalHistory->general_observations)->toBe('Observación actualizada');
+});
+
+it('can view a patient including medical history', function () {
+    $patient = Patient::factory()->withMedicalHistory([
+        'critical_alerts' => ['Alerta crítica de prueba'],
+        'general_observations' => 'Observación clínica para visualización',
+    ])->create([
+        'health_insurance' => 'Universal',
+    ]);
 
     Livewire::test(ViewPatient::class, ['record' => $patient->id])
         ->assertOk()
         ->assertSee($patient->first_name)
-        ->assertSee($patient->identification_number);
+        ->assertSee($patient->identification_number)
+        ->assertSee('Universal')
+        ->assertSee('Alerta crítica de prueba')
+        ->assertSee('Observación clínica para visualización');
 });
 
 it('supports soft delete, restore, and force delete on patients', function () {
