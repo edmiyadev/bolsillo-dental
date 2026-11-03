@@ -178,7 +178,12 @@ it('can edit a patient and update their medical history', function () {
 
 it('can view a patient including medical history', function () {
     $patient = Patient::factory()->withMedicalHistory([
-        'critical_alerts' => ['Alerta crítica de prueba'],
+        'critical_alerts' => [
+            'allergies' => ['value' => true, 'detail' => 'Penicilina'],
+        ],
+        'anamnesis_data' => [
+            'under_medical_treatment' => ['value' => true, 'detail' => 'Tratamiento cardiológico'],
+        ],
         'general_observations' => 'Observación clínica para visualización',
     ])->create([
         'health_insurance' => 'Universal',
@@ -189,7 +194,8 @@ it('can view a patient including medical history', function () {
         ->assertSee($patient->first_name)
         ->assertSee($patient->identification_number)
         ->assertSee('Universal')
-        ->assertSee('Alerta crítica de prueba')
+        ->assertSee('Alergias: Penicilina')
+        ->assertSee('Tratamiento médico actual: Tratamiento cardiológico')
         ->assertSee('Observación clínica para visualización');
 });
 

@@ -465,5 +465,8 @@
     "Detail / Specification": "Detalle / Especificación",
     "Additional clinical notes, patient warnings or relevant observations...": "Notas clínicas adicionales, advertencias o detalles relevantes sobre el paciente...",
     "No active critical alerts": "Sin alertas críticas registradas",
-    "No positive anamnesis entries": "Sin antecedentes patológicos registrados"
+    "No positive anamnesis entries": "Sin antecedentes patológicos registrados",
+    "Active critical alerts": "Alertas críticas activas",
+    "Positive anamnesis records": "Antecedentes médicos registrados",
+    "General medical background and habits questionnaire.": "Antecedentes médicos generales y cuestionario de hábitos."
 }
