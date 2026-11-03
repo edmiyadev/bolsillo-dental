@@ -3,6 +3,7 @@
 use App\Enums\AppointmentStatus;
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Enums\Gender;
 use App\Enums\IdentificationType;
 use App\Filament\Central\Resources\Clients\ClientResource;
 use App\Filament\Central\Resources\Tenants\TenantResource;
@@ -29,6 +30,14 @@ it('translates CommissionStatus enum cases to spanish', function () {
 it('translates IdentificationType enum cases to spanish', function () {
     expect(IdentificationType::IdentityCard->getLabel())->toBe('Cédula')
         ->and(IdentificationType::Passport->getLabel())->toBe('Pasaporte');
+});
+
+it('translates Gender enum cases and patient fields to spanish', function () {
+    expect(Gender::Male->getLabel())->toBe('Masculino')
+        ->and(Gender::Female->getLabel())->toBe('Femenino')
+        ->and(Gender::Other->getLabel())->toBe('Otro')
+        ->and(__('Medical history'))->toBe('Historial médico')
+        ->and(__('Critical alerts'))->toBe('Alertas críticas');
 });
 
 it('translates ServiceResource navigation and model labels to spanish', function () {
