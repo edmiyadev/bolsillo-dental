@@ -76,9 +76,8 @@ class PatientInfolist
                         Tab::make(__('Medical history'))
                             ->icon('heroicon-o-heart')
                             ->schema([
-                                Section::make(__('Critical alerts'))
-                                    ->icon('heroicon-o-exclamation-triangle')
-                                    ->description(__('High-risk medical conditions and allergies requiring immediate attention.'))
+                                Section::make(__('Medical history'))
+                                    ->icon('heroicon-o-clipboard-document-check')
                                     ->schema([
                                         TextEntry::make('critical_alerts_badges')
                                             ->label(__('Active critical alerts'))
@@ -87,11 +86,6 @@ class PatientInfolist
                                             ->color('danger')
                                             ->placeholder(__('No critical alerts registered'))
                                             ->columnSpanFull(),
-                                    ]),
-                                Section::make(__('Anamnesis'))
-                                    ->icon('heroicon-o-clipboard-document-list')
-                                    ->description(__('General medical background and habits questionnaire.'))
-                                    ->schema([
                                         TextEntry::make('anamnesis_badges')
                                             ->label(__('Positive anamnesis records'))
                                             ->state(fn (Patient $record): array => collect($record->medicalHistory?->activeAnamnesis() ?? [])->pluck('summary')->all())
@@ -99,10 +93,6 @@ class PatientInfolist
                                             ->color('info')
                                             ->placeholder(__('No anamnesis data registered'))
                                             ->columnSpanFull(),
-                                    ]),
-                                Section::make(__('General observations'))
-                                    ->icon('heroicon-o-document-text')
-                                    ->schema([
                                         TextEntry::make('medicalHistory.general_observations')
                                             ->label(__('General observations'))
                                             ->placeholder('-')

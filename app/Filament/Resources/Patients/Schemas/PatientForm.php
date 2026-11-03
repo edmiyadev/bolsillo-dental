@@ -12,13 +12,13 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Component;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Support\HtmlString;
 
 class PatientForm
 {
@@ -97,22 +97,18 @@ class PatientForm
                                 Group::make()
                                     ->relationship('medicalHistory')
                                     ->schema([
-                                        Section::make(__('Critical alerts'))
-                                            ->description(__('High-risk medical conditions and allergies requiring immediate attention.'))
-                                            ->icon('heroicon-o-exclamation-triangle')
-                                            ->schema(static::buildQuestionComponents('critical_alerts', PatientMedicalHistory::criticalAlertQuestions())),
-                                        Section::make(__('Anamnesis'))
-                                            ->description(__('General medical background, habits, and systemic health questionnaire.'))
-                                            ->icon('heroicon-o-clipboard-document-list')
-                                            ->schema(static::buildQuestionComponents('anamnesis_data', PatientMedicalHistory::anamnesisQuestions())),
-                                        Section::make(__('General observations'))
-                                            ->icon('heroicon-o-document-text')
+                                        Section::make(__('Medical history'))
+                                            ->description(__('Predefined clinical questions and critical alerts.'))
+                                            ->icon('heroicon-o-clipboard-document-check')
                                             ->schema([
+                                                ...static::buildQuestionComponents('critical_alerts', PatientMedicalHistory::criticalAlertQuestions(), 'danger'),
+                                                ...static::buildQuestionComponents('anamnesis_data', PatientMedicalHistory::anamnesisQuestions(), 'primary'),
                                                 Textarea::make('general_observations')
                                                     ->label(__('General observations'))
                                                     ->placeholder(__('Additional clinical notes, patient warnings or relevant observations...'))
-                                                    ->rows(4)
-                                                    ->columnSpanFull(),
+                                                    ->rows(3)
+                                                    ->columnSpanFull()
+                                                    ->extraAttributes(['class' => 'mt-4']),
                                             ]),
                                     ]),
                             ]),
@@ -126,34 +122,41 @@ class PatientForm
      * @param  array<string, array{label: string, short_label: string, placeholder: string}>  $catalog
      * @return array<Component>
      */
-    protected static function buildQuestionComponents(string $parentField, array $catalog): array
+    protected static function buildQuestionComponents(string $parentField, array $catalog, string $onColor = 'primary'): array
     {
         $components = [];
 
         foreach ($catalog as $key => $config) {
-            $components[] = Grid::make(['default' => 1, 'sm' => 12])
-                ->extraAttributes(['class' => 'items-center py-2 border-b border-gray-100 dark:border-white/5 last:border-b-0'])
-                ->schema([
-                    Toggle::make("{$parentField}.{$key}.value")
-                        ->label($config['label'])
-                        ->live()
-                        ->default(false)
-                        ->columnSpan(['default' => 1, 'sm' => 7]),
-                    TextInput::make("{$parentField}.{$key}.detail")
-                        ->placeholder($config['placeholder'])
-                        ->hiddenLabel()
-                        ->disabled(fn (Get $get): bool => ! (bool) $get("{$parentField}.{$key}.value"))
-                        ->dehydrateStateUsing(fn ($state, Get $get) => (bool) $get("{$parentField}.{$key}.value") ? $state : null)
-                        ->extraFieldWrapperAttributes(fn (Get $get): array => [
-                            'class' => (bool) $get("{$parentField}.{$key}.value")
-                                ? 'transition-opacity duration-200 opacity-100'
-                                : 'hidden sm:block sm:invisible pointer-events-none transition-opacity duration-200 opacity-0',
-                        ])
-                        ->maxLength(255)
-                        ->columnSpan(['default' => 1, 'sm' => 5]),
-                ]);
+            $components[] = Group::make([
+                Toggle::make("{$parentField}.{$key}.value")
+                    ->label($config['label'])
+                    ->live()
+                    ->default(false)
+                    ->onColor($onColor)
+                    ->onIcon(static::getYesIcon())
+                    ->offIcon(static::getNoIcon())
+                    ->columnSpanFull(),
+                TextInput::make("{$parentField}.{$key}.detail")
+                    ->placeholder($config['placeholder'])
+                    ->hiddenLabel()
+                    ->visible(fn (Get $get): bool => (bool) $get("{$parentField}.{$key}.value"))
+                    ->maxLength(255)
+                    ->extraAttributes(['class' => 'ml-12 mt-1 max-w-xl'])
+                    ->columnSpanFull(),
+            ])
+                ->extraAttributes(['class' => 'py-2.5 border-b border-gray-100 dark:border-white/5 last:border-b-0']);
         }
 
         return $components;
+    }
+
+    protected static function getYesIcon(): HtmlString
+    {
+        return new HtmlString('<svg viewBox="0 0 24 24" class="w-full h-full" fill="currentColor"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">SÍ</text></svg>');
+    }
+
+    protected static function getNoIcon(): HtmlString
+    {
+        return new HtmlString('<svg viewBox="0 0 24 24" class="w-full h-full" fill="currentColor"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">NO</text></svg>');
     }
 }
