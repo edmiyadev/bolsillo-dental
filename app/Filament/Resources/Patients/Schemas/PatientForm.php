@@ -11,6 +11,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -122,9 +123,8 @@ class PatientForm
     /**
      * Build predefined question toggle and conditional detail components.
      *
-     * @param  string  $parentField
      * @param  array<string, array{label: string, short_label: string, placeholder: string}>  $catalog
-     * @return array<\Filament\Schemas\Components\Component>
+     * @return array<Component>
      */
     protected static function buildQuestionComponents(string $parentField, array $catalog): array
     {
@@ -132,6 +132,7 @@ class PatientForm
 
         foreach ($catalog as $key => $config) {
             $components[] = Grid::make(['default' => 1, 'sm' => 12])
+                ->extraAttributes(['class' => 'items-center py-2 border-b border-gray-100 dark:border-white/5 last:border-b-0'])
                 ->schema([
                     Toggle::make("{$parentField}.{$key}.value")
                         ->label($config['label'])
@@ -139,9 +140,15 @@ class PatientForm
                         ->default(false)
                         ->columnSpan(['default' => 1, 'sm' => 7]),
                     TextInput::make("{$parentField}.{$key}.detail")
-                        ->label(__('Detail / Specification'))
                         ->placeholder($config['placeholder'])
-                        ->visible(fn (Get $get): bool => (bool) $get("{$parentField}.{$key}.value"))
+                        ->hiddenLabel()
+                        ->disabled(fn (Get $get): bool => ! (bool) $get("{$parentField}.{$key}.value"))
+                        ->dehydrateStateUsing(fn ($state, Get $get) => (bool) $get("{$parentField}.{$key}.value") ? $state : null)
+                        ->extraFieldWrapperAttributes(fn (Get $get): array => [
+                            'class' => (bool) $get("{$parentField}.{$key}.value")
+                                ? 'transition-opacity duration-200 opacity-100'
+                                : 'hidden sm:block sm:invisible pointer-events-none transition-opacity duration-200 opacity-0',
+                        ])
                         ->maxLength(255)
                         ->columnSpan(['default' => 1, 'sm' => 5]),
                 ]);
