@@ -136,8 +136,6 @@ it('sets is_custom_reason to true and service_id to null when selecting "other" 
         'status' => AppointmentStatus::Scheduled->value,
     ]);
 });
-    ]);
-});
 
 it('prevents creating an overlapping appointment on the form', function (): void {
     Appointment::factory()->create([
