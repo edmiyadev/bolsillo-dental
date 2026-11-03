@@ -146,8 +146,7 @@ class AppointmentForm
                 }
             }))
             ->get()
-            ->filter(fn (User $dentist): bool =>
-                (filled($selectedId) && (string) $dentist->id === (string) $selectedId)
+            ->filter(fn (User $dentist): bool => (filled($selectedId) && (string) $dentist->id === (string) $selectedId)
                 || blank($specialty)
                 || $dentist->supportsSpecialty($specialty)
             )

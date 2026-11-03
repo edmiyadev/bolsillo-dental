@@ -15,6 +15,7 @@ class CommissionOverview extends StatsOverviewWidget
     {
         return auth()->user()?->can('view_commission_records') ?? false;
     }
+
     /**
      * @return array<Stat>
      */

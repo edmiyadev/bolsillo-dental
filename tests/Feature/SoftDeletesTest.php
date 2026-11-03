@@ -3,7 +3,6 @@
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
 use App\Enums\CubicleStatus;
-use App\Enums\IdentificationType;
 use App\Models\Branch;
 use App\Models\Clinic;
 use App\Models\CommissionRecord;
@@ -13,7 +12,6 @@ use App\Models\Service;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\assertModelMissing;
 use function Pest\Laravel\assertNotSoftDeleted;
 use function Pest\Laravel\assertSoftDeleted;

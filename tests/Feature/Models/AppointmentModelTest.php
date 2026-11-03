@@ -8,9 +8,6 @@ use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\Clinic;
 use App\Models\Cubicle;
-use App\Models\Patient;
-use App\Models\Service;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

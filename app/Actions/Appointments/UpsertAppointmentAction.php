@@ -26,7 +26,7 @@ class UpsertAppointmentAction
             : $data;
 
         return DB::transaction(function () use ($payload, $appointment): Appointment {
-            $appointment ??= new Appointment();
+            $appointment ??= new Appointment;
 
             if (array_key_exists('branch_id', $payload) && filled($payload['branch_id'])) {
                 $appointment->branch_id = (int) $payload['branch_id'];

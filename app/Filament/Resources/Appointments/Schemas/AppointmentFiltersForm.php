@@ -11,7 +11,7 @@ use Filament\Support\Icons\Heroicon;
 
 class AppointmentFiltersForm
 {
-    public static function make (): array
+    public static function make(): array
     {
 
         return [

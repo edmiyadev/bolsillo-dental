@@ -19,7 +19,7 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\seed;
@@ -239,7 +239,7 @@ it('throws validation exception when no cubicles are available during action exe
         'service_id' => $this->service->id,
         'starts_at' => '2026-11-02 10:15:00',
         'duration_minutes' => 30,
-    ]))->toThrow(\Illuminate\Validation\ValidationException::class);
+    ]))->toThrow(ValidationException::class);
 });
 
 it('always enforces Scheduled status when creating through CreateAppointmentData', function (): void {

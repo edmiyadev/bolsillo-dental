@@ -4,6 +4,7 @@ namespace App\Filament\Clusters\Settings\Resources\Branches\RelationManagers;
 
 use App\Filament\Clusters\Settings\Resources\Cubicles\Schemas\CubicleForm;
 use App\Filament\Clusters\Settings\Resources\Cubicles\Tables\CubiclesTable;
+use App\Models\Cubicle;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -16,7 +17,7 @@ class CubiclesRelationManager extends RelationManager
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
-        return auth()->user()?->can('viewAny', \App\Models\Cubicle::class) ?? false;
+        return auth()->user()?->can('viewAny', Cubicle::class) ?? false;
     }
 
     public static function getTitle(Model $ownerRecord, string $pageClass): string
