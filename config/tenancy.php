@@ -25,7 +25,7 @@ return [
      */
     'central_domains' => array_values(array_filter(array_map(
         'trim',
-        explode(',', (string) env('CENTRAL_DOMAINS', '127.0.0.1,localhost')),
+        explode(',', (string) (env('CENTRAL_DOMAINS') ?: '127.0.0.1,localhost')),
     ))),
 
     /**
@@ -107,7 +107,17 @@ return [
      * Features are classes that provide additional functionality
      * not needed for tenancy to be bootstrapped.
      */
-    'features' => [],
+    'features' => [
+        Stancl\Tenancy\Features\UserImpersonation::class,
+    ],
+
+    /**
+     * Dedicated technical support user settings for tenant impersonation.
+     */
+    'support_user' => [
+        'email' => env('TENANT_SUPPORT_EMAIL') ?: 'soporte@bolsillodental.com',
+        'name' => env('TENANT_SUPPORT_NAME') ?: 'Soporte Bolsillo Dental',
+    ],
 
     /**
      * Should tenancy routes be registered.

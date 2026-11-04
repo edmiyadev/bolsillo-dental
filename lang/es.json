@@ -86,6 +86,8 @@
     "Confirm": "Confirmar",
     "Conflict": "Conflicto",
     "Connect": "Conectar",
+    "Connect as support": "Conectar como soporte",
+    "Connect as Technical Support": "Conectar como Soporte Técnico",
     "Connection Closed Without Response": "Conexión cerrada sin respuesta",
     "Connection Timed Out": "Tiempo de conexión agotado",
     "Contact email": "Correo de contacto",
@@ -219,6 +221,7 @@
     "New :name": "Nuevo :name",
     "New commission record": "Nuevo registro de comisión",
     "No": "No",
+    "No domain assigned to this clinic.": "No hay ningún dominio asignado a esta clínica.",
     "No Content": "Sin contenido",
     "Non-Authoritative Information": "Información no autorizada",
     "Not Acceptable": "Inaceptable",
@@ -472,5 +475,6 @@
     "Clinical alerts summary": "Resumen de alertas clínicas",
     "Full medical questionnaire": "Cuestionario médico completo",
     "Complete record of clinical responses and medical history.": "Registro completo de respuestas clínicas y antecedentes.",
-    "No general observations recorded.": "No hay observaciones generales registradas."
+    "No general observations recorded.": "No hay observaciones generales registradas.",
+    "You are about to start an administrative session on this clinic's panel using the dedicated technical support account. This will not affect or impersonate any clinic staff account.": "Está a punto de iniciar una sesión administrativa en el panel de esta clínica utilizando la cuenta dedicada de soporte técnico. Esto no afectará ni suplantará la cuenta de ningún miembro del personal de la clínica."
 }
