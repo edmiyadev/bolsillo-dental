@@ -9,8 +9,10 @@ use App\Listeners\ResetPermissionCache;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Stancl\JobPipeline\JobPipeline;
+use Stancl\Tenancy\Controllers\TenantAssetsController;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
@@ -100,15 +102,15 @@ class TenancyServiceProvider extends ServiceProvider
         $this->mapRoutes();
         $this->makeTenancyMiddlewareHighestPriority();
 
-        \Stancl\Tenancy\Controllers\TenantAssetsController::$tenancyMiddleware = InitializeTenancyByDomainOrSubdomain::class;
+        TenantAssetsController::$tenancyMiddleware = InitializeTenancyByDomainOrSubdomain::class;
 
         Event::listen(Events\TenancyBootstrapped::class, function (): void {
             config(['filesystems.disks.public.url' => '/tenancy/assets']);
-            \Illuminate\Support\Facades\Storage::forgetDisk('public');
+            Storage::forgetDisk('public');
         });
 
         Event::listen(Events\TenancyEnded::class, function (): void {
-            \Illuminate\Support\Facades\Storage::forgetDisk('public');
+            Storage::forgetDisk('public');
         });
     }
 

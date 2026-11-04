@@ -12,7 +12,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
-use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Enums\VerticalAlignment;
 
