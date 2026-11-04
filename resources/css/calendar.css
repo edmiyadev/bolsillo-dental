@@ -21,6 +21,12 @@
     --fc-monarch-selected-over: var(--primary-700, #0e7490);
     --fc-monarch-selected-down: var(--primary-800, #155e75);
 
+    /* Tertiary (Used by Monarch theme for today badges and accents) */
+    --fc-monarch-tertiary: var(--primary-600, #0891b2);
+    --fc-monarch-tertiary-foreground: #ffffff;
+    --fc-monarch-tertiary-over: var(--primary-700, #0e7490);
+    --fc-monarch-tertiary-down: var(--primary-800, #155e75);
+
     /* Neutral borders and surfaces */
     --fc-monarch-background: transparent;
     --fc-monarch-foreground: var(--gray-900, #111827);
@@ -60,6 +66,12 @@
     --fc-monarch-selected-foreground: var(--primary-950, #083344);
     --fc-monarch-selected-over: var(--primary-400, #67e8f9);
     --fc-monarch-selected-down: var(--primary-300, #a5f3fc);
+
+    /* Tertiary (Used by Monarch theme for today badges and accents in dark mode) */
+    --fc-monarch-tertiary: var(--primary-500, #22d3ee);
+    --fc-monarch-tertiary-foreground: var(--primary-950, #083344);
+    --fc-monarch-tertiary-over: var(--primary-400, #67e8f9);
+    --fc-monarch-tertiary-down: var(--primary-300, #a5f3fc);
 
     /* Neutral borders and surfaces in dark mode */
     --fc-monarch-background: transparent;
@@ -415,4 +427,165 @@
     gap: 1.5rem !important;
     padding-top: 0.5rem;
     width: 100%;
+}
+
+/* ==========================================================================
+   FullCalendar v7 - "Today" (Día Actual) Indicators
+   ========================================================================== */
+
+/* Today Header Pill & Text */
+.fc-day-header-today-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0;
+}
+
+.fc-today-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--fc-monarch-primary, #0891b2);
+    color: #ffffff !important;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.45rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.dark .fc-today-pill {
+    background-color: var(--fc-monarch-primary, #22d3ee);
+    color: var(--fc-monarch-primary-foreground, #083344) !important;
+}
+
+/* Today Column Header Cell */
+.fc th.fc-day-today,
+.fc th[aria-current="date"],
+.fc .fc-col-header-cell.fc-day-today,
+.fc .fc-col-header-cell[aria-current="date"] {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #0891b2) 10%, transparent) !important;
+    border-bottom: 3px solid var(--fc-monarch-primary, #0891b2) !important;
+}
+
+.dark .fc th.fc-day-today,
+.dark .fc th[aria-current="date"],
+.dark .fc .fc-col-header-cell.fc-day-today,
+.dark .fc .fc-col-header-cell[aria-current="date"] {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #22d3ee) 14%, transparent) !important;
+    border-bottom: 3px solid var(--fc-monarch-primary, #22d3ee) !important;
+}
+
+.fc th.fc-day-today .fc-col-header-cell-cushion,
+.fc th[aria-current="date"] .fc-col-header-cell-cushion,
+.fc .fc-col-header-cell.fc-day-today a,
+.fc .fc-col-header-cell[aria-current="date"] a {
+    color: var(--fc-monarch-primary, #0891b2) !important;
+    font-weight: 800 !important;
+}
+
+.dark .fc th.fc-day-today .fc-col-header-cell-cushion,
+.dark .fc th[aria-current="date"] .fc-col-header-cell-cushion,
+.dark .fc .fc-col-header-cell.fc-day-today a,
+.dark .fc .fc-col-header-cell[aria-current="date"] a {
+    color: var(--fc-monarch-primary, #22d3ee) !important;
+}
+
+/* Today Column Body in Week and Day Views */
+.fc .fc-timegrid-col.fc-day-today,
+.fc .fc-timegrid-col[aria-current="date"] {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #0891b2) 5%, transparent) !important;
+}
+
+.dark .fc .fc-timegrid-col.fc-day-today,
+.dark .fc .fc-timegrid-col[aria-current="date"] {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #22d3ee) 7%, transparent) !important;
+}
+
+/* Month View (dayGridMonth) Today Cell Highlight */
+.fc [role="cell"][aria-current="date"],
+.fc [role="gridcell"][aria-current="date"],
+.fc td.fc-day-today,
+.fc .fc-daygrid-day.fc-day-today,
+.fc .fc-daygrid-day[aria-current="date"] {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #0891b2) 5%, transparent) !important;
+}
+
+.dark .fc [role="cell"][aria-current="date"],
+.dark .fc [role="gridcell"][aria-current="date"],
+.dark .fc td.fc-day-today,
+.dark .fc .fc-daygrid-day.fc-day-today,
+.dark .fc .fc-daygrid-day[aria-current="date"] {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #22d3ee) 7%, transparent) !important;
+}
+
+/* Month View Today Number Circle Badge (Google Calendar Style) */
+.fc-month-today-number,
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number,
+.fc .fc-daygrid-day[aria-current="date"] .fc-daygrid-day-number,
+.fc [aria-current="date"] [class*="dayCellTopInner"] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: var(--fc-monarch-primary, #0891b2) !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+    width: 1.75rem !important;
+    min-width: 1.75rem !important;
+    height: 1.75rem !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    line-height: 1 !important;
+    margin: 0.125rem !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.dark .fc-month-today-number,
+.dark .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number,
+.dark .fc .fc-daygrid-day[aria-current="date"] .fc-daygrid-day-number,
+.dark .fc [aria-current="date"] [class*="dayCellTopInner"] {
+    background-color: var(--fc-monarch-primary, #22d3ee) !important;
+    color: var(--fc-monarch-primary-foreground, #083344) !important;
+}
+
+/* List View (listWeek) Today Header */
+.fc .fc-list-day.fc-day-today th,
+.fc .fc-list-day[aria-current="date"] th {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #0891b2) 12%, transparent) !important;
+    color: var(--fc-monarch-primary, #0891b2) !important;
+    font-weight: 700 !important;
+}
+
+.dark .fc .fc-list-day.fc-day-today th,
+.dark .fc .fc-list-day[aria-current="date"] th {
+    background-color: color-mix(in srgb, var(--fc-monarch-primary, #22d3ee) 15%, transparent) !important;
+    color: var(--fc-monarch-primary, #22d3ee) !important;
+}
+
+/* Prominent Now-Indicator Line and Arrow */
+.fc .fc-timegrid-now-indicator-line {
+    border-color: var(--fc-monarch-primary, #0891b2) !important;
+    border-width: 2px !important;
+    z-index: 10 !important;
+}
+
+.dark .fc .fc-timegrid-now-indicator-line {
+    border-color: var(--fc-monarch-primary, #22d3ee) !important;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+    border-color: var(--fc-monarch-primary, #0891b2) !important;
+    border-top-color: transparent !important;
+    border-bottom-color: transparent !important;
+    z-index: 11 !important;
+}
+
+.dark .fc .fc-timegrid-now-indicator-arrow {
+    border-color: var(--fc-monarch-primary, #22d3ee) !important;
+    border-top-color: transparent !important;
+    border-bottom-color: transparent !important;
 }

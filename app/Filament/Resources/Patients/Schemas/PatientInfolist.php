@@ -48,7 +48,6 @@ class PatientInfolist
                                                 ->state(fn (Patient $record): string => "{$record->first_name} {$record->last_name}"),
                                         ])
                                             ->verticalAlignment(VerticalAlignment::Center)
-                                            ->alignment(Alignment::Center)
                                             ->columnSpanFull(),
                                         TextEntry::make('document_type')
                                             ->label(__('Document type'))

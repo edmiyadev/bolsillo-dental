@@ -120,6 +120,29 @@ const createAppointmentCalendarComponent = ({
                 center: 'title',
                 right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
             },
+            dayHeaderClass: (arg) => (arg.isToday ? 'fc-day-today' : ''),
+            dayHeaderClassNames: (arg) => (arg.isToday ? ['fc-day-today'] : []),
+            dayCellClass: (arg) => (arg.isToday ? 'fc-day-today' : ''),
+            dayCellClassNames: (arg) => (arg.isToday ? ['fc-day-today'] : []),
+            dayHeaderContent: (arg) => {
+                if (arg.isToday) {
+                    return {
+                        html: `<div class="fc-day-header-today-container"><span class="fc-day-header-text">${arg.text}</span><span class="fc-today-pill">HOY</span></div>`,
+                    };
+                }
+
+                return arg.text;
+            },
+            dayCellTopContent: (arg) => {
+                if (arg.isToday) {
+                    const text = arg.text || arg.dayNumberText || '';
+                    return {
+                        html: `<span class="fc-month-today-number">${text}</span>`,
+                    };
+                }
+
+                return arg.text;
+            },
             slotMinTime: '07:00:00',
             slotMaxTime: '20:00:00',
             slotHeaderFormat: {
