@@ -3,12 +3,18 @@
 namespace App\Filament\Resources\Patients\Schemas;
 
 use App\Models\Patient;
+use App\Support\MedicalHistoryCatalog;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Component;
+use Filament\Schemas\Components\Flex;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\TextSize;
+use Filament\Support\Enums\VerticalAlignment;
 
 class PatientInfolist
 {
@@ -25,14 +31,25 @@ class PatientInfolist
                                 Section::make()
                                     ->columns()
                                     ->schema([
-                                        ImageEntry::make('photo_url')
-                                            ->label(__('Profile photo'))
-                                            ->circular()
+                                        Flex::make([
+                                            ImageEntry::make('photo_url')
+                                                ->hiddenLabel()
+                                                ->circular()
+                                                ->disk('public')
+                                                ->visibility('public')
+                                                ->checkFileExistence(false)
+                                                ->grow(false)
+                                                ->defaultImageUrl(fn (Patient $record): string => 'https://ui-avatars.com/api/?name='.urlencode("{$record->first_name} {$record->last_name}").'&color=0284c7&background=e0f2fe'),
+                                            TextEntry::make('full_name')
+                                                ->hiddenLabel()
+                                                ->weight('bold')
+                                                ->size(TextSize::Large)
+                                                ->grow(false)
+                                                ->state(fn (Patient $record): string => "{$record->first_name} {$record->last_name}"),
+                                        ])
+                                            ->verticalAlignment(VerticalAlignment::Center)
+                                            ->alignment(Alignment::Center)
                                             ->columnSpanFull(),
-                                        TextEntry::make('first_name')
-                                            ->label(__('First name')),
-                                        TextEntry::make('last_name')
-                                            ->label(__('Last name')),
                                         TextEntry::make('document_type')
                                             ->label(__('Document type'))
                                             ->badge(),
@@ -76,30 +93,88 @@ class PatientInfolist
                         Tab::make(__('Medical history'))
                             ->icon('heroicon-o-heart')
                             ->schema([
-                                Section::make(__('Medical history'))
+                                Section::make(__('Clinical alerts summary'))
                                     ->icon('heroicon-o-clipboard-document-check')
                                     ->schema([
                                         TextEntry::make('critical_alerts_badges')
                                             ->label(__('Active critical alerts'))
-                                            ->state(fn (Patient $record): array => collect($record->medicalHistory?->activeCriticalAlerts() ?? [])->pluck('summary')->all())
+                                            ->state(fn (Patient $record): array => collect(MedicalHistoryCatalog::activeCriticalAlerts($record->medicalHistory?->medical_data))->pluck('summary')->all())
                                             ->badge()
                                             ->color('danger')
                                             ->placeholder(__('No critical alerts registered'))
                                             ->columnSpanFull(),
                                         TextEntry::make('anamnesis_badges')
                                             ->label(__('Positive anamnesis records'))
-                                            ->state(fn (Patient $record): array => collect($record->medicalHistory?->activeAnamnesis() ?? [])->pluck('summary')->all())
+                                            ->state(fn (Patient $record): array => collect(MedicalHistoryCatalog::activeConditions($record->medicalHistory?->medical_data))->pluck('summary')->all())
                                             ->badge()
                                             ->color('info')
                                             ->placeholder(__('No anamnesis data registered'))
                                             ->columnSpanFull(),
+                                    ]),
+                                Section::make(__('Full medical questionnaire'))
+                                    ->description(__('Complete record of clinical responses and medical history.'))
+                                    ->icon('heroicon-o-document-text')
+                                    ->schema(static::buildDetailedQuestionEntries()),
+                                Section::make(__('General observations'))
+                                    ->icon('heroicon-o-pencil-square')
+                                    ->schema([
                                         TextEntry::make('medicalHistory.general_observations')
-                                            ->label(__('General observations'))
-                                            ->placeholder('-')
+                                            ->hiddenLabel()
+                                            ->placeholder(__('No general observations recorded.'))
                                             ->columnSpanFull(),
                                     ]),
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * Build detailed question infolist entries for the complete medical history.
+     *
+     * @return array<Component>
+     */
+    protected static function buildDetailedQuestionEntries(): array
+    {
+        $catalog = MedicalHistoryCatalog::questions();
+        $entries = [];
+
+        foreach ($catalog as $key => $config) {
+            $isCritical = $config['is_critical'];
+
+            $entries[] = TextEntry::make("medical_data_detail.{$key}")
+                ->label($config['label'])
+                ->inlineLabel()
+                ->state(function (Patient $record) use ($key): string {
+                    $entry = $record->medicalHistory?->medical_data[$key] ?? null;
+                    $isPositive = is_array($entry) ? (bool) ($entry['value'] ?? false) : (bool) $entry;
+                    $detail = is_array($entry) && ! empty($entry['detail']) ? (string) $entry['detail'] : null;
+
+                    if ($isPositive) {
+                        return $detail ? "SÍ ({$detail})" : 'SÍ';
+                    }
+
+                    return 'NO';
+                })
+                ->badge()
+                ->color(function (Patient $record) use ($key, $isCritical): string {
+                    $entry = $record->medicalHistory?->medical_data[$key] ?? null;
+                    $isPositive = is_array($entry) ? (bool) ($entry['value'] ?? false) : (bool) $entry;
+
+                    if (! $isPositive) {
+                        return 'gray';
+                    }
+
+                    return $isCritical ? 'danger' : 'primary';
+                })
+                ->icon(function (Patient $record) use ($key): string {
+                    $entry = $record->medicalHistory?->medical_data[$key] ?? null;
+                    $isPositive = is_array($entry) ? (bool) ($entry['value'] ?? false) : (bool) $entry;
+
+                    return $isPositive ? 'heroicon-m-check-circle' : 'heroicon-m-x-circle';
+                })
+                ->columnSpanFull();
+        }
+
+        return $entries;
     }
 }

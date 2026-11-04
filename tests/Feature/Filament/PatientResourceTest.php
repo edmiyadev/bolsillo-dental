@@ -10,6 +10,7 @@ use App\Filament\Resources\Patients\Pages\ViewPatient;
 use App\Models\Patient;
 use App\Models\PatientMedicalHistory;
 use App\Models\User;
+use App\Support\MedicalHistoryCatalog;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Filament\Actions\DeleteAction;
@@ -59,14 +60,12 @@ it('can create a patient with demographics and medical history', function () {
             'health_insurance' => 'Humano Seguros',
             'address' => 'Santo Domingo, DN',
             'medicalHistory' => [
-                'critical_alerts' => [
-                    'allergies' => ['value' => true, 'detail' => 'Penicilina y AINES'],
-                    'hypertension' => ['value' => true, 'detail' => 'Controlada con Enalapril'],
-                    'diabetes' => ['value' => false],
-                ],
-                'anamnesis_data' => [
-                    'under_medical_treatment' => ['value' => true, 'detail' => 'Control cardiológico semestral'],
-                    'tobacco_use' => ['value' => false],
+                'medical_data' => [
+                    'allergies' => ['value' => true, 'detail' => 'Penicilina y AINES', 'is_critical' => true, 'has_detail' => true],
+                    'hypertension' => ['value' => true, 'detail' => 'Controlada con Enalapril', 'is_critical' => true, 'has_detail' => true],
+                    'diabetes' => ['value' => false, 'is_critical' => true, 'has_detail' => true],
+                    'under_medical_treatment' => ['value' => true, 'detail' => 'Control cardiológico semestral', 'is_critical' => false, 'has_detail' => true],
+                    'tobacco_use' => ['value' => false, 'is_critical' => false, 'has_detail' => true],
                 ],
                 'general_observations' => 'Paciente presenta sensibilidad dental leve.',
             ],
@@ -100,10 +99,10 @@ it('can create a patient with demographics and medical history', function () {
         'general_observations' => 'Paciente presenta sensibilidad dental leve.',
     ]);
 
-    expect($patient->medicalHistory->critical_alerts['allergies'])->toMatchArray(['value' => true, 'detail' => 'Penicilina y AINES'])
-        ->and($patient->medicalHistory->critical_alerts['hypertension'])->toMatchArray(['value' => true, 'detail' => 'Controlada con Enalapril'])
-        ->and($patient->medicalHistory->anamnesis_data['under_medical_treatment'])->toMatchArray(['value' => true, 'detail' => 'Control cardiológico semestral'])
-        ->and($patient->medicalHistory->activeCriticalAlerts())->toHaveCount(2);
+    expect($patient->medicalHistory->medical_data['allergies'])->toMatchArray(['value' => true, 'detail' => 'Penicilina y AINES'])
+        ->and($patient->medicalHistory->medical_data['hypertension'])->toMatchArray(['value' => true, 'detail' => 'Controlada con Enalapril'])
+        ->and($patient->medicalHistory->medical_data['under_medical_treatment'])->toMatchArray(['value' => true, 'detail' => 'Control cardiológico semestral'])
+        ->and(MedicalHistoryCatalog::activeCriticalAlerts($patient->medicalHistory->medical_data))->toHaveCount(2);
 });
 
 it('validates unique identification number when creating and editing a patient', function () {
@@ -140,8 +139,8 @@ it('validates unique identification number when creating and editing a patient',
 
 it('can edit a patient and update their medical history', function () {
     $patient = Patient::factory()->withMedicalHistory([
-        'critical_alerts' => [
-            'allergies' => ['value' => true, 'detail' => 'Penicilina'],
+        'medical_data' => [
+            'allergies' => ['value' => true, 'detail' => 'Penicilina', 'is_critical' => true, 'has_detail' => true],
         ],
         'general_observations' => 'Observación inicial',
     ])->create([
@@ -154,9 +153,9 @@ it('can edit a patient and update their medical history', function () {
             'first_name' => 'Carlos Alberto',
             'health_insurance' => 'Senasa',
             'medicalHistory' => [
-                'critical_alerts' => [
-                    'allergies' => ['value' => true, 'detail' => 'Penicilina y látex'],
-                    'hypertension' => ['value' => true, 'detail' => 'Sospecha inicial'],
+                'medical_data' => [
+                    'allergies' => ['value' => true, 'detail' => 'Penicilina y látex', 'is_critical' => true, 'has_detail' => true],
+                    'hypertension' => ['value' => true, 'detail' => 'Sospecha inicial', 'is_critical' => true, 'has_detail' => true],
                 ],
                 'general_observations' => 'Observación actualizada',
             ],
@@ -171,18 +170,16 @@ it('can edit a patient and update their medical history', function () {
         'health_insurance' => 'Senasa',
     ]);
 
-    expect($patient->fresh()->medicalHistory->critical_alerts['allergies'])->toMatchArray(['value' => true, 'detail' => 'Penicilina y látex'])
-        ->and($patient->fresh()->medicalHistory->critical_alerts['hypertension'])->toMatchArray(['value' => true, 'detail' => 'Sospecha inicial'])
+    expect($patient->fresh()->medicalHistory->medical_data['allergies'])->toMatchArray(['value' => true, 'detail' => 'Penicilina y látex'])
+        ->and($patient->fresh()->medicalHistory->medical_data['hypertension'])->toMatchArray(['value' => true, 'detail' => 'Sospecha inicial'])
         ->and($patient->fresh()->medicalHistory->general_observations)->toBe('Observación actualizada');
 });
 
 it('can view a patient including medical history', function () {
     $patient = Patient::factory()->withMedicalHistory([
-        'critical_alerts' => [
-            'allergies' => ['value' => true, 'detail' => 'Penicilina'],
-        ],
-        'anamnesis_data' => [
-            'under_medical_treatment' => ['value' => true, 'detail' => 'Tratamiento cardiológico'],
+        'medical_data' => [
+            'allergies' => ['value' => true, 'detail' => 'Penicilina', 'is_critical' => true, 'has_detail' => true],
+            'under_medical_treatment' => ['value' => true, 'detail' => 'Tratamiento cardiológico', 'is_critical' => false, 'has_detail' => true],
         ],
         'general_observations' => 'Observación clínica para visualización',
     ])->create([
@@ -192,10 +189,13 @@ it('can view a patient including medical history', function () {
     Livewire::test(ViewPatient::class, ['record' => $patient->id])
         ->assertOk()
         ->assertSee($patient->first_name)
+        ->assertSee($patient->last_name)
         ->assertSee($patient->identification_number)
         ->assertSee('Universal')
         ->assertSee('Alergias: Penicilina')
         ->assertSee('Tratamiento médico actual: Tratamiento cardiológico')
+        ->assertSee('SÍ (Penicilina)')
+        ->assertSee('NO')
         ->assertSee('Observación clínica para visualización');
 });
 

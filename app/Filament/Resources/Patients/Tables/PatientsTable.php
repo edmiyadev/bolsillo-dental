@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Patients\Tables;
 
 use App\Enums\IdentificationType;
+use App\Models\Patient;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -23,10 +24,15 @@ class PatientsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->columns([
                 ImageColumn::make('photo_url')
                     ->label(__('Photo'))
-                    ->circular(),
+                    ->circular()
+                    ->disk('public')
+                    ->visibility('public')
+                    ->checkFileExistence(false)
+                    ->defaultImageUrl(fn (Patient $record): string => 'https://ui-avatars.com/api/?name='.urlencode("{$record->first_name} {$record->last_name}").'&color=0284c7&background=e0f2fe'),
                 TextColumn::make('first_name')
                     ->label(__('First name'))
                     ->searchable()

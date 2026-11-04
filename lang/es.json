@@ -468,5 +468,9 @@
     "No positive anamnesis entries": "Sin antecedentes patológicos registrados",
     "Active critical alerts": "Alertas críticas activas",
     "Positive anamnesis records": "Antecedentes médicos registrados",
-    "General medical background and habits questionnaire.": "Antecedentes médicos generales y cuestionario de hábitos."
+    "General medical background and habits questionnaire.": "Antecedentes médicos generales y cuestionario de hábitos.",
+    "Clinical alerts summary": "Resumen de alertas clínicas",
+    "Full medical questionnaire": "Cuestionario médico completo",
+    "Complete record of clinical responses and medical history.": "Registro completo de respuestas clínicas y antecedentes.",
+    "No general observations recorded.": "No hay observaciones generales registradas."
 }

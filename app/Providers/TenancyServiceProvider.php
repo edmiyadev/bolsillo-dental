@@ -99,6 +99,17 @@ class TenancyServiceProvider extends ServiceProvider
         $this->bootEvents();
         $this->mapRoutes();
         $this->makeTenancyMiddlewareHighestPriority();
+
+        \Stancl\Tenancy\Controllers\TenantAssetsController::$tenancyMiddleware = InitializeTenancyByDomainOrSubdomain::class;
+
+        Event::listen(Events\TenancyBootstrapped::class, function (): void {
+            config(['filesystems.disks.public.url' => '/tenancy/assets']);
+            \Illuminate\Support\Facades\Storage::forgetDisk('public');
+        });
+
+        Event::listen(Events\TenancyEnded::class, function (): void {
+            \Illuminate\Support\Facades\Storage::forgetDisk('public');
+        });
     }
 
     protected function bootEvents(): void

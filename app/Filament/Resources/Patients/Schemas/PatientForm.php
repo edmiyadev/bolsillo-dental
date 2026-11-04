@@ -4,13 +4,14 @@ namespace App\Filament\Resources\Patients\Schemas;
 
 use App\Enums\Gender;
 use App\Enums\IdentificationType;
-use App\Models\PatientMedicalHistory;
+use App\Support\MedicalHistoryCatalog;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -18,7 +19,6 @@ use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
-use Illuminate\Support\HtmlString;
 
 class PatientForm
 {
@@ -41,6 +41,8 @@ class PatientForm
                                             ->avatar()
                                             ->imageEditor()
                                             ->circleCropper()
+                                            ->disk('public')
+                                            ->visibility('public')
                                             ->directory('patients/avatars')
                                             ->columnSpanFull(),
                                         TextInput::make('first_name')
@@ -101,8 +103,7 @@ class PatientForm
                                             ->description(__('Predefined clinical questions and critical alerts.'))
                                             ->icon('heroicon-o-clipboard-document-check')
                                             ->schema([
-                                                ...static::buildQuestionComponents('critical_alerts', PatientMedicalHistory::criticalAlertQuestions(), 'danger'),
-                                                ...static::buildQuestionComponents('anamnesis_data', PatientMedicalHistory::anamnesisQuestions(), 'primary'),
+                                                ...static::buildQuestionComponents(),
                                                 Textarea::make('general_observations')
                                                     ->label(__('General observations'))
                                                     ->placeholder(__('Additional clinical notes, patient warnings or relevant observations...'))
@@ -117,46 +118,48 @@ class PatientForm
     }
 
     /**
-     * Build predefined question toggle and conditional detail components.
+     * Build predefined question toggle button and conditional detail components.
      *
-     * @param  array<string, array{label: string, short_label: string, placeholder: string}>  $catalog
      * @return array<Component>
      */
-    protected static function buildQuestionComponents(string $parentField, array $catalog, string $onColor = 'primary'): array
+    protected static function buildQuestionComponents(): array
     {
+        $catalog = MedicalHistoryCatalog::questions();
         $components = [];
 
         foreach ($catalog as $key => $config) {
+            $isCritical = $config['is_critical'];
+            $hasDetail = $config['has_detail'];
+
             $components[] = Group::make([
-                Toggle::make("{$parentField}.{$key}.value")
+                ToggleButtons::make("medical_data.{$key}.value")
                     ->label($config['label'])
-                    ->live()
+                    ->boolean()
+                    ->inline()
+                    ->grouped()
                     ->default(false)
-                    ->onColor($onColor)
-                    ->onIcon(static::getYesIcon())
-                    ->offIcon(static::getNoIcon())
+                    ->live()
+                    ->colors([
+                        1 => 'primary',
+                        0 => 'gray',
+                    ])
                     ->columnSpanFull(),
-                TextInput::make("{$parentField}.{$key}.detail")
-                    ->placeholder($config['placeholder'])
-                    ->hiddenLabel()
-                    ->visible(fn (Get $get): bool => (bool) $get("{$parentField}.{$key}.value"))
-                    ->maxLength(255)
-                    ->extraAttributes(['class' => 'ml-12 mt-1 max-w-xl'])
-                    ->columnSpanFull(),
-            ])
-                ->extraAttributes(['class' => 'py-2.5 border-b border-gray-100 dark:border-white/5 last:border-b-0']);
+                Hidden::make("medical_data.{$key}.is_critical")
+                    ->default($isCritical),
+                Hidden::make("medical_data.{$key}.has_detail")
+                    ->default($hasDetail),
+                ...($hasDetail ? [
+                    TextInput::make("medical_data.{$key}.detail")
+                        ->placeholder($config['placeholder'])
+                        ->hiddenLabel()
+                        ->visible(fn (Get $get): bool => (bool) $get("medical_data.{$key}.value"))
+                        ->maxLength(255)
+                        ->extraAttributes(['class' => 'mt-1 max-w-xl'])
+                        ->columnSpanFull(),
+                ] : []),
+            ]);
         }
 
         return $components;
-    }
-
-    protected static function getYesIcon(): HtmlString
-    {
-        return new HtmlString('<svg viewBox="0 0 24 24" class="w-full h-full" fill="currentColor"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">SÍ</text></svg>');
-    }
-
-    protected static function getNoIcon(): HtmlString
-    {
-        return new HtmlString('<svg viewBox="0 0 24 24" class="w-full h-full" fill="currentColor"><text x="50%" y="60%" dominant-baseline="middle" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">NO</text></svg>');
     }
 }
