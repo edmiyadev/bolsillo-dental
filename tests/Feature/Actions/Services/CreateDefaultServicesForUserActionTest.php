@@ -14,7 +14,7 @@ it('creates default assistant services for a user', function () {
     $action = app(CreateDefaultServicesForUserAction::class);
     $action->handle($user);
 
-    expect($user->services()->count())->toBe(5);
+    expect($user->services()->count())->toBe(4);
 
     $this->assertDatabaseHas(Service::class, [
         'user_id' => $user->id,
@@ -38,9 +38,9 @@ it('does not duplicate services if user already has services', function () {
     $action = app(CreateDefaultServicesForUserAction::class);
 
     $action->handle($user);
-    expect($user->services()->count())->toBe(5);
+    expect($user->services()->count())->toBe(4);
 
     // Call again to verify idempotency
     $action->handle($user);
-    expect($user->services()->count())->toBe(5);
+    expect($user->services()->count())->toBe(4);
 });

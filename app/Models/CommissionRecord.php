@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'service_id',
@@ -27,11 +28,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CommissionRecord extends Model
 {
     /** @use HasFactory<CommissionRecordFactory> */
-    use BelongsToUser, HasFactory;
+    use BelongsToUser, HasFactory, SoftDeletes;
 
     public function service(): BelongsTo
     {
-        return $this->belongsTo(Service::class);
+        return $this->belongsTo(Service::class)->withTrashed();
     }
 
     /**

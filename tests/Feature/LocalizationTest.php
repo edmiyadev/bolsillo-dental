@@ -1,8 +1,15 @@
 <?php
 
+use App\Enums\AppointmentStatus;
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Enums\Gender;
+use App\Enums\IdentificationType;
+use App\Filament\Central\Resources\Clients\ClientResource;
+use App\Filament\Central\Resources\Tenants\TenantResource;
+use App\Filament\Resources\Appointments\AppointmentResource;
 use App\Filament\Resources\CommissionRecords\CommissionRecordResource;
+use App\Filament\Resources\Patients\PatientResource;
 use App\Filament\Resources\Services\ServiceResource;
 
 it('uses spanish as the application locale', function () {
@@ -20,10 +27,29 @@ it('translates CommissionStatus enum cases to spanish', function () {
         ->and(CommissionStatus::Cancelled->getLabel())->toBe('Cancelado');
 });
 
+it('translates IdentificationType enum cases to spanish', function () {
+    expect(IdentificationType::IdentityCard->getLabel())->toBe('Cédula')
+        ->and(IdentificationType::Passport->getLabel())->toBe('Pasaporte');
+});
+
+it('translates Gender enum cases and patient fields to spanish', function () {
+    expect(Gender::Male->getLabel())->toBe('Masculino')
+        ->and(Gender::Female->getLabel())->toBe('Femenino')
+        ->and(Gender::Other->getLabel())->toBe('Otro')
+        ->and(__('Medical history'))->toBe('Historial médico')
+        ->and(__('Critical alerts'))->toBe('Alertas críticas');
+});
+
 it('translates ServiceResource navigation and model labels to spanish', function () {
     expect(ServiceResource::getModelLabel())->toBe('Servicio')
         ->and(ServiceResource::getPluralModelLabel())->toBe('Servicios')
         ->and(ServiceResource::getNavigationLabel())->toBe('Servicios');
+});
+
+it('translates PatientResource navigation and model labels to spanish', function () {
+    expect(PatientResource::getModelLabel())->toBe('Paciente')
+        ->and(PatientResource::getPluralModelLabel())->toBe('Pacientes')
+        ->and(PatientResource::getNavigationLabel())->toBe('Pacientes');
 });
 
 it('translates CommissionRecordResource navigation and model labels to spanish', function () {
@@ -32,10 +58,34 @@ it('translates CommissionRecordResource navigation and model labels to spanish',
         ->and(CommissionRecordResource::getNavigationLabel())->toBe('Registros de comisión');
 });
 
+it('translates ClientResource and TenantResource navigation and model labels to spanish', function () {
+    expect(ClientResource::getModelLabel())->toBe('Cliente')
+        ->and(ClientResource::getPluralModelLabel())->toBe('Clientes')
+        ->and(ClientResource::getNavigationLabel())->toBe('Clientes')
+        ->and(TenantResource::getModelLabel())->toBe('Clínica / Instancia')
+        ->and(TenantResource::getPluralModelLabel())->toBe('Clínicas / Instancias')
+        ->and(TenantResource::getNavigationLabel())->toBe('Clínicas / Instancias');
+});
+
 it('translates common UI labels and notifications to spanish', function () {
     expect(__('Procedure & Service'))->toBe('Procedimiento y Servicio')
         ->and(__('Financial Details'))->toBe('Detalles Financieros')
         ->and(__('Mark as paid'))->toBe('Marcar como pagado')
         ->and(__('Commission record marked as paid'))->toBe('Registro de comisión marcado como pagado')
         ->and(__(':count commission records marked as paid', ['count' => 3]))->toBe('3 registros de comisión marcados como pagados');
+});
+
+it('translates AppointmentStatus enum cases and AppointmentResource labels to spanish', function () {
+    expect(AppointmentStatus::Scheduled->getLabel())->toBe('Programada')
+        ->and(AppointmentStatus::Confirmed->getLabel())->toBe('Confirmada')
+        ->and(AppointmentStatus::InProgress->getLabel())->toBe('En curso')
+        ->and(AppointmentStatus::Completed->getLabel())->toBe('Completada')
+        ->and(AppointmentStatus::Cancelled->getLabel())->toBe('Cancelado')
+        ->and(AppointmentStatus::NoShow->getLabel())->toBe('No asistió')
+        ->and(AppointmentResource::getModelLabel())->toBe('Cita')
+        ->and(AppointmentResource::getPluralModelLabel())->toBe('Citas')
+        ->and(AppointmentResource::getNavigationLabel())->toBe('Citas')
+        ->and(__('Appointments Calendar'))->toBe('Calendario de citas')
+        ->and(__('Calendar view'))->toBe('Vista de calendario')
+        ->and(__('List view'))->toBe('Vista de lista');
 });

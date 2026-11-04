@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
+use App\Http\Middleware\InitializeTenancyByDomainOrSubdomain;
+use App\Models\Clinic;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -25,6 +27,9 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('/')
+            ->brandName(fn (): string => tenancy()->initialized
+                ? (Clinic::query()->first()?->name ?? (string) config('app.name', 'Bolsillo Dental'))
+                : (string) config('app.name', 'Bolsillo Dental'))
             ->login()
             ->registration()
             ->passwordReset()
@@ -38,6 +43,7 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarWidth('10')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->discoverClusters(in: app_path('Filament/Clusters'), for: 'App\\Filament\\Clusters')
             ->pages([
                 Dashboard::class,
             ])
@@ -45,6 +51,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
             ])
             ->middleware([
+                InitializeTenancyByDomainOrSubdomain::class,
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
