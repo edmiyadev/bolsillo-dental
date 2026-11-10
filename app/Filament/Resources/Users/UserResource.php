@@ -50,11 +50,14 @@ class UserResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
+        $supportEmail = (string) (config('tenancy.support_user.email') ?: 'soporte@bolsillodental.com');
+
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
             ->with(['roles', 'branches'])
+            ->where('email', '!=', $supportEmail)
             ->whereDoesntHave('roles', fn (Builder $query): Builder => $query
                 ->where('name', RoleEnum::SuperAdmin->value)
             );
