@@ -18,6 +18,7 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 use function Pest\Laravel\seed;
@@ -25,6 +26,7 @@ use function Pest\Laravel\seed;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    Carbon::setTestNow('2026-11-01 08:00:00');
     seed([RoleSeeder::class, PermissionSeeder::class]);
 
     $this->clinic = Clinic::factory()->create();
@@ -207,6 +209,7 @@ it('can create an appointment via the create action modal', function (): void {
             'branch_id' => $this->branch->id,
             'patient_id' => $this->patient->id,
             'dentist_id' => $this->dentist->id,
+            'service_id' => 'other',
             'is_custom_reason' => true,
             'custom_reason' => 'Consulta Inicial',
             'specialty' => DentalSpecialty::General->value,
@@ -355,7 +358,8 @@ it('cannot reschedule an appointment to the past', function (): void {
 
 it('cannot reschedule an appointment without update permissions', function (): void {
     $user = User::factory()->create();
-    // User without receptionist or dentist permissions
+    // User with view permission but without update permissions
+    $user->givePermissionTo('view_appointments');
     $this->actingAs($user);
 
     $originalStartsAt = '2026-11-03 10:00:00';

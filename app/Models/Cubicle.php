@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CubicleStatus;
 use App\Enums\DayOfWeek;
 use App\Enums\DentalSpecialty;
+use App\Models\Concerns\HasAuthor;
 use App\Observers\CubicleObserver;
 use Database\Factories\CubicleFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -16,6 +17,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'branch_id',
+    'created_by',
+    'updated_by',
     'name',
     'code',
     'specialty_types',
@@ -26,7 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Cubicle extends Model
 {
     /** @use HasFactory<CubicleFactory> */
-    use HasFactory, SoftDeletes;
+    use HasAuthor, HasFactory, SoftDeletes;
 
     /**
      * @return BelongsTo<Branch, $this>

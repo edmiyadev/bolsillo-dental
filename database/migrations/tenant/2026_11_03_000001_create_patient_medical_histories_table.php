@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('patient_medical_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('patient_id')->unique()->constrained('patients')->cascadeOnDelete();
+            $table->unsignedBigInteger('created_by')->nullable()->index();
+            $table->unsignedBigInteger('updated_by')->nullable()->index();
             $table->json('medical_data')->nullable();
             $table->text('general_observations')->nullable();
             $table->timestamps();

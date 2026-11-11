@@ -27,6 +27,11 @@ class ServicesTable
                     ->label(__('Name'))
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('creator.name')
+                    ->label(__('Created by'))
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn (): bool => auth()->user()?->can('view_all_services') ?? false),
                 TextColumn::make('default_price')
                     ->label(__('Default price'))
                     ->money('DOP', locale: 'es_DO')
@@ -59,6 +64,10 @@ class ServicesTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('created_by')
+                    ->label(__('Created by'))
+                    ->relationship('creator', 'name')
+                    ->visible(fn (): bool => auth()->user()?->can('view_all_services') ?? false),
                 SelectFilter::make('commission_type')
                     ->label(__('Commission type'))
                     ->options(CommissionType::class),

@@ -67,6 +67,7 @@ it('calculates pending, paid, and monthly commissions correctly', function () {
 
 it('only includes commissions for the authenticated user in statistics', function () {
     $user = User::factory()->create();
+    $user->givePermissionTo('view_commission_records');
     $otherUser = User::factory()->create();
 
     // User's own paid record

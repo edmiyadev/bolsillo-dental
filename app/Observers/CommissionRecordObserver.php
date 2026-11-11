@@ -15,10 +15,10 @@ class CommissionRecordObserver
 
     public function creating(CommissionRecord $record): void
     {
-        if ($record->user_id === null && $record->service_id !== null) {
+        if ($record->created_by === null && $record->service_id !== null) {
             $service = $record->service ?? Service::withoutGlobalScopes()->find($record->service_id);
-            if ($service?->user_id) {
-                $record->user_id = $service->user_id;
+            if ($service?->created_by) {
+                $record->created_by = $service->created_by;
             }
         }
     }

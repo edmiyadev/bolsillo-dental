@@ -1,9 +1,11 @@
 <?php
 
 use App\Enums\CommissionType;
+use App\Enums\RoleEnum;
 use App\Filament\Resources\Services\Pages\CreateService;
 use App\Filament\Resources\Services\Pages\EditService;
 use App\Filament\Resources\Services\Pages\ListServices;
+use App\Models\Role;
 use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -212,12 +214,16 @@ it('soft deletes a service from the edit page and supports restore and force del
     assertModelMissing($service);
 });
 
-it('only displays services owned by the authenticated user in the list table', function () {
-    $user = User::factory()->superAdmin()->create();
-    $otherUser = User::factory()->superAdmin()->create();
+it('only displays services owned by the authenticated user in the list table when lacking view_all_services', function () {
+    $dentistRole = Role::findOrCreate(RoleEnum::Dentist->value, 'web');
+    $user = User::factory()->create();
+    $user->assignRole($dentistRole);
 
-    $userService = Service::factory()->for($user)->create(['name' => 'My Cleaning']);
-    $otherService = Service::factory()->for($otherUser)->create(['name' => 'Other Person Service']);
+    $otherUser = User::factory()->create();
+    $otherUser->assignRole($dentistRole);
+
+    $userService = Service::factory()->create(['created_by' => $user->id, 'name' => 'My Cleaning']);
+    $otherService = Service::factory()->create(['created_by' => $otherUser->id, 'name' => 'Other Person Service']);
 
     $this->actingAs($user);
 
@@ -226,7 +232,20 @@ it('only displays services owned by the authenticated user in the list table', f
         ->assertCanNotSeeTableRecords([$otherService]);
 });
 
-it('assigns user_id automatically to the authenticated user on create', function () {
+it('displays all services in the list table for user with view_all_services', function () {
+    $user = User::factory()->superAdmin()->create();
+    $otherUser = User::factory()->create();
+
+    $userService = Service::factory()->create(['created_by' => $user->id, 'name' => 'My Cleaning']);
+    $otherService = Service::factory()->create(['created_by' => $otherUser->id, 'name' => 'Other Person Service']);
+
+    $this->actingAs($user);
+
+    Livewire::test(ListServices::class)
+        ->assertCanSeeTableRecords([$userService, $otherService]);
+});
+
+it('assigns created_by and updated_by automatically to the authenticated user on create', function () {
     $user = User::factory()->superAdmin()->create();
     $this->actingAs($user);
 
@@ -243,15 +262,20 @@ it('assigns user_id automatically to the authenticated user on create', function
 
     assertDatabaseHas(Service::class, [
         'name' => 'Fluoride Treatment',
-        'user_id' => $user->id,
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
     ]);
 });
 
-it('forbids editing a service owned by another user with a 404 response', function () {
-    $user = User::factory()->superAdmin()->create();
-    $otherUser = User::factory()->superAdmin()->create();
+it('forbids editing a service owned by another user with a 404 response when lacking view_all_services', function () {
+    $dentistRole = Role::findOrCreate(RoleEnum::Dentist->value, 'web');
+    $user = User::factory()->create();
+    $user->assignRole($dentistRole);
 
-    $otherService = Service::factory()->for($otherUser)->create();
+    $otherUser = User::factory()->create();
+    $otherUser->assignRole($dentistRole);
+
+    $otherService = Service::factory()->create(['created_by' => $otherUser->id]);
 
     $this->actingAs($user);
 

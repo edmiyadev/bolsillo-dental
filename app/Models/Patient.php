@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\Gender;
 use App\Enums\IdentificationType;
+use App\Models\Concerns\HasAuthor;
 use Database\Factories\PatientFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
+    'created_by',
+    'updated_by',
     'first_name',
     'last_name',
     'document_type',
@@ -29,7 +32,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Patient extends Model
 {
     /** @use HasFactory<PatientFactory> */
-    use HasFactory, SoftDeletes;
+    use HasAuthor, HasFactory, SoftDeletes;
 
     /**
      * Get the attributes that should be cast.

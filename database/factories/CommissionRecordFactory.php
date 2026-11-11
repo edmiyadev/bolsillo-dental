@@ -29,9 +29,9 @@ class CommissionRecordFactory extends Factory
             : fake()->randomFloat(2, 10, min(100, $price));
 
         return [
-            'user_id' => fn (): mixed => Auth::id() ?? User::factory(),
+            'created_by' => fn (): mixed => Auth::id() ?? User::factory(),
             'service_id' => fn (array $attributes): mixed => Service::factory()->state([
-                'user_id' => $attributes['user_id'],
+                'created_by' => $attributes['created_by'],
             ]),
             'price' => $price,
             'commission' => $commission,

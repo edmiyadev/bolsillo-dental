@@ -71,8 +71,8 @@ it('can create a patient with demographics and medical history', function () {
             ],
         ])
         ->call('create')
-        ->assertNotified()
         ->assertHasNoFormErrors()
+        ->assertNotified()
         ->assertRedirect();
 
     assertDatabaseHas(Patient::class, [

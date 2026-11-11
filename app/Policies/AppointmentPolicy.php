@@ -9,12 +9,21 @@ class AppointmentPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('view_appointments');
+        return $user->can('view_appointments') || $user->can('view_all_appointments');
     }
 
     public function view(User $user, ?Appointment $appointment = null): bool
     {
-        return $user->can('view_appointments');
+        if ($appointment === null) {
+            return $this->viewAny($user);
+        }
+
+        if ($user->can('view_all_appointments')) {
+            return true;
+        }
+
+        return $user->can('view_appointments')
+            && ($appointment->dentist_id === $user->id || $appointment->created_by === $user->id);
     }
 
     public function create(User $user): bool
@@ -24,12 +33,30 @@ class AppointmentPolicy
 
     public function update(User $user, ?Appointment $appointment = null): bool
     {
-        return $user->can('update_appointments');
+        if ($appointment === null) {
+            return $user->can('update_appointments');
+        }
+
+        if ($user->can('view_all_appointments')) {
+            return $user->can('update_appointments');
+        }
+
+        return $user->can('update_appointments')
+            && ($appointment->dentist_id === $user->id || $appointment->created_by === $user->id);
     }
 
     public function delete(User $user, ?Appointment $appointment = null): bool
     {
-        return $user->can('delete_appointments');
+        if ($appointment === null) {
+            return $user->can('delete_appointments');
+        }
+
+        if ($user->can('view_all_appointments')) {
+            return $user->can('delete_appointments');
+        }
+
+        return $user->can('delete_appointments')
+            && ($appointment->dentist_id === $user->id || $appointment->created_by === $user->id);
     }
 
     public function deleteAny(User $user): bool
@@ -39,11 +66,29 @@ class AppointmentPolicy
 
     public function restore(User $user, ?Appointment $appointment = null): bool
     {
-        return $user->can('restore_appointments');
+        if ($appointment === null) {
+            return $user->can('restore_appointments');
+        }
+
+        if ($user->can('view_all_appointments')) {
+            return $user->can('restore_appointments');
+        }
+
+        return $user->can('restore_appointments')
+            && ($appointment->dentist_id === $user->id || $appointment->created_by === $user->id);
     }
 
     public function forceDelete(User $user, ?Appointment $appointment = null): bool
     {
-        return $user->can('force_delete_appointments');
+        if ($appointment === null) {
+            return $user->can('force_delete_appointments');
+        }
+
+        if ($user->can('view_all_appointments')) {
+            return $user->can('force_delete_appointments');
+        }
+
+        return $user->can('force_delete_appointments')
+            && ($appointment->dentist_id === $user->id || $appointment->created_by === $user->id);
     }
 }
