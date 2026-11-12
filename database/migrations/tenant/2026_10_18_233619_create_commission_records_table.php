@@ -13,8 +13,7 @@ return new class extends Migration
     {
         Schema::create('commission_records', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('created_by')->nullable()->index();
-            $table->unsignedBigInteger('updated_by')->nullable()->index();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('service_id')->constrained()->restrictOnDelete();
             $table->decimal('price', 10, 2)->nullable();
             $table->decimal('commission', 10, 2);
@@ -26,8 +25,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index(['created_by', 'status']);
-            $table->index(['created_by', 'worked_at']);
+            $table->index(['user_id', 'status']);
+            $table->index(['user_id', 'worked_at']);
         });
     }
 
