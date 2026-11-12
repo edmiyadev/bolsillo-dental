@@ -28,9 +28,9 @@ class EditBranch extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->hidden(fn (): bool => (bool) ($this->record->clinic && $this->record->clinic->branches()->count() <= 1)),
+                ->hidden(fn (): bool => (bool) ($this->record->clinic && $this->record->clinic->branches()->withTrashed()->count() <= 1)),
             ForceDeleteAction::make()
-                ->hidden(fn (): bool => (bool) ($this->record->clinic && $this->record->clinic->branches()->count() <= 1)),
+                ->hidden(fn (): bool => (bool) ($this->record->clinic && $this->record->clinic->branches()->withTrashed()->count() <= 1)),
             RestoreAction::make(),
         ];
     }

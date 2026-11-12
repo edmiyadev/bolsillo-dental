@@ -22,7 +22,7 @@ class ServiceFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => fn (): mixed => Auth::id() ?? User::factory(),
+            'created_by' => fn (): mixed => Auth::id() ?? User::factory(),
             'name' => fake()->words(3, true),
             'default_price' => fake()->randomFloat(2, 20, 500),
             'default_commission' => fake()->randomFloat(2, 5, 50),

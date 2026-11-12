@@ -34,7 +34,7 @@ class AppointmentFactory extends Factory
                 'branch_id' => $attributes['branch_id'],
             ])->id,
             'service_id' => fn (array $attributes): int => Service::factory()->create([
-                'user_id' => $attributes['dentist_id'],
+                'created_by' => $attributes['dentist_id'],
             ])->id,
             'is_custom_reason' => false,
             'custom_reason' => null,

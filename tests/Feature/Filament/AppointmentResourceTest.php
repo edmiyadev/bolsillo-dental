@@ -17,6 +17,7 @@ use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Database\Seeders\RoleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 
 use function Pest\Laravel\assertDatabaseHas;
@@ -25,6 +26,7 @@ use function Pest\Laravel\seed;
 uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
+    Carbon::setTestNow('2026-11-01 08:00:00');
     seed([RoleSeeder::class, PermissionSeeder::class]);
 
     $this->clinic = Clinic::factory()->create();

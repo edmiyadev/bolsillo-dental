@@ -4,21 +4,16 @@ namespace App\Models\Concerns;
 
 use App\Models\Scopes\UserScope;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Auth;
 
 trait BelongsToUser
 {
+    use HasAuthor;
+
     public static function bootBelongsToUser(): void
     {
         static::addGlobalScope(new UserScope);
-
-        static::creating(function (Model $model): void {
-            if ($model->getAttribute('user_id') === null && Auth::hasUser()) {
-                $model->setAttribute('user_id', Auth::id());
-            }
-        });
     }
 
     /**
@@ -26,6 +21,14 @@ trait BelongsToUser
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'created_by')->withTrashed();
+    }
+
+    /**
+     * @param  Builder<$this>  $builder
+     */
+    public function applyUserScope(Builder $builder, User $user): void
+    {
+        $builder->where($this->qualifyColumn('created_by'), $user->id);
     }
 }

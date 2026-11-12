@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\AppointmentStatus;
 use App\Enums\DentalSpecialty;
+use App\Models\Concerns\BelongsToUser;
 use Database\Factories\AppointmentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +19,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'dentist_id',
     'cubicle_id',
     'service_id',
+    'created_by',
+    'updated_by',
     'is_custom_reason',
     'custom_reason',
     'starts_at',
@@ -28,7 +32,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Appointment extends Model
 {
     /** @use HasFactory<AppointmentFactory> */
-    use HasFactory, SoftDeletes;
+    use BelongsToUser, HasFactory, SoftDeletes;
 
     /**
      * @return BelongsTo<Branch, $this>
@@ -70,6 +74,19 @@ class Appointment extends Model
         return $this->belongsTo(Service::class)->withoutGlobalScopes()->withTrashed();
     }
 
+    /**
+     * Scope appointments for a specific user: where they are the dentist or the creator.
+     *
+     * @param  Builder<$this>  $builder
+     */
+    public function applyUserScope(Builder $builder, User $user): void
+    {
+        $builder->where(function (Builder $query) use ($user): void {
+            $query->where($this->qualifyColumn('dentist_id'), $user->id)
+                ->orWhere($this->qualifyColumn('created_by'), $user->id);
+        });
+    }
+
     public function reasonLabel(): string
     {
         return $this->is_custom_reason
@@ -80,6 +97,11 @@ class Appointment extends Model
     public function getSpecialtyAttribute(): DentalSpecialty
     {
         return $this->service?->specialty ?? DentalSpecialty::General;
+    }
+
+    public function setSpecialtyAttribute(mixed $value): void
+    {
+        // Virtual attribute derived from related service; ignored during direct column persistence.
     }
 
     /**

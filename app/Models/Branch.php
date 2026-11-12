@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuthor;
 use App\Observers\BranchObserver;
 use App\ValueObjects\WeeklySchedule;
 use Database\Factories\BranchFactory;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[Fillable([
     'clinic_id',
+    'created_by',
+    'updated_by',
     'name',
     'code',
     'phone',
@@ -29,7 +32,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Branch extends Model
 {
     /** @use HasFactory<BranchFactory> */
-    use HasFactory, SoftDeletes;
+    use HasAuthor, HasFactory, SoftDeletes;
 
     /**
      * @return BelongsTo<Clinic, $this>

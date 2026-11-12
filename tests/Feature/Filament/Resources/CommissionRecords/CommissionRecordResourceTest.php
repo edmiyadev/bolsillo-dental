@@ -2,10 +2,12 @@
 
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Enums\RoleEnum;
 use App\Filament\Resources\CommissionRecords\Pages\CreateCommissionRecord;
 use App\Filament\Resources\CommissionRecords\Pages\EditCommissionRecord;
 use App\Filament\Resources\CommissionRecords\Pages\ListCommissionRecords;
 use App\Models\CommissionRecord;
+use App\Models\Role;
 use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -312,12 +314,16 @@ it('soft deletes a commission record from the edit page and supports restore and
     assertModelMissing($record);
 });
 
-it('only displays commission records owned by the authenticated user in the list table', function () {
-    $user = User::factory()->superAdmin()->create();
-    $otherUser = User::factory()->superAdmin()->create();
+it('only displays commission records owned by the authenticated user in the list table when lacking view_all_commission_records', function () {
+    $dentistRole = Role::findOrCreate(RoleEnum::Dentist->value, 'web');
+    $user = User::factory()->create();
+    $user->assignRole($dentistRole);
 
-    $userRecord = CommissionRecord::factory()->for($user)->create();
-    $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
+    $otherUser = User::factory()->create();
+    $otherUser->assignRole($dentistRole);
+
+    $userRecord = CommissionRecord::factory()->create(['created_by' => $user->id]);
+    $otherRecord = CommissionRecord::factory()->create(['created_by' => $otherUser->id]);
 
     $this->actingAs($user);
 
@@ -326,9 +332,22 @@ it('only displays commission records owned by the authenticated user in the list
         ->assertCanNotSeeTableRecords([$otherRecord]);
 });
 
-it('assigns user_id automatically to the authenticated user on create', function () {
+it('displays all commission records in the list table for user with view_all_commission_records', function () {
     $user = User::factory()->superAdmin()->create();
-    $service = Service::factory()->for($user)->create();
+    $otherUser = User::factory()->create();
+
+    $userRecord = CommissionRecord::factory()->create(['created_by' => $user->id]);
+    $otherRecord = CommissionRecord::factory()->create(['created_by' => $otherUser->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ListCommissionRecords::class)
+        ->assertCanSeeTableRecords([$userRecord, $otherRecord]);
+});
+
+it('assigns created_by and updated_by automatically to the authenticated user on create', function () {
+    $user = User::factory()->superAdmin()->create();
+    $service = Service::factory()->create(['created_by' => $user->id]);
 
     $this->actingAs($user);
 
@@ -348,15 +367,20 @@ it('assigns user_id automatically to the authenticated user on create', function
 
     assertDatabaseHas(CommissionRecord::class, [
         'service_id' => $service->id,
-        'user_id' => $user->id,
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
     ]);
 });
 
-it('forbids editing a commission record owned by another user with a 404 response', function () {
-    $user = User::factory()->superAdmin()->create();
-    $otherUser = User::factory()->superAdmin()->create();
+it('forbids editing a commission record owned by another user with a 404 response when lacking view_all_commission_records', function () {
+    $dentistRole = Role::findOrCreate(RoleEnum::Dentist->value, 'web');
+    $user = User::factory()->create();
+    $user->assignRole($dentistRole);
 
-    $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
+    $otherUser = User::factory()->create();
+    $otherUser->assignRole($dentistRole);
+
+    $otherRecord = CommissionRecord::factory()->create(['created_by' => $otherUser->id]);
 
     $this->actingAs($user);
 

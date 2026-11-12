@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('clinic_id')->constrained('clinics')->cascadeOnDelete();
+            $table->unsignedBigInteger('created_by')->nullable()->index();
+            $table->unsignedBigInteger('updated_by')->nullable()->index();
             $table->string('name');
             $table->string('code')->nullable();
             $table->string('phone')->nullable();

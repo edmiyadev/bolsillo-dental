@@ -48,6 +48,6 @@ class BranchPolicy
     {
         return $user->can('force_delete_branches')
             && $branch->clinic
-            && $branch->clinic->branches()->count() > 1;
+            && $branch->clinic->branches()->withTrashed()->count() > 1;
     }
 }

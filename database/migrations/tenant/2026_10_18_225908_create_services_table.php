@@ -13,15 +13,14 @@ return new class extends Migration
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('created_by')->nullable()->index();
+            $table->unsignedBigInteger('updated_by')->nullable()->index();
             $table->string('name');
             $table->decimal('default_price', 10, 2)->nullable();
             $table->decimal('default_commission', 10, 2);
             $table->string('commission_type')->default('percentage');
             $table->timestamps();
             $table->softDeletes();
-
-            $table->index('user_id');
         });
     }
 

@@ -59,10 +59,11 @@ it('ensures support user is provisioned in the tenant database with admin role a
 
     $user = $action->handle($tenant);
 
-    expect($user->email)->toBe('soporte@bolsillodental.com')
-        ->and($user->hasVerifiedEmail())->toBeTrue();
+    expect($user->email)->toBe('soporte@bolsillodental.com');
 
     $tenant->run(function () use ($user): void {
+        expect($user->hasVerifiedEmail())->toBeTrue();
+
         $tenantUser = User::query()->where('email', 'soporte@bolsillodental.com')->first();
         expect($tenantUser)->not->toBeNull()
             ->and($tenantUser->id)->toBe($user->id)
@@ -104,7 +105,7 @@ it('logs in the support user and consumes the token when accessing the impersona
 
     $this->assertDatabaseMissing('tenant_user_impersonation_tokens', [
         'token' => $token->token,
-    ]);
+    ], connection: (string) config('tenancy.database.central_connection'));
 
     $tenant->run(function () use ($supportUser): void {
         expect(Auth::guard('web')->id())->toBe($supportUser->id);

@@ -34,7 +34,11 @@ class BranchObserver
 
     public function deleting(Branch $branch): void
     {
-        if ($branch->clinic && $branch->clinic->branches()->count() <= 1) {
+        $count = $branch->isForceDeleting()
+            ? $branch->clinic?->branches()->withTrashed()->count()
+            : $branch->clinic?->branches()->count();
+
+        if ($count !== null && $count <= 1) {
             throw new DomainException(__('You cannot delete the only branch of the clinic.'));
         }
     }

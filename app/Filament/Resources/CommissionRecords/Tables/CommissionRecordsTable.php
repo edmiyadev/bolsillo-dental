@@ -43,6 +43,11 @@ class CommissionRecordsTable
                     ->label(__('Worked at'))
                     ->date()
                     ->sortable(),
+                TextColumn::make('creator.name')
+                    ->label(__('Collaborator'))
+                    ->searchable()
+                    ->sortable()
+                    ->visible(fn (): bool => auth()->user()?->can('view_all_commission_records') ?? false),
                 TextColumn::make('service.name')
                     ->label(__('Service'))
                     ->searchable()
@@ -113,6 +118,10 @@ class CommissionRecordsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('created_by')
+                    ->label(__('Collaborator'))
+                    ->relationship('creator', 'name')
+                    ->visible(fn (): bool => auth()->user()?->can('view_all_commission_records') ?? false),
                 SelectFilter::make('status')
                     ->label(__('Status'))
                     ->options(CommissionStatus::class),

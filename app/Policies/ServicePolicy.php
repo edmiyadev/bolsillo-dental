@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\RoleEnum;
 use App\Models\Service;
 use App\Models\User;
 
@@ -10,13 +9,16 @@ class ServicePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->can('view_services');
+        return $user->can('view_services') || $user->can('view_all_services');
     }
 
     public function view(User $user, Service $service): bool
     {
-        return $user->can('view_services')
-            && ($service->user_id === $user->id || $user->hasRole(RoleEnum::Admin->value));
+        if ($user->can('view_all_services')) {
+            return true;
+        }
+
+        return $user->can('view_services') && $service->created_by === $user->id;
     }
 
     public function create(User $user): bool
@@ -27,13 +29,13 @@ class ServicePolicy
     public function update(User $user, Service $service): bool
     {
         return $user->can('update_services')
-            && ($service->user_id === $user->id || $user->hasRole(RoleEnum::Admin->value));
+            && ($service->created_by === $user->id || $user->can('view_all_services'));
     }
 
     public function delete(User $user, Service $service): bool
     {
         return $user->can('delete_services')
-            && ($service->user_id === $user->id || $user->hasRole(RoleEnum::Admin->value));
+            && ($service->created_by === $user->id || $user->can('view_all_services'));
     }
 
     public function deleteAny(User $user): bool
@@ -44,12 +46,12 @@ class ServicePolicy
     public function restore(User $user, Service $service): bool
     {
         return $user->can('restore_services')
-            && ($service->user_id === $user->id || $user->hasRole(RoleEnum::Admin->value));
+            && ($service->created_by === $user->id || $user->can('view_all_services'));
     }
 
     public function forceDelete(User $user, Service $service): bool
     {
         return $user->can('force_delete_services')
-            && ($service->user_id === $user->id || $user->hasRole(RoleEnum::Admin->value));
+            && ($service->created_by === $user->id || $user->can('view_all_services'));
     }
 }
