@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DentalSpecialty;
+use App\Models\Concerns\HasAuthor;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
@@ -17,19 +18,19 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'specialties'])]
+#[Fillable(['name', 'email', 'password', 'specialties', 'created_by', 'updated_by'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, Notifiable, SoftDeletes;
+    use HasAuthor, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     /**
      * @return HasMany<Service, $this>
      */
     public function services(): HasMany
     {
-        return $this->hasMany(Service::class);
+        return $this->hasMany(Service::class, 'created_by');
     }
 
     /**
@@ -37,7 +38,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
      */
     public function commissionRecords(): HasMany
     {
-        return $this->hasMany(CommissionRecord::class);
+        return $this->hasMany(CommissionRecord::class, 'created_by');
     }
 
     /**

@@ -23,6 +23,10 @@ class PermissionSeeder extends Seeder
             $module = Str::snake(Str::pluralStudly($modelName));
 
             foreach (PermissionOperationsEnum::cases() as $operation) {
+                if ($operation === PermissionOperationsEnum::ViewAll && ! ModelHelper::hasOwnRecordScope($modelName)) {
+                    continue;
+                }
+
                 Permission::findOrCreate("{$operation->value}_{$module}", 'web');
             }
         }
@@ -53,6 +57,7 @@ class PermissionSeeder extends Seeder
             Permission::findOrCreate('view_branches', 'web'),
             Permission::findOrCreate('view_cubicles', 'web'),
             Permission::findOrCreate('view_appointments', 'web'),
+            Permission::findOrCreate('view_all_appointments', 'web'),
             Permission::findOrCreate('create_appointments', 'web'),
             Permission::findOrCreate('update_appointments', 'web'),
             Permission::findOrCreate('delete_appointments', 'web'),
@@ -62,8 +67,10 @@ class PermissionSeeder extends Seeder
         $dentalAssistantRole->syncPermissions([
             Permission::findOrCreate('view_patients', 'web'),
             Permission::findOrCreate('view_services', 'web'),
+            Permission::findOrCreate('view_all_services', 'web'),
             Permission::findOrCreate('view_cubicles', 'web'),
             Permission::findOrCreate('view_appointments', 'web'),
+            Permission::findOrCreate('view_all_appointments', 'web'),
         ]);
     }
 }

@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'default_price', 'default_commission', 'commission_type', 'specialty', 'duration_minutes'])]
+#[Fillable(['name', 'default_price', 'default_commission', 'commission_type', 'specialty', 'duration_minutes', 'created_by', 'updated_by'])]
 class Service extends Model
 {
     /** @use HasFactory<ServiceFactory> */

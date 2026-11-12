@@ -135,6 +135,7 @@ class PatientForm
                 ToggleButtons::make("medical_data.{$key}.value")
                     ->label($config['label'])
                     ->boolean()
+                    ->in([1, 0, true, false])
                     ->inline()
                     ->grouped()
                     ->default(false)

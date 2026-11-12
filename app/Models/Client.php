@@ -2,17 +2,18 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasAuthor;
 use Database\Factories\ClientFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'email', 'phone', 'document_number', 'address', 'is_active'])]
+#[Fillable(['name', 'email', 'phone', 'document_number', 'address', 'is_active', 'created_by', 'updated_by'])]
 class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
-    use HasFactory;
+    use HasAuthor, HasFactory;
 
     /**
      * @return HasMany<Tenant, $this>

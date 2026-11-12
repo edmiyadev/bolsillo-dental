@@ -2,10 +2,12 @@
 
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
+use App\Enums\RoleEnum;
 use App\Filament\Resources\CommissionRecords\Pages\CreateCommissionRecord;
 use App\Filament\Resources\CommissionRecords\Pages\EditCommissionRecord;
 use App\Filament\Resources\CommissionRecords\Pages\ListCommissionRecords;
 use App\Models\CommissionRecord;
+use App\Models\Role;
 use App\Models\Service;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -312,12 +314,16 @@ it('soft deletes a commission record from the edit page and supports restore and
     assertModelMissing($record);
 });
 
-it('only displays commission records owned by the authenticated user in the list table', function () {
-    $user = User::factory()->superAdmin()->create();
-    $otherUser = User::factory()->superAdmin()->create();
+it('only displays commission records owned by the authenticated user in the list table when lacking view_all_commission_records', function () {
+    $dentistRole = Role::findOrCreate(RoleEnum::Dentist->value, 'web');
+    $user = User::factory()->create();
+    $user->assignRole($dentistRole);
 
-    $userRecord = CommissionRecord::factory()->for($user)->create();
-    $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
+    $otherUser = User::factory()->create();
+    $otherUser->assignRole($dentistRole);
+
+    $userRecord = CommissionRecord::factory()->create(['created_by' => $user->id]);
+    $otherRecord = CommissionRecord::factory()->create(['created_by' => $otherUser->id]);
 
     $this->actingAs($user);
 
@@ -326,9 +332,22 @@ it('only displays commission records owned by the authenticated user in the list
         ->assertCanNotSeeTableRecords([$otherRecord]);
 });
 
-it('assigns user_id automatically to the authenticated user on create', function () {
+it('displays all commission records in the list table for user with view_all_commission_records', function () {
     $user = User::factory()->superAdmin()->create();
-    $service = Service::factory()->for($user)->create();
+    $otherUser = User::factory()->create();
+
+    $userRecord = CommissionRecord::factory()->create(['created_by' => $user->id]);
+    $otherRecord = CommissionRecord::factory()->create(['created_by' => $otherUser->id]);
+
+    $this->actingAs($user);
+
+    Livewire::test(ListCommissionRecords::class)
+        ->assertCanSeeTableRecords([$userRecord, $otherRecord]);
+});
+
+it('assigns created_by and updated_by automatically to the authenticated user on create', function () {
+    $user = User::factory()->superAdmin()->create();
+    $service = Service::factory()->create(['created_by' => $user->id]);
 
     $this->actingAs($user);
 
@@ -348,18 +367,84 @@ it('assigns user_id automatically to the authenticated user on create', function
 
     assertDatabaseHas(CommissionRecord::class, [
         'service_id' => $service->id,
-        'user_id' => $user->id,
+        'created_by' => $user->id,
+        'updated_by' => $user->id,
     ]);
 });
 
-it('forbids editing a commission record owned by another user with a 404 response', function () {
-    $user = User::factory()->superAdmin()->create();
-    $otherUser = User::factory()->superAdmin()->create();
+it('forbids editing a commission record owned by another user with a 404 response when lacking view_all_commission_records', function () {
+    $dentistRole = Role::findOrCreate(RoleEnum::Dentist->value, 'web');
+    $user = User::factory()->create();
+    $user->assignRole($dentistRole);
 
-    $otherRecord = CommissionRecord::factory()->for($otherUser)->create();
+    $otherUser = User::factory()->create();
+    $otherUser->assignRole($dentistRole);
+
+    $otherRecord = CommissionRecord::factory()->create(['created_by' => $otherUser->id]);
 
     $this->actingAs($user);
 
     Livewire::test(EditCommissionRecord::class, ['record' => $otherRecord->id])
         ->assertNotFound();
 });
+
+it('calculates table column summaries for total, paid, and pending commissions', function () {
+    $this->actingAs(User::factory()->superAdmin()->create());
+
+    $paid = CommissionRecord::factory()->paid()->create(['calculated_earnings' => 1500.00]);
+    $pending = CommissionRecord::factory()->pending()->create(['calculated_earnings' => 500.00]);
+    $cancelled = CommissionRecord::factory()->cancelled()->create(['calculated_earnings' => 300.00]);
+
+    $component = Livewire::test(ListCommissionRecords::class)
+        ->assertTableColumnSummarySet('calculated_earnings', 'total', 2000.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'paid', 1500.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'pending', 500.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'cancelled', 300.00);
+
+    $column = $component->instance()->getTable()->getColumn('calculated_earnings');
+    $query = $component->instance()->getAllTableSummaryQuery();
+    expect($column->getSummarizer('cancelled')->query($query)->isVisible())->toBeTrue();
+});
+
+it('calculates table column summaries respecting active table filters', function () {
+    $this->actingAs(User::factory()->superAdmin()->create());
+
+    CommissionRecord::factory()->paid()->create([
+        'calculated_earnings' => 1500.00,
+        'worked_at' => '2026-02-15',
+    ]);
+    CommissionRecord::factory()->pending()->create([
+        'calculated_earnings' => 500.00,
+        'worked_at' => '2026-02-16',
+    ]);
+    // Outside filter range:
+    CommissionRecord::factory()->paid()->create([
+        'calculated_earnings' => 2000.00,
+        'worked_at' => '2026-01-10',
+    ]);
+
+    Livewire::test(ListCommissionRecords::class)
+        ->filterTable('worked_at', [
+            'from' => '2026-02-01',
+            'until' => '2026-02-28',
+        ])
+        ->assertTableColumnSummarySet('calculated_earnings', 'total', 2000.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'paid', 1500.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'pending', 500.00);
+});
+
+it('hides cancelled summary when there are no cancelled commissions', function () {
+    $this->actingAs(User::factory()->superAdmin()->create());
+
+    CommissionRecord::factory()->paid()->create(['calculated_earnings' => 1000.00]);
+    CommissionRecord::factory()->pending()->create(['calculated_earnings' => 500.00]);
+
+    $component = Livewire::test(ListCommissionRecords::class);
+    $column = $component->instance()->getTable()->getColumn('calculated_earnings');
+    $query = $component->instance()->getAllTableSummaryQuery();
+
+    $cancelledSummarizer = $column->getSummarizer('cancelled');
+    expect($cancelledSummarizer)->not->toBeNull();
+    expect($cancelledSummarizer->query($query)->isVisible())->toBeFalse();
+});
+

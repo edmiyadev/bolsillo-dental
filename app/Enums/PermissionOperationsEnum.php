@@ -7,6 +7,7 @@ use Filament\Support\Contracts\HasLabel;
 enum PermissionOperationsEnum: string implements HasLabel
 {
     case View = 'view';
+    case ViewAll = 'view_all';
     case Create = 'create';
     case Update = 'update';
     case Delete = 'delete';
@@ -17,6 +18,7 @@ enum PermissionOperationsEnum: string implements HasLabel
     {
         return match ($this) {
             self::View => __('View'),
+            self::ViewAll => __('View All'),
             self::Create => __('Create'),
             self::Update => __('Update'),
             self::Delete => __('Delete'),

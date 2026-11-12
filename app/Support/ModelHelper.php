@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\Concerns\BelongsToUser;
 use Illuminate\Support\Facades\File;
 
 class ModelHelper
@@ -35,5 +36,19 @@ class ModelHelper
         }
 
         return $models;
+    }
+
+    /**
+     * Check if a model implements the BelongsToUser concern (has own record scope).
+     */
+    public static function hasOwnRecordScope(string $modelName): bool
+    {
+        $fqcn = "App\\Models\\{$modelName}";
+
+        if (! class_exists($fqcn)) {
+            return false;
+        }
+
+        return in_array(BelongsToUser::class, class_uses_recursive($fqcn), true);
     }
 }

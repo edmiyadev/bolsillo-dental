@@ -54,7 +54,7 @@ class AppointmentForm
                             ->required(),
                         Select::make('service_id')
                             ->label(__('Service'))
-                            ->options(fn (): array => Service::pluck('name', 'id')->toArray() + ['other' => __('Other')])
+                            ->options(fn (): array => Service::withoutGlobalScopes()->pluck('name', 'id')->toArray() + ['other' => __('Other')])
                             ->searchable()
                             ->preload()
                             ->live()

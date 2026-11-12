@@ -17,7 +17,7 @@ it('creates default assistant services for a user', function () {
     expect($user->services()->count())->toBe(4);
 
     $this->assertDatabaseHas(Service::class, [
-        'user_id' => $user->id,
+        'created_by' => $user->id,
         'name' => 'Asistencia general',
         'default_price' => null,
         'default_commission' => 250.00,
@@ -25,7 +25,7 @@ it('creates default assistant services for a user', function () {
     ]);
 
     $this->assertDatabaseHas(Service::class, [
-        'user_id' => $user->id,
+        'created_by' => $user->id,
         'name' => 'Limpieza bucal (Profilaxis)',
         'default_price' => 1500.00,
         'default_commission' => 20.00,

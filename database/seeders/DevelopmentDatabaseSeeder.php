@@ -147,6 +147,9 @@ class DevelopmentDatabaseSeeder extends Seeder
      */
     protected function seedTenantData(): void
     {
+        (new RoleSeeder)->run();
+        (new PermissionSeeder)->run();
+
         // Actualizar datos del perfil de la clínica
         $clinic = Clinic::query()->first() ?? Clinic::query()->create([
             'name' => 'Clínica Dental Sonrisa',
@@ -395,7 +398,7 @@ class DevelopmentDatabaseSeeder extends Seeder
         $ramirezCreatedServices = [];
         foreach ($servicesRamirez as $serv) {
             $ramirezCreatedServices[] = Service::withoutGlobalScopes()->updateOrCreate(
-                ['user_id' => $drRamirez->id, 'name' => $serv['name']],
+                ['created_by' => $drRamirez->id, 'name' => $serv['name']],
                 $serv,
             );
         }
@@ -411,7 +414,7 @@ class DevelopmentDatabaseSeeder extends Seeder
         $moralesCreatedServices = [];
         foreach ($servicesMorales as $serv) {
             $moralesCreatedServices[] = Service::withoutGlobalScopes()->updateOrCreate(
-                ['user_id' => $draMorales->id, 'name' => $serv['name']],
+                ['created_by' => $draMorales->id, 'name' => $serv['name']],
                 $serv,
             );
         }
@@ -528,7 +531,7 @@ class DevelopmentDatabaseSeeder extends Seeder
 
             foreach ($commissionSamples as $sample) {
                 CommissionRecord::query()->create([
-                    'user_id' => $sample['user']->id,
+                    'created_by' => $sample['user']->id,
                     'service_id' => $sample['service']->id,
                     'price' => $sample['service']->default_price,
                     'commission' => $sample['service']->default_commission,

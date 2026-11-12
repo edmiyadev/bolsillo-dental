@@ -17,7 +17,7 @@ class MedicalHistoryCatalog
                 'short_label' => __('Alergias'),
                 'placeholder' => __('Especifique medicamentos o materiales...'),
                 'is_critical' => true,
-                'has_detail' => false,
+                'has_detail' => true,
             ],
             'hypertension' => [
                 'label' => __('¿Padece de hipertensión arterial?'),

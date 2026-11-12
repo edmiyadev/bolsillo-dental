@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('clinics', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('created_by')->nullable()->index();
+            $table->unsignedBigInteger('updated_by')->nullable()->index();
             $table->string('name');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
