@@ -15,8 +15,6 @@ return new class extends Migration
         Schema::create('cubicles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
-            $table->unsignedBigInteger('created_by')->nullable()->index();
-            $table->unsignedBigInteger('updated_by')->nullable()->index();
             $table->string('name');
             $table->string('code');
             $table->json('specialty_types');
