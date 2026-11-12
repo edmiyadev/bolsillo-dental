@@ -7,6 +7,9 @@ use App\Filament\Resources\Patients\Pages\CreatePatient;
 use App\Filament\Resources\Patients\Pages\EditPatient;
 use App\Filament\Resources\Patients\Pages\ListPatients;
 use App\Filament\Resources\Patients\Pages\ViewPatient;
+use App\Filament\Resources\Patients\PatientResource;
+use App\Http\Middleware\InitializeTenancyByDomainOrSubdomain;
+use App\Livewire\Patients\PatientOdontogram;
 use App\Models\Patient;
 use App\Models\PatientMedicalHistory;
 use App\Models\User;
@@ -230,4 +233,32 @@ it('supports soft delete, restore, and force delete on patients', function () {
         ->assertNotified();
 
     assertModelMissing($patient);
+});
+
+it('renders the odontogram tab and livewire component on view patient for authorized roles', function () {
+    $patient = Patient::factory()->create();
+
+    $dentist = User::factory()->create();
+    $dentist->assignRole(RoleEnum::Dentist->value);
+    $this->actingAs($dentist);
+
+    Livewire::test(ViewPatient::class, ['record' => $patient->id])
+        ->assertOk()
+        ->assertSee(__('Odontogram'))
+        ->assertSeeLivewire(PatientOdontogram::class);
+
+    $this->withoutMiddleware(InitializeTenancyByDomainOrSubdomain::class)
+        ->get(PatientResource::getUrl('view', ['record' => $patient]))
+        ->assertOk()
+        ->assertSee('odontogram-', false);
+
+    $assistant = User::factory()->create();
+    $assistant->assignRole(RoleEnum::DentalAssistant->value);
+    $this->actingAs($assistant);
+
+    Livewire::test(ViewPatient::class, ['record' => $patient->id])
+        ->assertOk()
+        ->assertSee(__('Odontogram'))
+        ->assertSeeLivewire(PatientOdontogram::class)
+        ->assertDontSee(__('Mode B: Plan / Complete Treatment'));
 });

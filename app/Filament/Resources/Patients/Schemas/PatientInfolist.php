@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Patients\Schemas;
 
+use App\Livewire\Patients\PatientOdontogram;
 use App\Models\Patient;
 use App\Support\MedicalHistoryCatalog;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Flex;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -121,6 +123,12 @@ class PatientInfolist
                                             ->placeholder(__('No general observations recorded.'))
                                             ->columnSpanFull(),
                                     ]),
+                            ]),
+                        Tab::make(__('Odontogram'))
+                            ->icon('heroicon-o-clipboard-document-list')
+                            ->schema([
+                                Livewire::make(PatientOdontogram::class)
+                                    ->columnSpanFull(),
                             ]),
                     ]),
             ]);
