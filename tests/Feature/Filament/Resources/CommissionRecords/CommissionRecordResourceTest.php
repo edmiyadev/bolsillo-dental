@@ -363,3 +363,64 @@ it('forbids editing a commission record owned by another user with a 404 respons
     Livewire::test(EditCommissionRecord::class, ['record' => $otherRecord->id])
         ->assertNotFound();
 });
+
+it('calculates table column summaries for total, paid, and pending commissions', function () {
+    $this->actingAs(User::factory()->superAdmin()->create());
+
+    $paid = CommissionRecord::factory()->paid()->create(['calculated_earnings' => 1500.00]);
+    $pending = CommissionRecord::factory()->pending()->create(['calculated_earnings' => 500.00]);
+    $cancelled = CommissionRecord::factory()->cancelled()->create(['calculated_earnings' => 300.00]);
+
+    $component = Livewire::test(ListCommissionRecords::class)
+        ->assertTableColumnSummarySet('calculated_earnings', 'total', 2000.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'paid', 1500.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'pending', 500.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'cancelled', 300.00);
+
+    $column = $component->instance()->getTable()->getColumn('calculated_earnings');
+    $query = $component->instance()->getAllTableSummaryQuery();
+    expect($column->getSummarizer('cancelled')->query($query)->isVisible())->toBeTrue();
+});
+
+it('calculates table column summaries respecting active table filters', function () {
+    $this->actingAs(User::factory()->superAdmin()->create());
+
+    CommissionRecord::factory()->paid()->create([
+        'calculated_earnings' => 1500.00,
+        'worked_at' => '2026-02-15',
+    ]);
+    CommissionRecord::factory()->pending()->create([
+        'calculated_earnings' => 500.00,
+        'worked_at' => '2026-02-16',
+    ]);
+    // Outside filter range:
+    CommissionRecord::factory()->paid()->create([
+        'calculated_earnings' => 2000.00,
+        'worked_at' => '2026-01-10',
+    ]);
+
+    Livewire::test(ListCommissionRecords::class)
+        ->filterTable('worked_at', [
+            'from' => '2026-02-01',
+            'until' => '2026-02-28',
+        ])
+        ->assertTableColumnSummarySet('calculated_earnings', 'total', 2000.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'paid', 1500.00)
+        ->assertTableColumnSummarySet('calculated_earnings', 'pending', 500.00);
+});
+
+it('hides cancelled summary when there are no cancelled commissions', function () {
+    $this->actingAs(User::factory()->superAdmin()->create());
+
+    CommissionRecord::factory()->paid()->create(['calculated_earnings' => 1000.00]);
+    CommissionRecord::factory()->pending()->create(['calculated_earnings' => 500.00]);
+
+    $component = Livewire::test(ListCommissionRecords::class);
+    $column = $component->instance()->getTable()->getColumn('calculated_earnings');
+    $query = $component->instance()->getAllTableSummaryQuery();
+
+    $cancelledSummarizer = $column->getSummarizer('cancelled');
+    expect($cancelledSummarizer)->not->toBeNull();
+    expect($cancelledSummarizer->query($query)->isVisible())->toBeFalse();
+});
+

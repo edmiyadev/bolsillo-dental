@@ -26,10 +26,15 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Collection;
 
 class CommissionRecordsTable
 {
+    private static array $summarizeStyle = [
+        'style' => 'display: flex; justify-content: space-between; gap: 1rem; padding-top: 1px; padding-bottom: 1px;',
+    ];
+
     public static function configure(Table $table): Table
     {
         return $table
@@ -61,7 +66,32 @@ class CommissionRecordsTable
                     ->label(__('Calculated earnings'))
                     ->money('DOP', locale: 'es_DO')
                     ->sortable()
-                    ->summarize(Sum::make()->money('DOP', locale: 'es_DO')),
+                    ->summarize([
+                        Sum::make('total')
+                            ->label(__('Total').':')
+                            ->query(fn (QueryBuilder $query) => $query->whereIn('status', [
+                                CommissionStatus::Paid->value,
+                                CommissionStatus::Pending->value,
+                            ]))
+                            ->money('DOP', locale: 'es_DO')
+                            ->extraAttributes(self::$summarizeStyle),
+                        Sum::make('paid')
+                            ->label(__('Paid').':')
+                            ->query(fn (QueryBuilder $query) => $query->where('status', CommissionStatus::Paid->value))
+                            ->money('DOP', locale: 'es_DO')
+                            ->extraAttributes(self::$summarizeStyle),
+                        Sum::make('pending')
+                            ->label(__('Pending').':')
+                            ->query(fn (QueryBuilder $query) => $query->where('status', CommissionStatus::Pending->value))
+                            ->money('DOP', locale: 'es_DO')
+                            ->extraAttributes(self::$summarizeStyle),
+                        Sum::make('cancelled')
+                            ->label(__('Cancelled').':')
+                            ->query(fn (QueryBuilder $query) => $query->where('status', CommissionStatus::Cancelled->value))
+                            ->visible(fn (?Builder $query): bool => (bool) $query?->clone()->where('status', CommissionStatus::Cancelled->value)->exists())
+                            ->money('DOP', locale: 'es_DO')
+                            ->extraAttributes(self::$summarizeStyle),
+                    ]),
                 TextColumn::make('status')
                     ->label(__('Status'))
                     ->badge()
