@@ -391,9 +391,9 @@ it('forbids editing a commission record owned by another user with a 404 respons
 it('calculates table column summaries for total, paid, and pending commissions', function () {
     $this->actingAs(User::factory()->superAdmin()->create());
 
-    $paid = CommissionRecord::factory()->paid()->create(['calculated_earnings' => 1500.00]);
-    $pending = CommissionRecord::factory()->pending()->create(['calculated_earnings' => 500.00]);
-    $cancelled = CommissionRecord::factory()->cancelled()->create(['calculated_earnings' => 300.00]);
+    $paid = CommissionRecord::factory()->paid()->fixedCommission(1500.00)->create();
+    $pending = CommissionRecord::factory()->pending()->fixedCommission(500.00)->create();
+    $cancelled = CommissionRecord::factory()->cancelled()->fixedCommission(300.00)->create();
 
     $component = Livewire::test(ListCommissionRecords::class)
         ->assertTableColumnSummarySet('calculated_earnings', 'total', 2000.00)
@@ -409,17 +409,14 @@ it('calculates table column summaries for total, paid, and pending commissions',
 it('calculates table column summaries respecting active table filters', function () {
     $this->actingAs(User::factory()->superAdmin()->create());
 
-    CommissionRecord::factory()->paid()->create([
-        'calculated_earnings' => 1500.00,
+    CommissionRecord::factory()->paid()->fixedCommission(1500.00)->create([
         'worked_at' => '2026-02-15',
     ]);
-    CommissionRecord::factory()->pending()->create([
-        'calculated_earnings' => 500.00,
+    CommissionRecord::factory()->pending()->fixedCommission(500.00)->create([
         'worked_at' => '2026-02-16',
     ]);
     // Outside filter range:
-    CommissionRecord::factory()->paid()->create([
-        'calculated_earnings' => 2000.00,
+    CommissionRecord::factory()->paid()->fixedCommission(2000.00)->create([
         'worked_at' => '2026-01-10',
     ]);
 
@@ -436,8 +433,8 @@ it('calculates table column summaries respecting active table filters', function
 it('hides cancelled summary when there are no cancelled commissions', function () {
     $this->actingAs(User::factory()->superAdmin()->create());
 
-    CommissionRecord::factory()->paid()->create(['calculated_earnings' => 1000.00]);
-    CommissionRecord::factory()->pending()->create(['calculated_earnings' => 500.00]);
+    CommissionRecord::factory()->paid()->fixedCommission(1000.00)->create();
+    CommissionRecord::factory()->pending()->fixedCommission(500.00)->create();
 
     $component = Livewire::test(ListCommissionRecords::class);
     $column = $component->instance()->getTable()->getColumn('calculated_earnings');
@@ -447,4 +444,3 @@ it('hides cancelled summary when there are no cancelled commissions', function (
     expect($cancelledSummarizer)->not->toBeNull();
     expect($cancelledSummarizer->query($query)->isVisible())->toBeFalse();
 });
-
