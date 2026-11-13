@@ -4,6 +4,8 @@ namespace App\Filament\Resources\Patients\Schemas;
 
 use App\Enums\Gender;
 use App\Enums\IdentificationType;
+use App\Livewire\Patients\PatientOdontogram;
+use App\Models\Patient;
 use App\Support\MedicalHistoryCatalog;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -14,6 +16,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Livewire;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -112,6 +115,16 @@ class PatientForm
                                                     ->extraAttributes(['class' => 'mt-4']),
                                             ]),
                                     ]),
+                            ]),
+                        Tab::make(__('Odontogram'))
+                            ->icon('heroicon-o-clipboard-document-list')
+                            ->hiddenOn('create')
+                            ->badge(fn (?Patient $record): ?string => ($record && ! $record->hasOdontogram()) ? '!' : null)
+                            ->badgeColor('danger')
+                            ->badgeTooltip(fn (?Patient $record): ?string => ($record && ! $record->hasOdontogram()) ? __('Odontogram has no records yet') : null)
+                            ->schema([
+                                Livewire::make(PatientOdontogram::class, ['editable' => true])
+                                    ->columnSpanFull(),
                             ]),
                     ]),
             ]);

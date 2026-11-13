@@ -5,6 +5,7 @@ use App\Enums\OdontogramCondition;
 use App\Enums\OdontogramScope;
 use App\Enums\OdontogramStatus;
 use App\Models\OdontogramEntry;
+use App\Models\OdontogramSnapshot;
 use App\Models\Patient;
 use App\Support\OdontogramGeometryCatalog;
 use App\Support\OdontogramStateResolver;
@@ -109,4 +110,51 @@ it('resolves layered tooth state, blocked flag, bridges, and timeline views', fu
     expect($initialTooth16['polygons']['center']['color'])->toBe('#EF4444')
         ->and($initialTooth16['polygons']['center']['entryId'])->toBe($oldCaries->id)
         ->and($initialTooth16['hasEndodontics'])->toBeFalse();
+});
+
+it('layers unsaved draft entries after persisted entries and resolves frozen snapshots', function (): void {
+    $patient = Patient::factory()->create();
+
+    $persisted = OdontogramEntry::factory()->for($patient)->create([
+        'scope' => OdontogramScope::Surface,
+        'tooth_number' => 16,
+        'surfaces' => ['O'],
+        'condition_code' => OdontogramCondition::Caries,
+        'status' => OdontogramStatus::Finding,
+    ]);
+
+    $draft = new OdontogramEntry([
+        'patient_id' => $patient->id,
+        'scope' => OdontogramScope::Surface->value,
+        'tooth_number' => 16,
+        'surfaces' => ['O'],
+        'condition_code' => OdontogramCondition::Resin->value,
+        'status' => OdontogramStatus::Completed->value,
+    ]);
+
+    $resolver = app(OdontogramStateResolver::class);
+    $resolvedWithDraft = $resolver->resolve(collect([$persisted, $draft]), 'current');
+
+    expect($resolvedWithDraft['teeth'][16]['polygons']['center']['color'])->toBe('#3B82F6')
+        ->and($resolvedWithDraft['teeth'][16]['polygons']['center']['condition'])->toBe(OdontogramCondition::Resin);
+
+    $snapshot = OdontogramSnapshot::factory()->for($patient)->create([
+        'payload' => [
+            'entries' => [
+                [
+                    'id' => 10,
+                    'scope' => OdontogramScope::Surface->value,
+                    'tooth_number' => 16,
+                    'surfaces' => ['O'],
+                    'condition_code' => OdontogramCondition::Caries->value,
+                    'status' => OdontogramStatus::Finding->value,
+                ],
+            ],
+        ],
+    ]);
+
+    $resolvedSnapshot = $resolver->resolveFromSnapshot($snapshot);
+
+    expect($resolvedSnapshot['teeth'][16]['polygons']['center']['color'])->toBe('#EF4444')
+        ->and($resolvedSnapshot['teeth'][16]['polygons']['center']['condition'])->toBe(OdontogramCondition::Caries);
 });

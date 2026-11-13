@@ -6,10 +6,49 @@ use App\Enums\OdontogramCondition;
 use App\Enums\OdontogramScope;
 use App\Enums\OdontogramStatus;
 use App\Models\OdontogramEntry;
+use App\Models\OdontogramSnapshot;
 use Illuminate\Support\Collection;
 
 class OdontogramStateResolver
 {
+    /**
+     * Build the visual layer projection for a frozen snapshot.
+     *
+     * @return array{
+     *     teeth: array<int, array<string, mixed>>,
+     *     bridges: array<int, array<string, mixed>>,
+     *     archEntries: Collection<int, OdontogramEntry>,
+     * }
+     */
+    public function resolveFromSnapshot(OdontogramSnapshot $snapshot): array
+    {
+        $entries = collect($snapshot->payload['entries'] ?? [])
+            ->values()
+            ->map(function (array $item, int $index) use ($snapshot): OdontogramEntry {
+                $entry = new OdontogramEntry([
+                    'patient_id' => $snapshot->patient_id,
+                    'branch_id' => $item['branch_id'] ?? null,
+                    'appointment_id' => $item['appointment_id'] ?? null,
+                    'service_id' => $item['service_id'] ?? null,
+                    'dentist_id' => $item['dentist_id'] ?? null,
+                    'assistant_id' => $item['assistant_id'] ?? null,
+                    'scope' => $item['scope'],
+                    'tooth_number' => $item['tooth_number'] ?? null,
+                    'bridge_to_tooth' => $item['bridge_to_tooth'] ?? null,
+                    'arch' => $item['arch'] ?? null,
+                    'surfaces' => $item['surfaces'] ?? null,
+                    'condition_code' => $item['condition_code'],
+                    'status' => $item['status'],
+                    'notes' => $item['notes'] ?? null,
+                ]);
+                $entry->id = (int) ($item['id'] ?? ($index + 1));
+
+                return $entry;
+            });
+
+        return $this->resolve($entries, 'current');
+    }
+
     /**
      * Build the visual layer projection for all FDI teeth, bridges, and arch/mouth entries.
      *
@@ -28,7 +67,7 @@ class OdontogramStateResolver
                     ? $entry->status->isVisibleInInitialView()
                     : $entry->status->isActiveInCurrentView();
             })
-            ->sortBy('id')
+            ->sortBy(fn (OdontogramEntry $entry): int => $entry->id ?? PHP_INT_MAX)
             ->values();
 
         $teeth = [];

@@ -126,8 +126,11 @@ class PatientInfolist
                             ]),
                         Tab::make(__('Odontogram'))
                             ->icon('heroicon-o-clipboard-document-list')
+                            ->badge(fn (Patient $record): ?string => ! $record->hasOdontogram() ? '!' : null)
+                            ->badgeColor('danger')
+                            ->badgeTooltip(fn (Patient $record): ?string => ! $record->hasOdontogram() ? __('Odontogram has no records yet') : null)
                             ->schema([
-                                Livewire::make(PatientOdontogram::class)
+                                Livewire::make(PatientOdontogram::class, ['editable' => false])
                                     ->columnSpanFull(),
                             ]),
                     ]),

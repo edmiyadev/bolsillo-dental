@@ -2,17 +2,18 @@
 
 namespace App\Livewire\Patients;
 
-use App\Actions\Odontogram\CancelOdontogramEntryAction;
-use App\Actions\Odontogram\CompleteOdontogramEntryAction;
 use App\Actions\Odontogram\RecordOdontogramEntryAction;
+use App\Actions\Odontogram\SaveOdontogramSessionAction;
 use App\Enums\DentalArch;
 use App\Enums\OdontogramCondition;
 use App\Enums\OdontogramScope;
+use App\Enums\OdontogramSnapshotType;
 use App\Enums\OdontogramStatus;
 use App\Enums\RoleEnum;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\OdontogramEntry;
+use App\Models\OdontogramSnapshot;
 use App\Models\Patient;
 use App\Models\Service;
 use App\Models\User;
@@ -54,22 +55,126 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
 
     public Patient $record;
 
-    public string $dentitionTab = 'permanent';
+    public bool $editable = false;
 
-    public string $timelineMode = 'current';
+    public string $viewSubTab = 'current';
+
+    public ?int $selectedSnapshotId = null;
+
+    public string $dentitionTab = 'permanent';
 
     public string $interactionMode = 'mode_b';
 
     public string $quickCondition = 'caries';
 
-    public function mount(Patient $record): void
+    /**
+     * @var array<int, array<string, mixed>>
+     */
+    public array $pendingAdditions = [];
+
+    /**
+     * @var array<int, int>
+     */
+    public array $pendingCompletions = [];
+
+    /**
+     * @var array<int, int>
+     */
+    public array $pendingCancellations = [];
+
+    public bool $pendingClearCanvas = false;
+
+    public bool $saveAsNewInitial = false;
+
+    public function mount(Patient $record, bool $editable = false): void
     {
         $this->record = $record;
+        $this->editable = $editable;
+        $this->selectedSnapshotId = $this->record->odontogramSnapshots()->latest('id')->value('id');
     }
 
     public function canUpdatePatient(): bool
     {
-        return Auth::user()?->can('update_patients') ?? false;
+        return $this->editable && (Auth::user()?->can('update_patients') ?? false);
+    }
+
+    #[Computed]
+    public function hasInitialSnapshot(): bool
+    {
+        return $this->record->odontogramSnapshots()
+            ->where('type', OdontogramSnapshotType::Initial)
+            ->exists();
+    }
+
+    public function hasPendingChanges(): bool
+    {
+        return $this->pendingClearCanvas
+            || $this->pendingAdditions !== []
+            || $this->pendingCompletions !== []
+            || $this->pendingCancellations !== [];
+    }
+
+    public function pendingChangesCount(): int
+    {
+        return count($this->pendingAdditions)
+            + count($this->pendingCompletions)
+            + count($this->pendingCancellations)
+            + ($this->pendingClearCanvas ? 1 : 0);
+    }
+
+    /**
+     * @return Collection<int, OdontogramEntry>
+     */
+    public function effectiveEntries(): Collection
+    {
+        $entries = OdontogramEntry::query()
+            ->forPatient($this->record->id)
+            ->orderBy('id')
+            ->get();
+
+        if ($this->pendingClearCanvas) {
+            foreach ($entries as $entry) {
+                if ($entry->status->isActiveInCurrentView()) {
+                    $entry->status = OdontogramStatus::Superseded;
+                }
+            }
+        } else {
+            foreach ($entries as $entry) {
+                if (in_array($entry->id, $this->pendingCancellations, true)) {
+                    $entry->status = OdontogramStatus::Cancelled;
+                } elseif (in_array($entry->id, $this->pendingCompletions, true)) {
+                    $entry->status = OdontogramStatus::Completed;
+                    $this->applyDraftSupersedeEffects($entries, $entry);
+                }
+            }
+        }
+
+        foreach ($this->pendingAdditions as $addition) {
+            $draftEntry = new OdontogramEntry([
+                'patient_id' => $this->record->id,
+                'branch_id' => $addition['branch_id'] ?? null,
+                'appointment_id' => $addition['appointment_id'] ?? null,
+                'service_id' => $addition['service_id'] ?? null,
+                'dentist_id' => $addition['dentist_id'] ?? null,
+                'assistant_id' => $addition['assistant_id'] ?? null,
+                'scope' => $addition['scope'],
+                'tooth_number' => $addition['tooth_number'] ?? null,
+                'bridge_to_tooth' => $addition['bridge_to_tooth'] ?? null,
+                'arch' => $addition['arch'] ?? null,
+                'surfaces' => $addition['surfaces'] ?? null,
+                'condition_code' => $addition['condition_code'],
+                'status' => $addition['status'],
+                'notes' => $addition['notes'] ?? null,
+            ]);
+
+            if ($draftEntry->status === OdontogramStatus::Completed) {
+                $this->applyDraftSupersedeEffects($entries, $draftEntry);
+            }
+
+            $entries->push($draftEntry);
+        }
+
+        return $entries;
     }
 
     /**
@@ -82,12 +187,53 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
     #[Computed]
     public function projection(): array
     {
-        $entries = OdontogramEntry::query()
-            ->forPatient($this->record->id)
-            ->orderBy('id')
-            ->get();
+        return app(OdontogramStateResolver::class)->resolve($this->effectiveEntries(), 'current');
+    }
 
-        return app(OdontogramStateResolver::class)->resolve($entries, $this->timelineMode);
+    /**
+     * @return Collection<int, OdontogramSnapshot>
+     */
+    #[Computed]
+    public function snapshots(): Collection
+    {
+        return OdontogramSnapshot::query()
+            ->forPatient($this->record->id)
+            ->with('creator')
+            ->orderByDesc('id')
+            ->get();
+    }
+
+    #[Computed]
+    public function selectedSnapshot(): ?OdontogramSnapshot
+    {
+        if ($this->selectedSnapshotId !== null) {
+            $match = $this->snapshots->firstWhere('id', $this->selectedSnapshotId);
+
+            if ($match instanceof OdontogramSnapshot) {
+                return $match;
+            }
+        }
+
+        return $this->snapshots->first();
+    }
+
+    /**
+     * @return array{
+     *     teeth: array<int, array<string, mixed>>,
+     *     bridges: array<int, array<string, mixed>>,
+     *     archEntries: Collection<int, OdontogramEntry>,
+     * }|null
+     */
+    #[Computed]
+    public function snapshotProjection(): ?array
+    {
+        $snapshot = $this->selectedSnapshot;
+
+        if (! $snapshot instanceof OdontogramSnapshot) {
+            return null;
+        }
+
+        return app(OdontogramStateResolver::class)->resolveFromSnapshot($snapshot);
     }
 
     /**
@@ -164,27 +310,187 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
         /** @var OdontogramScope $scope */
         [$condition, $status, $scope] = $mapped;
 
+        $surfaces = $scope === OdontogramScope::Surface && filled($surface)
+            ? OdontogramGeometryCatalog::normalizeSurfaces($toothNumber, [$surface])
+            : null;
+
+        $matchingIndex = collect($this->pendingAdditions)->search(
+            fn (array $item): bool => (int) ($item['tooth_number'] ?? 0) === $toothNumber
+                && ($item['scope'] ?? null) === $scope->value
+                && ($item['condition_code'] ?? null) === $condition->value
+                && ($item['status'] ?? null) === $status->value
+                && ($item['surfaces'] ?? null) === $surfaces
+        );
+
+        if ($matchingIndex !== false) {
+            unset($this->pendingAdditions[$matchingIndex]);
+            $this->pendingAdditions = array_values($this->pendingAdditions);
+            unset($this->projection);
+
+            return;
+        }
+
         try {
-            app(RecordOdontogramEntryAction::class)->handle([
+            $normalized = app(RecordOdontogramEntryAction::class)->validateDraft([
                 'patient_id' => $this->record->id,
                 'scope' => $scope->value,
                 'tooth_number' => $toothNumber,
-                'surfaces' => $scope === OdontogramScope::Surface && filled($surface) ? [$surface] : null,
+                'surfaces' => $surfaces,
                 'condition_code' => $condition->value,
                 'status' => $status->value,
                 'dentist_id' => Auth::id(),
-            ]);
+            ], $this->effectiveEntries());
 
-            unset($this->projection);
-
-            Notification::make()
-                ->success()
-                ->title(__('Odontogram record saved'))
-                ->send();
+            $this->stageAddition($normalized);
         } catch (ValidationException $exception) {
             Notification::make()
                 ->danger()
                 ->title(collect($exception->errors())->flatten()->first() ?? __('Validation error'))
+                ->send();
+        }
+    }
+
+    public function removePendingAddition(string $draftKey): void
+    {
+        if (! $this->canUpdatePatient()) {
+            return;
+        }
+
+        $this->pendingAdditions = array_values(array_filter(
+            $this->pendingAdditions,
+            fn (array $item): bool => ($item['draft_key'] ?? '') !== $draftKey
+        ));
+
+        unset($this->projection);
+    }
+
+    public function removePendingCompletion(int $entryId): void
+    {
+        if (! $this->canUpdatePatient()) {
+            return;
+        }
+
+        $this->pendingCompletions = array_values(array_filter(
+            $this->pendingCompletions,
+            fn (int $id): bool => $id !== $entryId
+        ));
+
+        unset($this->projection);
+    }
+
+    public function removePendingCancellation(int $entryId): void
+    {
+        if (! $this->canUpdatePatient()) {
+            return;
+        }
+
+        $this->pendingCancellations = array_values(array_filter(
+            $this->pendingCancellations,
+            fn (int $id): bool => $id !== $entryId
+        ));
+
+        unset($this->projection);
+    }
+
+    public function clearCanvas(): void
+    {
+        if (! $this->canUpdatePatient()) {
+            return;
+        }
+
+        $this->pendingClearCanvas = true;
+        $this->pendingAdditions = [];
+        $this->pendingCompletions = [];
+        $this->pendingCancellations = [];
+
+        if ($this->hasInitialSnapshot) {
+            $this->saveAsNewInitial = true;
+        }
+
+        unset($this->projection);
+        $this->dispatch('odontogram-selection-cleared');
+
+        Notification::make()
+            ->warning()
+            ->title(__('Canvas cleared in draft. Save the odontogram to apply changes.'))
+            ->send();
+    }
+
+    public function discardPendingChanges(): void
+    {
+        $this->pendingAdditions = [];
+        $this->pendingCompletions = [];
+        $this->pendingCancellations = [];
+        $this->pendingClearCanvas = false;
+        $this->saveAsNewInitial = false;
+
+        unset($this->projection);
+        $this->dispatch('odontogram-selection-cleared');
+    }
+
+    public function selectSnapshot(int $snapshotId): void
+    {
+        $this->selectedSnapshotId = $snapshotId;
+        unset($this->selectedSnapshot, $this->snapshotProjection);
+    }
+
+    public function saveOdontogram(): void
+    {
+        if (! $this->canUpdatePatient()) {
+            Notification::make()
+                ->danger()
+                ->title(__('You are not authorized to update patient odontograms.'))
+                ->send();
+
+            return;
+        }
+
+        $isFirstInitial = ! $this->hasInitialSnapshot;
+        $asInitialSnapshot = $isFirstInitial || $this->saveAsNewInitial;
+
+        if (! $asInitialSnapshot && ! $this->hasPendingChanges()) {
+            Notification::make()
+                ->warning()
+                ->title(__('There are no pending changes to save.'))
+                ->send();
+
+            return;
+        }
+
+        try {
+            $result = app(SaveOdontogramSessionAction::class)->handle(
+                patient: $this->record,
+                pendingAdditions: $this->pendingAdditions,
+                pendingCompletions: $this->pendingCompletions,
+                pendingCancellations: $this->pendingCancellations,
+                clearCanvas: $this->pendingClearCanvas,
+                asInitialSnapshot: $asInitialSnapshot,
+            );
+
+            $this->discardPendingChanges();
+
+            unset(
+                $this->hasInitialSnapshot,
+                $this->projection,
+                $this->snapshots,
+                $this->selectedSnapshot,
+                $this->snapshotProjection,
+            );
+
+            if ($result['snapshot'] instanceof OdontogramSnapshot) {
+                $this->selectedSnapshotId = $result['snapshot']->id;
+            }
+
+            Notification::make()
+                ->success()
+                ->title($result['snapshot'] instanceof OdontogramSnapshot
+                    ? __('Initial odontogram saved and snapshot created')
+                    : __('Odontogram changes saved'))
+                ->send();
+        } catch (ValidationException $exception) {
+            Notification::make()
+                ->danger()
+                ->title(collect($exception->errors())->flatten()->first() ?? __('Could not save odontogram'))
                 ->send();
         }
     }
@@ -230,7 +536,7 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
                 $arguments = $action->getArguments();
 
                 try {
-                    app(RecordOdontogramEntryAction::class)->handle([
+                    $normalized = app(RecordOdontogramEntryAction::class)->validateDraft([
                         'patient_id' => $this->record->id,
                         'scope' => $arguments['scope'] ?? OdontogramScope::Surface->value,
                         'tooth_number' => $arguments['tooth_number'] ?? null,
@@ -244,14 +550,14 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
                         'dentist_id' => $data['dentist_id'] ?? null,
                         'assistant_id' => $data['assistant_id'] ?? null,
                         'notes' => $data['notes'] ?? null,
-                    ]);
+                    ], $this->effectiveEntries());
 
-                    unset($this->projection);
+                    $this->stageAddition($normalized);
                     $this->dispatch('odontogram-selection-cleared');
 
                     Notification::make()
-                        ->success()
-                        ->title(__('Treatment registered in odontogram'))
+                        ->info()
+                        ->title(__('Change added to odontogram draft'))
                         ->send();
                 } catch (ValidationException $exception) {
                     Notification::make()
@@ -325,7 +631,7 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
             ])
             ->action(function (Action $action, array $data): void {
                 try {
-                    app(RecordOdontogramEntryAction::class)->handle([
+                    $normalized = app(RecordOdontogramEntryAction::class)->validateDraft([
                         'patient_id' => $this->record->id,
                         'scope' => $data['scope'],
                         'arch' => $data['arch'],
@@ -337,13 +643,13 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
                         'dentist_id' => $data['dentist_id'] ?? null,
                         'assistant_id' => $data['assistant_id'] ?? null,
                         'notes' => $data['notes'] ?? null,
-                    ]);
+                    ], $this->effectiveEntries());
 
-                    unset($this->projection);
+                    $this->stageAddition($normalized);
 
                     Notification::make()
-                        ->success()
-                        ->title(__('General procedure registered'))
+                        ->info()
+                        ->title(__('Change added to odontogram draft'))
                         ->send();
                 } catch (ValidationException $exception) {
                     Notification::make()
@@ -428,31 +734,38 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
                     ->label(__('Mark as completed'))
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->color('info')
-                    ->requiresConfirmation()
-                    ->visible(fn (OdontogramEntry $entry): bool => $this->canUpdatePatient() && $entry->status === OdontogramStatus::Planned)
+                    ->visible(fn (OdontogramEntry $entry): bool => $this->canUpdatePatient()
+                        && ! $this->pendingClearCanvas
+                        && $entry->status === OdontogramStatus::Planned
+                        && ! in_array($entry->id, $this->pendingCompletions, true)
+                        && ! in_array($entry->id, $this->pendingCancellations, true))
                     ->action(function (OdontogramEntry $entry): void {
-                        app(CompleteOdontogramEntryAction::class)->handle($entry);
+                        $this->pendingCompletions[] = $entry->id;
+                        $this->pendingCompletions = array_values(array_unique($this->pendingCompletions));
                         unset($this->projection);
 
                         Notification::make()
-                            ->success()
-                            ->title(__('Treatment marked as completed'))
+                            ->info()
+                            ->title(__('Completion staged in draft'))
                             ->send();
                     }),
                 Action::make('cancelEntry')
                     ->label(__('Cancel'))
                     ->icon(Heroicon::OutlinedXCircle)
                     ->color('warning')
-                    ->requiresConfirmation()
                     ->visible(fn (OdontogramEntry $entry): bool => $this->canUpdatePatient()
-                        && ! in_array($entry->status, [OdontogramStatus::Superseded, OdontogramStatus::Cancelled], true))
+                        && ! $this->pendingClearCanvas
+                        && ! in_array($entry->status, [OdontogramStatus::Superseded, OdontogramStatus::Cancelled], true)
+                        && ! in_array($entry->id, $this->pendingCancellations, true)
+                        && ! in_array($entry->id, $this->pendingCompletions, true))
                     ->action(function (OdontogramEntry $entry): void {
-                        app(CancelOdontogramEntryAction::class)->handle($entry);
+                        $this->pendingCancellations[] = $entry->id;
+                        $this->pendingCancellations = array_values(array_unique($this->pendingCancellations));
                         unset($this->projection);
 
                         Notification::make()
-                            ->success()
-                            ->title(__('Record cancelled'))
+                            ->info()
+                            ->title(__('Cancellation staged in draft'))
                             ->send();
                     }),
                 DeleteAction::make('deleteEntry')
@@ -462,12 +775,87 @@ class PatientOdontogram extends Component implements HasActions, HasSchemas, Has
                     }),
             ])
             ->emptyStateHeading(__('No odontogram records yet'))
-            ->emptyStateDescription(__('Use Mode A for quick 1-click findings or Mode B to plan and execute treatments.'));
+            ->emptyStateDescription($this->editable
+                ? __('Use Mode A for quick 1-click findings or Mode B to plan and execute treatments.')
+                : __('This patient does not have saved odontogram records yet.'));
+    }
+
+    public function formatPendingItemLabel(array $item): string
+    {
+        $condition = OdontogramCondition::from((string) $item['condition_code'])->getLabel();
+        $scope = OdontogramScope::from((string) $item['scope']);
+
+        if ($scope === OdontogramScope::Range) {
+            return "{$condition}: {$item['tooth_number']} → {$item['bridge_to_tooth']}";
+        }
+
+        if ($scope === OdontogramScope::Surface && ! empty($item['surfaces'])) {
+            return "{$condition}: #{$item['tooth_number']} (".implode('-', $item['surfaces']).')';
+        }
+
+        if ($item['tooth_number'] !== null) {
+            return "{$condition}: #{$item['tooth_number']}";
+        }
+
+        $archLabel = filled($item['arch'] ?? null)
+            ? DentalArch::from((string) $item['arch'])->getLabel()
+            : __('General');
+
+        return "{$condition} ({$archLabel})";
     }
 
     public function render(): View
     {
         return view('livewire.patients.patient-odontogram');
+    }
+
+    /**
+     * @param  array<string, mixed>  $normalized
+     */
+    protected function stageAddition(array $normalized): void
+    {
+        $this->pendingAdditions[] = [
+            ...$normalized,
+            'draft_key' => uniqid('draft_', true),
+        ];
+
+        unset($this->projection);
+    }
+
+    /**
+     * @param  Collection<int, OdontogramEntry>  $entries
+     */
+    protected function applyDraftSupersedeEffects(Collection $entries, OdontogramEntry $completedEntry): void
+    {
+        if ($completedEntry->tooth_number === null) {
+            return;
+        }
+
+        if (in_array($completedEntry->condition_code, [OdontogramCondition::Crown, OdontogramCondition::Extraction], true)) {
+            foreach ($entries as $candidate) {
+                if ($candidate !== $completedEntry
+                    && $candidate->tooth_number === $completedEntry->tooth_number
+                    && $candidate->status === OdontogramStatus::Finding) {
+                    $candidate->status = OdontogramStatus::Superseded;
+                }
+            }
+
+            return;
+        }
+
+        if ($completedEntry->scope !== OdontogramScope::Surface || empty($completedEntry->surfaces)) {
+            return;
+        }
+
+        foreach ($entries as $candidate) {
+            if ($candidate !== $completedEntry
+                && $candidate->tooth_number === $completedEntry->tooth_number
+                && $candidate->scope === OdontogramScope::Surface
+                && $candidate->status === OdontogramStatus::Finding
+                && OdontogramGeometryCatalog::surfacesOverlap($candidate->surfaces ?? [], $completedEntry->surfaces)) {
+                $candidate->status = OdontogramStatus::Superseded;
+            }
+        }
     }
 
     /**

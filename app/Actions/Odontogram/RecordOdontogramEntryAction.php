@@ -9,6 +9,7 @@ use App\Enums\OdontogramScope;
 use App\Enums\OdontogramStatus;
 use App\Models\OdontogramEntry;
 use App\Support\OdontogramGeometryCatalog;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -17,6 +18,41 @@ class RecordOdontogramEntryAction
     public function __construct(
         protected SupersedeOverlappingFindingsAction $supersedeFindings,
     ) {}
+
+    /**
+     * Validate and normalize a draft odontogram entry without persisting it.
+     *
+     * @param  RecordOdontogramEntryData|array<string, mixed>  $data
+     * @param  Collection<int, OdontogramEntry>|null  $effectiveActiveEntries
+     * @return array<string, mixed>
+     *
+     * @throws ValidationException
+     */
+    public function validateDraft(RecordOdontogramEntryData|array $data, ?Collection $effectiveActiveEntries = null): array
+    {
+        $dto = $data instanceof RecordOdontogramEntryData
+            ? $data
+            : RecordOdontogramEntryData::fromArray($data);
+
+        $normalizedSurfaces = $this->validateAndNormalize($dto, $effectiveActiveEntries);
+
+        return [
+            'patient_id' => $dto->patientId,
+            'branch_id' => $dto->branchId,
+            'appointment_id' => $dto->appointmentId,
+            'service_id' => $dto->serviceId,
+            'dentist_id' => $dto->dentistId,
+            'assistant_id' => $dto->assistantId,
+            'scope' => $dto->scope->value,
+            'tooth_number' => $dto->toothNumber,
+            'bridge_to_tooth' => $dto->bridgeToTooth,
+            'arch' => $dto->arch?->value,
+            'surfaces' => $normalizedSurfaces,
+            'condition_code' => $dto->conditionCode->value,
+            'status' => $dto->status->value,
+            'notes' => $dto->notes,
+        ];
+    }
 
     /**
      * @param  RecordOdontogramEntryData|array<string, mixed>  $data
@@ -58,11 +94,12 @@ class RecordOdontogramEntryAction
     }
 
     /**
+     * @param  Collection<int, OdontogramEntry>|null  $effectiveActiveEntries
      * @return array<int, string>|null
      *
      * @throws ValidationException
      */
-    protected function validateAndNormalize(RecordOdontogramEntryData $dto): ?array
+    protected function validateAndNormalize(RecordOdontogramEntryData $dto, ?Collection $effectiveActiveEntries = null): ?array
     {
         if (! $dto->conditionCode->supportsScope($dto->scope)) {
             throw ValidationException::withMessages([
@@ -92,7 +129,7 @@ class RecordOdontogramEntryAction
             ]);
         }
 
-        $this->ensureToothIsNotBlocked($dto);
+        $this->ensureToothIsNotBlocked($dto, $effectiveActiveEntries);
 
         if ($dto->scope === OdontogramScope::Range) {
             $this->validateBridgeRange($dto);
@@ -124,27 +161,45 @@ class RecordOdontogramEntryAction
     }
 
     /**
+     * @param  Collection<int, OdontogramEntry>|null  $effectiveActiveEntries
+     *
      * @throws ValidationException
      */
-    protected function ensureToothIsNotBlocked(RecordOdontogramEntryData $dto): void
+    protected function ensureToothIsNotBlocked(RecordOdontogramEntryData $dto, ?Collection $effectiveActiveEntries = null): void
     {
         if (in_array($dto->conditionCode, [OdontogramCondition::Implant, OdontogramCondition::Bridge], true)) {
             return;
         }
 
-        $isBlocked = OdontogramEntry::query()
-            ->where('patient_id', $dto->patientId)
-            ->where('tooth_number', $dto->toothNumber)
-            ->where(function ($query): void {
-                $query->where(function ($inner): void {
-                    $inner->where('condition_code', OdontogramCondition::Missing)
-                        ->whereIn('status', [OdontogramStatus::PreExisting->value, OdontogramStatus::Finding->value]);
-                })->orWhere(function ($inner): void {
-                    $inner->where('condition_code', OdontogramCondition::Extraction)
-                        ->where('status', OdontogramStatus::Completed->value);
-                });
-            })
-            ->exists();
+        if ($effectiveActiveEntries !== null) {
+            $isBlocked = $effectiveActiveEntries->contains(function (OdontogramEntry $entry) use ($dto): bool {
+                if ($entry->tooth_number !== $dto->toothNumber) {
+                    return false;
+                }
+
+                if ($entry->condition_code === OdontogramCondition::Missing
+                    && in_array($entry->status, [OdontogramStatus::PreExisting, OdontogramStatus::Finding], true)) {
+                    return true;
+                }
+
+                return $entry->condition_code === OdontogramCondition::Extraction
+                    && $entry->status === OdontogramStatus::Completed;
+            });
+        } else {
+            $isBlocked = OdontogramEntry::query()
+                ->where('patient_id', $dto->patientId)
+                ->where('tooth_number', $dto->toothNumber)
+                ->where(function ($query): void {
+                    $query->where(function ($inner): void {
+                        $inner->where('condition_code', OdontogramCondition::Missing)
+                            ->whereIn('status', [OdontogramStatus::PreExisting->value, OdontogramStatus::Finding->value]);
+                    })->orWhere(function ($inner): void {
+                        $inner->where('condition_code', OdontogramCondition::Extraction)
+                            ->where('status', OdontogramStatus::Completed->value);
+                    });
+                })
+                ->exists();
+        }
 
         if ($isBlocked) {
             throw ValidationException::withMessages([

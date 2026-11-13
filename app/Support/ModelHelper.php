@@ -21,7 +21,7 @@ class ModelHelper
             return [];
         }
 
-        $defaultExclusions = ['Client', 'Tenant', 'Domain', 'BranchUser', 'OdontogramEntry'];
+        $defaultExclusions = ['Client', 'Tenant', 'Domain', 'BranchUser', 'OdontogramEntry', 'OdontogramSnapshot'];
         $allExclusions = array_unique(array_merge($defaultExclusions, $excludedModels));
 
         $modelFiles = File::files($modelPath);

@@ -235,17 +235,31 @@ it('supports soft delete, restore, and force delete on patients', function () {
     assertModelMissing($patient);
 });
 
-it('renders the odontogram tab and livewire component on view patient for authorized roles', function () {
+it('renders read-only odontogram on view patient, editable odontogram on edit patient, and hides odontogram on create patient', function () {
     $patient = Patient::factory()->create();
 
     $dentist = User::factory()->create();
     $dentist->assignRole(RoleEnum::Dentist->value);
     $this->actingAs($dentist);
 
+    // ViewPatient is read-only even for dentist
     Livewire::test(ViewPatient::class, ['record' => $patient->id])
         ->assertOk()
         ->assertSee(__('Odontogram'))
+        ->assertSeeLivewire(PatientOdontogram::class)
+        ->assertDontSee(__('Mode B: Plan / Complete Treatment'))
+        ->assertDontSee(__('Save Initial Odontogram'));
+
+    // EditPatient renders the editable odontogram
+    Livewire::test(EditPatient::class, ['record' => $patient->id])
+        ->assertOk()
+        ->assertSee(__('Odontogram'))
         ->assertSeeLivewire(PatientOdontogram::class);
+
+    // CreatePatient hides the Odontogram tab
+    Livewire::test(CreatePatient::class)
+        ->assertOk()
+        ->assertDontSeeLivewire(PatientOdontogram::class);
 
     $this->withoutMiddleware(InitializeTenancyByDomainOrSubdomain::class)
         ->get(PatientResource::getUrl('view', ['record' => $patient]))

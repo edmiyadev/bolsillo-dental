@@ -61,4 +61,17 @@ class Patient extends Model
     {
         return $this->hasMany(OdontogramEntry::class);
     }
+
+    /**
+     * @return HasMany<OdontogramSnapshot, $this>
+     */
+    public function odontogramSnapshots(): HasMany
+    {
+        return $this->hasMany(OdontogramSnapshot::class);
+    }
+
+    public function hasOdontogram(): bool
+    {
+        return $this->odontogramEntries()->exists() || $this->odontogramSnapshots()->exists();
+    }
 }

@@ -2,14 +2,18 @@
 
 use App\Actions\Odontogram\CancelOdontogramEntryAction;
 use App\Actions\Odontogram\CompleteOdontogramEntryAction;
+use App\Actions\Odontogram\CreateOdontogramSnapshotAction;
 use App\Actions\Odontogram\RecordOdontogramEntryAction;
+use App\Actions\Odontogram\SaveOdontogramSessionAction;
 use App\Enums\DentalArch;
 use App\Enums\OdontogramCondition;
 use App\Enums\OdontogramScope;
+use App\Enums\OdontogramSnapshotType;
 use App\Enums\OdontogramStatus;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\OdontogramEntry;
+use App\Models\OdontogramSnapshot;
 use App\Models\Patient;
 use App\Models\Service;
 use App\Models\User;
@@ -171,4 +175,87 @@ it('validates sealant, bridge same-arch rules, required service on treatments, a
 
     $cancelled = app(CancelOdontogramEntryAction::class)->handle($mouthEntry);
     expect($cancelled->status)->toBe(OdontogramStatus::Cancelled);
+});
+
+it('saves staged session changes in batch, creates initial snapshots, and supersedes prior active entries on canvas reset', function (): void {
+    $sessionAction = app(SaveOdontogramSessionAction::class);
+
+    $firstResult = $sessionAction->handle(
+        patient: $this->patient,
+        pendingAdditions: [
+            [
+                'scope' => OdontogramScope::Surface->value,
+                'tooth_number' => 16,
+                'surfaces' => ['O'],
+                'condition_code' => OdontogramCondition::Caries->value,
+                'status' => OdontogramStatus::Finding->value,
+                'dentist_id' => $this->user->id,
+            ],
+        ],
+    );
+
+    expect($firstResult['snapshot'])->toBeInstanceOf(OdontogramSnapshot::class)
+        ->and($firstResult['snapshot']->type)->toBe(OdontogramSnapshotType::Initial)
+        ->and($firstResult['snapshot']->payload['entries'])->toHaveCount(1);
+
+    $evolutionResult = $sessionAction->handle(
+        patient: $this->patient,
+        pendingAdditions: [
+            [
+                'scope' => OdontogramScope::Surface->value,
+                'tooth_number' => 16,
+                'surfaces' => ['O'],
+                'condition_code' => OdontogramCondition::Resin->value,
+                'status' => OdontogramStatus::Completed->value,
+                'service_id' => $this->service->id,
+                'dentist_id' => $this->user->id,
+            ],
+        ],
+        asInitialSnapshot: false,
+    );
+
+    expect($evolutionResult['snapshot'])->toBeNull()
+        ->and($this->patient->odontogramSnapshots()->count())->toBe(1);
+
+    $resetResult = $sessionAction->handle(
+        patient: $this->patient,
+        pendingAdditions: [
+            [
+                'scope' => OdontogramScope::Tooth->value,
+                'tooth_number' => 21,
+                'condition_code' => OdontogramCondition::Fracture->value,
+                'status' => OdontogramStatus::Finding->value,
+                'dentist_id' => $this->user->id,
+            ],
+        ],
+        clearCanvas: true,
+        asInitialSnapshot: true,
+    );
+
+    expect($resetResult['snapshot'])->toBeInstanceOf(OdontogramSnapshot::class)
+        ->and($resetResult['snapshot']->title)->toBe(__('Initial Odontogram #:number', ['number' => 2]))
+        ->and($resetResult['snapshot']->payload['entries'])->toHaveCount(1)
+        ->and($firstResult['snapshot']->fresh()->payload['entries'])->toHaveCount(1)
+        ->and(OdontogramEntry::query()->forPatient($this->patient->id)->activeInCurrentView()->count())->toBe(1);
+});
+
+it('captures a standalone snapshot of active entries only', function (): void {
+    OdontogramEntry::factory()->for($this->patient)->create([
+        'tooth_number' => 11,
+        'surfaces' => ['V'],
+        'condition_code' => OdontogramCondition::Caries,
+        'status' => OdontogramStatus::Finding,
+    ]);
+
+    OdontogramEntry::factory()->for($this->patient)->create([
+        'tooth_number' => 12,
+        'surfaces' => ['M'],
+        'condition_code' => OdontogramCondition::Caries,
+        'status' => OdontogramStatus::Superseded,
+    ]);
+
+    $snapshot = app(CreateOdontogramSnapshotAction::class)->handle($this->patient);
+
+    expect($snapshot->payload['entries'])->toHaveCount(1)
+        ->and($snapshot->payload['entries'][0]['tooth_number'])->toBe(11);
 });

@@ -3,10 +3,12 @@
 use App\Enums\DentalArch;
 use App\Enums\OdontogramCondition;
 use App\Enums\OdontogramScope;
+use App\Enums\OdontogramSnapshotType;
 use App\Enums\OdontogramStatus;
 use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\OdontogramEntry;
+use App\Models\OdontogramSnapshot;
 use App\Models\Patient;
 use App\Models\Service;
 use App\Models\User;
@@ -94,5 +96,36 @@ it('soft deletes odontogram entries and excludes OdontogramEntry from ModelHelpe
     $entry->delete();
     assertSoftDeleted($entry);
 
-    expect(ModelHelper::getModelsWithExclusions())->not->toContain('OdontogramEntry');
+    expect(ModelHelper::getModelsWithExclusions())
+        ->not->toContain('OdontogramEntry')
+        ->not->toContain('OdontogramSnapshot');
+});
+
+it('tracks odontogram presence on patient and persists immutable snapshots', function (): void {
+    $patient = Patient::factory()->create();
+
+    expect($patient->hasOdontogram())->toBeFalse();
+
+    $snapshot = OdontogramSnapshot::factory()->for($patient)->create([
+        'type' => OdontogramSnapshotType::Initial,
+        'title' => 'Odontograma Inicial',
+        'payload' => [
+            'entries' => [
+                [
+                    'id' => 1,
+                    'scope' => OdontogramScope::Surface->value,
+                    'tooth_number' => 16,
+                    'surfaces' => ['O'],
+                    'condition_code' => OdontogramCondition::Caries->value,
+                    'status' => OdontogramStatus::Finding->value,
+                ],
+            ],
+        ],
+    ]);
+
+    expect($patient->fresh()->hasOdontogram())->toBeTrue()
+        ->and($snapshot->type)->toBe(OdontogramSnapshotType::Initial)
+        ->and($snapshot->created_by)->toBe($this->user->id)
+        ->and($snapshot->patient->id)->toBe($patient->id)
+        ->and($patient->odontogramSnapshots()->count())->toBe(1);
 });
