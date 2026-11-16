@@ -10,10 +10,10 @@ use App\Support\MedicalHistoryCatalog;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Component;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Livewire;
@@ -131,7 +131,7 @@ class PatientForm
     }
 
     /**
-     * Build predefined question toggle button and conditional detail components.
+     * Build predefined question radio and conditional detail components.
      *
      * @return array<Component>
      */
@@ -145,18 +145,14 @@ class PatientForm
             $hasDetail = $config['has_detail'];
 
             $components[] = Group::make([
-                ToggleButtons::make("medical_data.{$key}.value")
+                Radio::make("medical_data.{$key}.value")
                     ->label($config['label'])
                     ->boolean()
                     ->in([1, 0, true, false])
                     ->inline()
-                    ->grouped()
+                    ->inlineLabel()
                     ->default(false)
                     ->live()
-                    ->colors([
-                        1 => 'primary',
-                        0 => 'gray',
-                    ])
                     ->columnSpanFull(),
                 Hidden::make("medical_data.{$key}.is_critical")
                     ->default($isCritical),

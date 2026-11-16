@@ -58,8 +58,10 @@ class UserResource extends Resource
             ])
             ->with(['roles', 'branches'])
             ->where('email', '!=', $supportEmail)
-            ->whereDoesntHave('roles', fn (Builder $query): Builder => $query
-                ->where('name', RoleEnum::SuperAdmin->value)
+            ->whereDoesntHave(
+                'roles',
+                fn (Builder $query): Builder => $query
+                    ->where('name', RoleEnum::SuperAdmin->value)
             );
     }
 
